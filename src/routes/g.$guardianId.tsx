@@ -123,7 +123,8 @@ function GuardianPublicPage() {
             </p>
           )}
           <p className="mt-4 text-xs text-[color:var(--ivory-dim)]">
-            Link público: <code className="text-[color:var(--ivory)]">{guardian.canonicalPath}</code>
+            Link público:{" "}
+            <code className="text-[color:var(--ivory)]">{guardian.canonicalPath}</code>
           </p>
         </div>
 
@@ -142,7 +143,10 @@ function GuardianPublicPage() {
             <List values={guardian.prices} empty="Preços ainda não publicados." />
           </InfoCard>
           <InfoCard title="Formas de pagamento">
-            <List values={guardian.paymentMethods} empty="Formas de pagamento ainda não publicadas." />
+            <List
+              values={guardian.paymentMethods}
+              empty="Formas de pagamento ainda não publicadas."
+            />
           </InfoCard>
           <InfoCard title="Agenda">
             <List values={guardian.scheduleRules} empty="Regras de agenda ainda não publicadas." />
