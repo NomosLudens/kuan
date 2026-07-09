@@ -2,7 +2,7 @@
 # Run `bun run build` before `wrangler deploy`. The TanStack Start (Vite) build
 # emits the Worker entry to `dist/server/server.js` and static assets to `dist/client`.
 
-name = "totalidade"
+name = "kuan"
 main = "dist/server/server.js"
 compatibility_date = "2026-06-24"
 compatibility_flags = ["nodejs_compat"]
