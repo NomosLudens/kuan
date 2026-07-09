@@ -1,7 +1,13 @@
 import { useEffect, useRef } from "react";
 
 export type KittState =
-  "idle" | "listening" | "transcribing" | "thinking" | "radar" | "speaking" | "unavailable";
+  | "idle"
+  | "listening"
+  | "transcribing"
+  | "thinking"
+  | "radar"
+  | "speaking"
+  | "unavailable";
 
 export type KittVariant = "ruby" | "ember" | "auto";
 
