@@ -1,8 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type KlineLedgerResult =
-  | { ok: true; eventId?: string }
-  | { ok: false; error: string; cause?: unknown };
+  { ok: true; eventId?: string } | { ok: false; error: string; cause?: unknown };
 
 export async function createBoundaryHandoffCandidate(input: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,7 +9,12 @@ export async function createBoundaryHandoffCandidate(input: {
   userId: string;
   threadId?: string | null;
   targetApp: "klio-coder" | "kuan-yin";
-  reason: "coding_scope" | "commercial_scope" | "legacy_klio_scope";
+  reason:
+    | "coding_scope"
+    | "personal_kaline_scope"
+    | "out_of_scope"
+    | "commercial_scope"
+    | "legacy_klio_scope";
   latestUserText: string;
   boundaryMessage: string;
 }): Promise<KlineLedgerResult> {

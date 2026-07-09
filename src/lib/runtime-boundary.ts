@@ -21,9 +21,18 @@ export type RuntimeBoundaryDecision =
 const CODE_MESSAGE =
   "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.";
 const PERSONAL_MESSAGE = "Esse pedido pertence à Kaline pessoal, não à Kuan-Yin comercial.";
+const OUT_OF_SCOPE_MESSAGE = "Esse pedido está fora do escopo da Kuan-Yin comercial.";
 
 export function resolveRuntimeBoundary(input: RuntimeBoundaryInput): RuntimeBoundaryDecision {
-  const { surface, mode, latestUserText } = input;
+  const { facet, surface, mode, latestUserText } = input;
+
+  if (facet === "kharis" || surface === "kharis") {
+    return {
+      blocked: true,
+      reason: "personal_kaline_scope",
+      message: PERSONAL_MESSAGE,
+    };
+  }
 
   if (surface === "klio" || mode === "pedagogical") {
     return {
@@ -47,14 +56,23 @@ export function resolveRuntimeBoundary(input: RuntimeBoundaryInput): RuntimeBoun
       };
     }
 
-    const outOfScopeRegex =
-      /\b(klio|códice|codice|drive|jurídico|juridico|legislação|legislacao|jurisprudência|jurisprudencia|corpore sano|treino|treinos|diagnóstico clínico|diagnostico clinico)\b/i;
-    if (outOfScopeRegex.test(lowerText)) {
+    const klioRegex = /\b(klio)\b/i;
+    if (klioRegex.test(lowerText)) {
       return {
         blocked: true,
         targetApp: "klio-coder",
         reason: "out_of_scope",
         message: CODE_MESSAGE,
+      };
+    }
+
+    const outOfScopeRegex =
+      /\b(códice|codice|drive|jurídico|juridico|legislação|legislacao|jurisprudência|jurisprudencia|corpore sano|treino|treinos|diagnóstico clínico|diagnostico clinico)\b/i;
+    if (outOfScopeRegex.test(lowerText)) {
+      return {
+        blocked: true,
+        reason: "out_of_scope",
+        message: OUT_OF_SCOPE_MESSAGE,
       };
     }
 
