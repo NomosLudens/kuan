@@ -29,6 +29,7 @@ import { Route as AuthenticatedModoFalaRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedLivrosRouteImport } from './routes/_authenticated/livros'
 import { Route as AuthenticatedLegislacaoRouteImport } from './routes/_authenticated/legislacao'
 import { Route as AuthenticatedKuanYinRouteImport } from './routes/_authenticated/kuan-yin'
+import { Route as AuthenticatedKuanRouteImport } from './routes/_authenticated/kuan'
 import { Route as AuthenticatedKlioEstudoRouteImport } from './routes/_authenticated/klio-estudo'
 import { Route as AuthenticatedKlioRouteImport } from './routes/_authenticated/klio'
 import { Route as AuthenticatedKharisRouteImport } from './routes/_authenticated/kharis'
@@ -166,6 +167,11 @@ const AuthenticatedLegislacaoRoute = AuthenticatedLegislacaoRouteImport.update({
 const AuthenticatedKuanYinRoute = AuthenticatedKuanYinRouteImport.update({
   id: '/kuan-yin',
   path: '/kuan-yin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedKuanRoute = AuthenticatedKuanRouteImport.update({
+  id: '/kuan',
+  path: '/kuan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedKlioEstudoRoute = AuthenticatedKlioEstudoRouteImport.update({
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/kharis': typeof AuthenticatedKharisRoute
   '/klio': typeof AuthenticatedKlioRouteWithChildren
   '/klio-estudo': typeof AuthenticatedKlioEstudoRoute
+  '/kuan': typeof AuthenticatedKuanRoute
   '/kuan-yin': typeof AuthenticatedKuanYinRouteWithChildren
   '/legislacao': typeof AuthenticatedLegislacaoRoute
   '/livros': typeof AuthenticatedLivrosRoute
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/kharis': typeof AuthenticatedKharisRoute
   '/klio': typeof AuthenticatedKlioRouteWithChildren
   '/klio-estudo': typeof AuthenticatedKlioEstudoRoute
+  '/kuan': typeof AuthenticatedKuanRoute
   '/legislacao': typeof AuthenticatedLegislacaoRoute
   '/livros': typeof AuthenticatedLivrosRoute
   '/modo-fala': typeof AuthenticatedModoFalaRoute
@@ -511,6 +519,7 @@ export interface FileRoutesById {
   '/_authenticated/kharis': typeof AuthenticatedKharisRoute
   '/_authenticated/klio': typeof AuthenticatedKlioRouteWithChildren
   '/_authenticated/klio-estudo': typeof AuthenticatedKlioEstudoRoute
+  '/_authenticated/kuan': typeof AuthenticatedKuanRoute
   '/_authenticated/kuan-yin': typeof AuthenticatedKuanYinRouteWithChildren
   '/_authenticated/legislacao': typeof AuthenticatedLegislacaoRoute
   '/_authenticated/livros': typeof AuthenticatedLivrosRoute
@@ -571,6 +580,7 @@ export interface FileRouteTypes {
     | '/kharis'
     | '/klio'
     | '/klio-estudo'
+    | '/kuan'
     | '/kuan-yin'
     | '/legislacao'
     | '/livros'
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/kharis'
     | '/klio'
     | '/klio-estudo'
+    | '/kuan'
     | '/legislacao'
     | '/livros'
     | '/modo-fala'
@@ -687,6 +698,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kharis'
     | '/_authenticated/klio'
     | '/_authenticated/klio-estudo'
+    | '/_authenticated/kuan'
     | '/_authenticated/kuan-yin'
     | '/_authenticated/legislacao'
     | '/_authenticated/livros'
@@ -885,6 +897,13 @@ declare module '@tanstack/react-router' {
       path: '/kuan-yin'
       fullPath: '/kuan-yin'
       preLoaderRoute: typeof AuthenticatedKuanYinRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/kuan': {
+      id: '/_authenticated/kuan'
+      path: '/kuan'
+      fullPath: '/kuan'
+      preLoaderRoute: typeof AuthenticatedKuanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/klio-estudo': {
@@ -1227,6 +1246,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKharisRoute: typeof AuthenticatedKharisRoute
   AuthenticatedKlioRoute: typeof AuthenticatedKlioRouteWithChildren
   AuthenticatedKlioEstudoRoute: typeof AuthenticatedKlioEstudoRoute
+  AuthenticatedKuanRoute: typeof AuthenticatedKuanRoute
   AuthenticatedKuanYinRoute: typeof AuthenticatedKuanYinRouteWithChildren
   AuthenticatedLegislacaoRoute: typeof AuthenticatedLegislacaoRoute
   AuthenticatedLivrosRoute: typeof AuthenticatedLivrosRoute
@@ -1257,6 +1277,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKharisRoute: AuthenticatedKharisRoute,
   AuthenticatedKlioRoute: AuthenticatedKlioRouteWithChildren,
   AuthenticatedKlioEstudoRoute: AuthenticatedKlioEstudoRoute,
+  AuthenticatedKuanRoute: AuthenticatedKuanRoute,
   AuthenticatedKuanYinRoute: AuthenticatedKuanYinRouteWithChildren,
   AuthenticatedLegislacaoRoute: AuthenticatedLegislacaoRoute,
   AuthenticatedLivrosRoute: AuthenticatedLivrosRoute,

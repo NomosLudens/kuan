@@ -1,5 +1,4 @@
-import { kalineWordmark } from "@/lib/brand-assets";
-import { kalineApple } from "@/lib/brand-assets";
+import { kuanyinApple } from "@/lib/brand-assets";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,13 +77,13 @@ function AuthPage() {
       <div className="w-full max-w-md rounded-2xl border border-[color:var(--border)] bg-card/60 p-6 backdrop-blur sm:p-8">
         <div className="mb-6 text-center">
           <img
-            src={kalineApple.url}
-            alt="Kaline"
+            src={kuanyinApple.url}
+            alt="Kuan-Yin"
             className="mx-auto h-24 w-24 apple-glow sm:h-28 sm:w-28"
           />
-          <img src={kalineWordmark.url} alt="K∧LINE" className="mx-auto mt-3 h-7 w-auto sm:h-8" />
-          <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-[color:var(--ivory-dim)] sm:text-xs">
-            Presença que importa
+          <h1 className="serif mt-3 text-2xl text-[color:var(--ivory)]">Kuan-Yin</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-[color:var(--ivory-dim)] sm:text-xs">
+            Presença comercial para Guardiões do Negócio
           </p>
         </div>
 

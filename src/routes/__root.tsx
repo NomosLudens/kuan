@@ -116,7 +116,7 @@ function ChunkErrorFallback() {
         <div className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#C98A65] shadow-[0_0_18px_rgba(201,138,101,0.8)]" />
         <div className="min-w-0 flex-1 space-y-3">
           <div className="space-y-1">
-            <h1 className="serif text-xl text-[#F7EFE4]">Kaline precisa atualizar</h1>
+            <h1 className="serif text-xl text-[#F7EFE4]">Kuan-Yin precisa atualizar</h1>
             <p className="text-sm leading-relaxed text-[#F7EFE4]/75">
               Uma nova versão está pronta. Atualize agora para abrir mais rápido, ou deixe para
               depois.
@@ -221,16 +221,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#08080E" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Kaline" },
-      { name: "application-name", content: "Kaline" },
+      { name: "apple-mobile-web-app-title", content: "Kuan-Yin" },
+      { name: "application-name", content: "Kuan-Yin" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { title: "K∧LINE — presença viva" },
+      { title: "Kuan-Yin — presença comercial" },
       {
         name: "description",
-        content: "K∧LINE: cockpit pessoal com Kaline, suas facetas e Ká como guardião de origem.",
+        content: "Kuan-Yin: presença comercial para Guardiões do Negócio.",
       },
-      { property: "og:title", content: "K∧LINE — presença viva" },
-      { property: "og:description", content: "Cockpit pessoal com Kaline e suas facetas." },
+      { property: "og:title", content: "Kuan-Yin — presença comercial" },
+      { property: "og:description", content: "Atendimento, agenda, pedidos e pagamentos pendentes com confirmação humana." },
       { property: "og:type", content: "website" },
     ],
     links: [
