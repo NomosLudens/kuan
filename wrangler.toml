@@ -1,0 +1,87 @@
+# Cloudflare Workers deploy config for Kaline Totalidade.
+# Run `bun run build` before `wrangler deploy`. The TanStack Start (Vite) build
+# emits the Worker entry to `dist/server/server.js` and static assets to `dist/client`.
+
+name = "totalidade"
+main = "dist/server/server.js"
+compatibility_date = "2026-06-24"
+compatibility_flags = ["nodejs_compat"]
+keep_vars = true
+
+[assets]
+directory = "dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[vars]
+# Public build-time variables are injected by Vite from the build environment.
+# Runtime secrets must be configured with `wrangler secret put`.
+APP_ENV = "production"
+APP_PUBLIC_URL = "https://kaline.nomosludens.ia.br"
+
+# Runtime Supabase config. Use `SUPABASE_PUBLISHABLE_KEY` for the anon key used
+# by server-side auth checks; `SUPABASE_SERVICE_ROLE_KEY` must stay a secret.
+SUPABASE_URL = "https://eljftgvjjeynkhijdthq.supabase.co"
+
+# OpenRouter model defaults for Tonyus-dev/totalidade.
+AI_PROVIDER = "openrouter"
+AI_FALLBACK_PROVIDER = "openrouter"
+OPENROUTER_APP_NAME = "Totalidade"
+OPENROUTER_SITE_URL = "https://kaline.nomosludens.ia.br"
+OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"
+OPENROUTER_MODEL_PRIMARY = "deepseek/deepseek-v4-flash"
+OPENROUTER_MODEL_FALLBACK_1 = "openai/gpt-5-nano"
+OPENROUTER_MODEL_FALLBACK_2 = "openai/gpt-4.1-nano"
+OPENROUTER_CHAT_MODEL = "deepseek/deepseek-v4-flash"
+OPENROUTER_FAST_MODEL = "openai/gpt-5-nano"
+OPENROUTER_REASONING_MODEL = "openai/gpt-4.1-nano"
+OPENROUTER_TRANSCRIBE_MODEL = "openai/whisper-large-v3-turbo"
+OPENROUTER_IMAGE_MODEL = "google/gemini-2.5-flash-lite"
+OPENROUTER_TTS_MODEL = "hexgrad/kokoro-82m"
+OPENROUTER_TTS_VOICE = "pf_dora"
+
+OPENROUTER_TRIAGE_MODEL = "openai/gpt-5-nano"
+OPENROUTER_TRIAGE_FALLBACK_MODEL = "deepseek/deepseek-v4-flash"
+OPENROUTER_TEXT_MODEL_PRIMARY = "deepseek/deepseek-v4-flash"
+OPENROUTER_TEXT_MODEL_FALLBACK_1 = "openai/gpt-4.1-nano"
+OPENROUTER_TEXT_MODEL_FALLBACK_2 = "openai/gpt-5-nano"
+OPENROUTER_VISION_MODEL_PRIMARY = "google/gemini-2.5-flash-lite"
+OPENROUTER_VISION_MODEL_FALLBACK_1 = "qwen/qwen3.7-plus"
+OPENROUTER_VISION_MODEL_FALLBACK_2 = "openai/gpt-4.1-nano"
+OPENROUTER_VISION_MAX_IMAGE_BYTES = "4194304"
+OPENROUTER_VISION_TIMEOUT_MS = "30000"
+OPENROUTER_TTS_PRIMARY_MODEL = "hexgrad/kokoro-82m"
+OPENROUTER_TTS_FALLBACK_MODEL = "x-ai/grok-voice-tts-1.0"
+OPENROUTER_TTS_DEFAULT_FORMAT = "mp3"
+OPENROUTER_TTS_TIMEOUT_MS = "30000"
+OPENROUTER_TTS_MAX_CHARS = "1200"
+OPENROUTER_STT_PRIMARY_MODEL = "openai/whisper-large-v3-turbo"
+OPENROUTER_STT_FALLBACK_MODEL = "qwen/qwen3-asr-flash-2026-02-10"
+OPENROUTER_STT_DEFAULT_FORMAT = "mp3"
+OPENROUTER_STT_TIMEOUT_MS = "30000"
+OPENROUTER_STT_MAX_SECONDS = "40"
+
+VOICE_PROVIDER = "openrouter"
+STT_PROVIDER = "openrouter"
+KALINE_STT_PROVIDER = "openrouter"
+KALINE_STT_LANGUAGE = "pt"
+KALINE_TTS_ENABLED = "true"
+KALINE_RADAR_ENABLED = "true"
+KALINE_RADAR_MAX_RESULTS = "5"
+KALINE_RADAR_SEARCH_ENGINE = "auto"
+OPENROUTER_RADAR_MODEL = "deepseek/deepseek-v4-flash"
+OPENROUTER_RADAR_FALLBACK_MODEL = "openai/gpt-4.1-nano"
+KUANYIN_IMAGE_READING_ENABLED = "true"
+KUANYIN_PAYMENT_PROOF_READING_ENABLED = "true"
+KUANYIN_IMAGE_READING_MODEL = "google/gemini-2.5-flash-lite"
+KUANYIN_IMAGE_READING_FALLBACK_MODEL = "qwen/qwen3.7-plus"
+KALINE_PROVIDER_TIMEOUT_MS = "30000"
+KALINE_CHAT_HISTORY_LIMIT = "12"
+KALINE_ATTACHMENT_MAX_BYTES = "8388608"
+KALINE_KUANYIN_PUBLIC_DAILY_CAP = "200"
+
+[observability]
+enabled = true
+
+[placement]
+mode = "smart"

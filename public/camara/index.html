@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c0a08" />
+    <title>Câmara do Eco</title>
+    <style>
+      :root {
+        --bg: #0c0a08;
+        --card: rgba(40, 32, 23, 0.55);
+        --card-strong: rgba(40, 32, 23, 0.85);
+        --border: rgba(255, 68, 0, 0.22);
+        --gold: #ff4400; /* --kaline: cor real do domínio Kaline */
+        --gold-dim: rgba(255, 68, 0, 0.15);
+        --text: #ece3d4;
+        --text-dim: #b6a88f;
+        --text-faint: #847661;
+        --emerald: #34d399;
+        --emerald-dim: rgba(52, 211, 153, 0.15);
+        --danger: #f4879a;
+        --danger-dim: rgba(244, 135, 154, 0.15);
+        --radius: 18px;
+        --radius-sm: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      .app {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 16px 90px;
+      }
+      h1,
+      h2 {
+        font-family: Georgia, "Times New Roman", serif;
+        margin: 0;
+        color: var(--gold);
+        font-weight: 500;
+      }
+      h1 {
+        font-size: 1.85rem;
+        margin-bottom: 4px;
+      }
+      h2 {
+        font-size: 1.15rem;
+        color: var(--text);
+        margin-bottom: 12px;
+      }
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+      .dim {
+        color: var(--text-dim);
+      }
+      .faint {
+        color: var(--text-faint);
+      }
+      .small {
+        font-size: 0.8rem;
+      }
+      .italic {
+        font-style: italic;
+      }
+      .hide {
+        display: none !important;
+      }
+      .row-between {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+      .grid.two {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 480px) {
+        .grid.two {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+      }
+      .pick {
+        text-align: left;
+        cursor: pointer;
+        color: inherit;
+        transition: border-color 0.2s;
+      }
+      .pick:hover {
+        border-color: var(--gold);
+      }
+      .pick .icon {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .pick .title {
+        display: block;
+        font-family: Georgia, serif;
+        font-size: 1.1rem;
+        color: var(--text);
+      }
+      .pick .desc {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: rgba(0, 0, 0, 0.25);
+        color: var(--text);
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        margin: 0 0 12px;
+      }
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+      label {
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--gold);
+        margin-bottom: 6px;
+      }
+      .btn {
+        border: 0;
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--gold);
+        color: #180f04;
+      }
+      .btn.outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--text-dim);
+        padding: 6px 10px;
+        font-size: 0.78rem;
+      }
+      .btn.danger {
+        background: var(--danger-dim);
+        color: var(--danger);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .link {
+        background: none;
+        border: 0;
+        color: var(--text-dim);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 0;
+      }
+      .link:hover {
+        color: var(--gold);
+      }
+      .list {
+        list-style: none;
+        margin: 0 0 16px;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+      .item {
+        background: rgba(40, 32, 23, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 10px;
+      }
+      .item .titulo {
+        font-family: Georgia, serif;
+        font-size: 1.02rem;
+        color: var(--text);
+        word-break: break-word;
+      }
+      .pill {
+        display: inline-block;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        margin-left: 6px;
+      }
+      .pill.gold {
+        background: var(--gold-dim);
+        color: var(--gold);
+        border-color: transparent;
+      }
+      .pill.emerald {
+        background: var(--emerald-dim);
+        color: var(--emerald);
+        border-color: transparent;
+      }
+      .pill.danger {
+        background: var(--danger-dim);
+        color: var(--danger);
+        border-color: transparent;
+      }
+      .icon-btn {
+        background: none;
+        border: 0;
+        color: var(--text-dim);
+        cursor: pointer;
+        padding: 4px;
+        font-size: 1rem;
+      }
+      .icon-btn:hover {
+        color: var(--danger);
+      }
+      .view {
+        animation: fade 0.15s ease;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .record-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px 18px;
+        margin-bottom: 20px;
+      }
+      .record-btn {
+        width: 128px;
+        height: 128px;
+        border-radius: 999px;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+      }
+      .record-btn:hover {
+        transform: scale(1.05);
+      }
+      .record-btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+        transform: none;
+      }
+      .record-btn img {
+        width: 108px;
+        height: 108px;
+        object-fit: contain;
+      }
+      .record-btn.recording {
+        box-shadow: 0 0 0 4px var(--gold);
+        animation: pulse 1.6s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow:
+            0 0 0 4px var(--gold),
+            0 0 24px rgba(255, 68, 0, 0.4);
+        }
+        50% {
+          box-shadow:
+            0 0 0 4px var(--gold),
+            0 0 8px rgba(255, 68, 0, 0.15);
+        }
+      }
+      .record-square {
+        width: 46px;
+        height: 46px;
+        background: var(--gold);
+        border-radius: 8px;
+      }
+      .record-status {
+        margin-top: 16px;
+        text-align: center;
+      }
+      .record-status .big {
+        font-family: Georgia, serif;
+        font-size: 1.3rem;
+        color: var(--text);
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        margin: 10px 0 0;
+      }
+      details summary {
+        cursor: pointer;
+        color: var(--gold);
+        font-size: 0.85rem;
+      }
+      .analise-block {
+        margin-bottom: 20px;
+      }
+      .analise-block:last-child {
+        margin-bottom: 0;
+      }
+      .analise-block h3 {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gold);
+        margin: 0 0 10px;
+        font-weight: 600;
+      }
+      .analise-item {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 8px;
+      }
+      .analise-item p {
+        font-size: 0.88rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .analise-item .acoes {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .svg-wrap img {
+        width: 100%;
+        max-width: 360px;
+        display: block;
+        margin: 0 auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 40;
+        padding: 0;
+      }
+      @media (min-width: 620px) {
+        .modal-overlay {
+          align-items: center;
+        }
+      }
+      .modal {
+        background: #14100b;
+        border: 1px solid var(--border);
+        border-radius: 22px 22px 0 0;
+        padding: 20px;
+        width: 100%;
+        max-width: 480px;
+        max-height: 88vh;
+        overflow-y: auto;
+      }
+      @media (min-width: 620px) {
+        .modal {
+          border-radius: 22px;
+        }
+      }
+      .modal h2 {
+        font-size: 1.15rem;
+      }
+      .modal .desc {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        margin-bottom: 14px;
+      }
+      .modal .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: -4px 0 14px;
+      }
+      .modal .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        background: #14100b;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        z-index: 60;
+        max-width: 90vw;
+        text-align: center;
+      }
+      #toast.error {
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section id="view-lista" class="view">
+        <header style="margin-bottom: 20px">
+          <h1>Câmara de Eco</h1>
+          <p class="dim small" style="margin-top: 4px">
+            Escuta, segmenta e devolve sentido sem tomar posse da conversa.
+          </p>
+          <p class="faint small italic" style="margin-top: 4px">
+            Densidade processada, não chat bruto. Nada vira memória automaticamente.
+          </p>
+        </header>
+
+        <div id="novo-picker" class="grid two" style="margin-bottom: 28px">
+          <button id="btn-nova-audio" class="card pick">
+            <span class="icon">🎙️</span>
+            <span class="title">Gravar reunião</span>
+            <span class="desc">Captura em blocos de 3 min. Transcrição automática.</span>
+          </button>
+          <button id="btn-nova-texto" class="card pick">
+            <span class="icon">✍️</span>
+            <span class="title">Câmara rápida (texto)</span>
+            <span class="desc">Cole notas ou escreva o que aconteceu — sem áudio.</span>
+          </button>
+        </div>
+
+        <div id="novo-form" class="card hide" style="margin-bottom: 28px">
+          <div class="row-between">
+            <h2 id="novo-titulo-label" style="margin-bottom: 0">Nova gravação</h2>
+            <button id="btn-cancelar-novo" class="link">cancelar</button>
+          </div>
+          <input
+            id="novo-input-titulo"
+            placeholder="Título (ex: Audiência 24/06, reunião com cliente X)"
+            maxlength="160"
+          />
+          <textarea
+            id="novo-input-texto"
+            class="hide"
+            placeholder="Cole ou escreva o que aconteceu na reunião…"
+            maxlength="60000"
+          ></textarea>
+          <button id="btn-salvar-novo" class="btn">Salvar</button>
+        </div>
+
+        <h2>Câmaras anteriores</h2>
+        <ul id="lista-sessoes" class="list">
+          <li class="dim small">Carregando…</li>
+        </ul>
+      </section>
+
+      <section id="view-sessao" class="view hide">
+        <button id="btn-voltar" class="link" style="margin-bottom: 12px">‹ voltar</button>
+        <h1 id="sessao-titulo" style="word-break: break-word"></h1>
+        <p id="sessao-meta" class="dim small" style="margin: 6px 0 24px"></p>
+
+        <div id="sessao-texto" class="card hide" style="margin-bottom: 24px"></div>
+
+        <div id="sessao-audio" class="hide">
+          <div class="card record-card">
+            <button id="btn-record" class="record-btn" aria-label="Gravar">
+              <img id="record-icon" src="/brand-assets/kaline-apple.png" alt="Maçã Kaline" />
+            </button>
+            <div id="record-status" class="record-status">
+              <p class="small dim">Toque na maçã para começar a gravar</p>
+            </div>
+          </div>
+
+          <h2>Blocos</h2>
+          <p id="blocos-vazio" class="dim italic small" style="margin-bottom: 16px">
+            Nenhum bloco ainda. A câmara começa a registrar assim que você inicia.
+          </p>
+          <ul id="lista-blocos" class="list"></ul>
+
+          <details id="transcricao-details" class="card hide" style="margin-bottom: 24px">
+            <summary>Transcrição agregada</summary>
+            <pre id="transcricao-texto"></pre>
+          </details>
+        </div>
+
+        <section id="analise-section" style="margin-top: 8px">
+          <div class="row-between">
+            <h2 style="margin-bottom: 0">Análise</h2>
+            <button id="btn-analisar" class="btn outline hide">✨ Analisar</button>
+          </div>
+          <p id="analise-vazio" class="dim italic small"></p>
+          <div id="analise-corpo" class="card hide" style="margin-top: 12px"></div>
+        </section>
+
+        <p class="faint italic small" style="margin-top: 24px">
+          Transcrição ≠ memória · análise ≠ verdade confirmada · nada vai para o Jardim sem você
+          decidir.
+        </p>
+      </section>
+    </main>
+
+    <div id="modal-semear" class="modal-overlay hide">
+      <div class="modal">
+        <h2>Semear hipótese de memória curta</h2>
+        <p class="desc">
+          Vai entrar na Revisão de hoje como <strong style="color: var(--gold)">hipótese</strong> —
+          não como verdade. Importância baixa, tags <code>hipotese · curto_prazo</code>.
+        </p>
+        <label>Título</label>
+        <input id="semear-titulo" maxlength="160" />
+        <label>Corpo</label>
+        <textarea id="semear-corpo" maxlength="8000"></textarea>
+        <div class="actions">
+          <button id="semear-cancelar" class="btn ghost">cancelar</button>
+          <button id="semear-confirmar" class="btn">🌱 semear</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-kairos" class="modal-overlay hide">
+      <div class="modal">
+        <h2>Criar retorno Kairós</h2>
+        <p class="desc">
+          Algo para "trazer para hoje" ou "adormecer para depois" — vai para a Agenda.
+        </p>
+        <label>Título</label>
+        <input id="kairos-titulo" maxlength="160" />
+        <label>Descrição</label>
+        <textarea id="kairos-descricao" maxlength="2000" style="min-height: 80px"></textarea>
+        <label>Quando</label>
+        <input id="kairos-quando" type="datetime-local" />
+        <label>Tipo</label>
+        <select id="kairos-tipo">
+          <option value="compromisso">compromisso</option>
+          <option value="prazo">prazo</option>
+          <option value="reuniao">reunião</option>
+        </select>
+        <div class="chips">
+          <button class="btn ghost" data-delta="7200000">+ 2h</button>
+          <button class="btn ghost" data-delta="86400000">amanhã</button>
+          <button class="btn ghost" data-delta="604800000">+ 7d</button>
+          <button class="btn ghost" data-delta="2592000000">+ 30d</button>
+        </div>
+        <div class="actions">
+          <button id="kairos-cancelar" class="btn ghost">cancelar</button>
+          <button id="kairos-confirmar" class="btn">📅 agendar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="hide" role="status" aria-live="polite"></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        if (new URLSearchParams(location.search).get("embedded") === "1") {
+          document.documentElement.classList.add("embedded");
+        }
+
+        var SEGMENT_SECONDS = 180;
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+        function esc(value) {
+          return String(value == null ? "" : value).replace(
+            /[&<>"']/g,
+            function (c) {
+              return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            },
+          );
+        }
+        function emit(action, payload) {
+          window.parent?.postMessage(
+            { source: "camara-do-eco", action: action, payload: payload || {}, timestamp: Date.now() },
+            window.location.origin,
+          );
+        }
+        var toastTimer;
+        function toast(message, isError) {
+          var el = $("toast");
+          el.textContent = message;
+          el.className = isError ? "error" : "";
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () {
+            el.className = "hide";
+          }, 3200);
+        }
+        function fmt(seg) {
+          var m = String(Math.floor(seg / 60)).padStart(2, "0");
+          var s = String(Math.floor(seg % 60)).padStart(2, "0");
+          return m + ":" + s;
+        }
+        function fmtDate(iso) {
+          try {
+            return new Date(iso).toLocaleString("pt-BR");
+          } catch (e) {
+            return "";
+          }
+        }
+
+        // ── Estado ──────────────────────────────────────────────────
+        var sessoes = [];
+        var currentSessao = null;
+        var segmentos = [];
+        var recording = false;
+        var elapsed = 0;
+        var totalBlocos = 0;
+        var finalizing = false;
+        var analisando = false;
+        var novoMode = null; // 'audio' | 'texto' | null
+        var acaoAtual = null; // { tipo:'semear', texto, origem } | { tipo:'kairos', texto }
+
+        var STATUS_PILL = {
+          queued: { label: "fila", cls: "" },
+          processing: { label: "transcrevendo…", cls: "gold" },
+          transcribed: { label: "ok", cls: "emerald" },
+          failed: { label: "falhou", cls: "danger" },
+        };
+
+        // ── Navegação entre telas ───────────────────────────────────
+        function showView(name) {
+          $("view-lista").classList.toggle("hide", name !== "lista");
+          $("view-sessao").classList.toggle("hide", name !== "sessao");
+        }
+
+        function voltar() {
+          // Sem parar a gravação aqui, o MediaRecorder/mic continuavam ativos
+          // no Host e os próximos eventos (tick/segmento) chegavam sem sessão
+          // aberta na tela, quebrando o render.
+          if (recording && currentSessao) {
+            emit("camara:record-stop", { sessao_id: currentSessao.id });
+          }
+          recording = false;
+          finalizing = false;
+          currentSessao = null;
+          segmentos = [];
+          showView("lista");
+          emit("camara:sessoes-request");
+        }
+        $("btn-voltar").onclick = voltar;
+
+        // ── Lista de câmaras ────────────────────────────────────────
+        function renderNovoPicker() {
+          var picker = $("novo-picker");
+          var form = $("novo-form");
+          if (!novoMode) {
+            picker.classList.remove("hide");
+            form.classList.add("hide");
+            return;
+          }
+          picker.classList.add("hide");
+          form.classList.remove("hide");
+          $("novo-titulo-label").textContent =
+            novoMode === "audio" ? "Nova gravação" : "Câmara rápida";
+          $("novo-input-texto").classList.toggle("hide", novoMode !== "texto");
+          $("btn-salvar-novo").textContent = novoMode === "audio" ? "Abrir câmara" : "Salvar";
+        }
+        $("btn-nova-audio").onclick = function () {
+          novoMode = "audio";
+          renderNovoPicker();
+        };
+        $("btn-nova-texto").onclick = function () {
+          novoMode = "texto";
+          renderNovoPicker();
+        };
+        $("btn-cancelar-novo").onclick = function () {
+          novoMode = null;
+          $("novo-input-titulo").value = "";
+          $("novo-input-texto").value = "";
+          renderNovoPicker();
+        };
+        $("btn-salvar-novo").onclick = function () {
+          var titulo = $("novo-input-titulo").value.trim();
+          if (!titulo) {
+            toast(novoMode === "audio" ? "Dê um título à câmara primeiro" : "Título obrigatório", true);
+            return;
+          }
+          if (novoMode === "texto") {
+            var texto = $("novo-input-texto").value.trim();
+            if (!texto) {
+              toast("Cole ou escreva o conteúdo", true);
+              return;
+            }
+            emit("camara:sessao-criar", { titulo: titulo, modo: "texto", texto_rapido: texto });
+          } else {
+            emit("camara:sessao-criar", { titulo: titulo, modo: "audio" });
+          }
+        };
+
+        function renderListaSessoes() {
+          var ul = $("lista-sessoes");
+          if (sessoes.length === 0) {
+            ul.innerHTML = '<li class="dim small">Nenhuma câmara ainda.</li>';
+            return;
+          }
+          ul.innerHTML = sessoes
+            .map(function (s) {
+              var emCurso =
+                s.status === "gravando"
+                  ? '<span class="pill gold">em curso</span>'
+                  : "";
+              return (
+                '<li class="item">' +
+                '<button class="link" data-open="' +
+                esc(s.id) +
+                '" style="text-align:left;color:inherit">' +
+                '<div><span class="titulo">' +
+                esc(s.titulo) +
+                '</span><span class="pill">' +
+                esc(s.modo) +
+                "</span>" +
+                emCurso +
+                "</div>" +
+                '<div class="dim small" style="margin-top:4px">' +
+                fmtDate(s.created_at) +
+                "</div>" +
+                "</button>" +
+                '<button class="icon-btn" data-del="' +
+                esc(s.id) +
+                '" aria-label="Remover">✕</button>' +
+                "</li>"
+              );
+            })
+            .join("");
+          ul.querySelectorAll("[data-open]").forEach(function (btn) {
+            btn.onclick = function () {
+              abrirSessao(btn.getAttribute("data-open"));
+            };
+          });
+          ul.querySelectorAll("[data-del]").forEach(function (btn) {
+            btn.onclick = function () {
+              var id = btn.getAttribute("data-del");
+              var s = sessoes.find(function (x) {
+                return x.id === id;
+              });
+              if (!confirm('Remover "' + (s ? s.titulo : "") + '"? Áudios e transcrições serão apagados.'))
+                return;
+              emit("camara:sessao-deletar", { sessao_id: id });
+            };
+          });
+        }
+
+        // ── Sessão / detalhe ────────────────────────────────────────
+        function abrirSessao(id) {
+          var s = sessoes.find(function (x) {
+            return x.id === id;
+          });
+          if (!s) return;
+          currentSessao = s;
+          segmentos = [];
+          recording = false;
+          elapsed = 0;
+          totalBlocos = 0;
+          finalizing = false;
+          showView("sessao");
+          renderSessao();
+          emit("camara:sessao-abrir", { sessao_id: id });
+        }
+
+        function renderSessao() {
+          if (!currentSessao) return;
+          var s = currentSessao;
+          $("sessao-titulo").textContent = s.titulo;
+          $("sessao-meta").textContent = fmtDate(s.created_at) + " · modo " + s.modo;
+
+          var isTexto = s.modo === "texto";
+          $("sessao-texto").classList.toggle("hide", !isTexto);
+          if (isTexto) {
+            $("sessao-texto").textContent = s.texto_rapido || "";
+          }
+
+          $("sessao-audio").classList.toggle("hide", isTexto);
+          if (!isTexto) renderGravacao();
+
+          renderAnalise();
+        }
+
+        function renderGravacao() {
+          var s = currentSessao;
+          var btn = $("btn-record");
+          var finalizado = s.status === "finalizado";
+          btn.disabled = finalizing || finalizado;
+          btn.classList.toggle("recording", recording);
+          btn.innerHTML = recording
+            ? '<span class="record-square"></span>'
+            : '<img id="record-icon" src="/brand-assets/kaline-apple.png" alt="Maçã Kaline" />';
+          btn.onclick = recording ? pararGravacao : iniciarGravacao;
+
+          var status = $("record-status");
+          if (finalizado) {
+            status.innerHTML = '<p class="small dim">Câmara finalizada</p>';
+          } else if (recording) {
+            status.innerHTML =
+              '<p class="big">Bloco ' +
+              (totalBlocos + 1) +
+              " · " +
+              fmt(elapsed) +
+              " / " +
+              fmt(SEGMENT_SECONDS) +
+              "</p>" +
+              '<p class="small dim" style="margin-top:4px">Cada bloco fecha sozinho aos 03:00 e entra na fila de transcrição.</p>';
+          } else {
+            status.innerHTML = '<p class="small dim">Toque na maçã para começar a gravar</p>';
+          }
+
+          $("blocos-vazio").classList.toggle("hide", segmentos.length > 0);
+          var ul = $("lista-blocos");
+          ul.innerHTML = segmentos
+            .map(function (seg) {
+              var pill = STATUS_PILL[seg.status] || STATUS_PILL.queued;
+              var transcricao = seg.transcricao
+                ? '<p class="small dim" style="margin-top:8px;white-space:pre-wrap">' +
+                  esc(seg.transcricao) +
+                  "</p>"
+                : "";
+              var retry =
+                seg.status === "failed"
+                  ? '<div style="margin-top:8px;display:flex;align-items:center;gap:10px">' +
+                    (seg.erro
+                      ? '<span class="small" style="color:var(--danger)">' + esc(seg.erro) + "</span>"
+                      : "") +
+                    '<button class="btn outline" style="padding:6px 12px;font-size:0.78rem" data-retry="' +
+                    esc(seg.id) +
+                    '">↻ tentar de novo</button></div>'
+                  : "";
+              return (
+                '<li class="item" style="grid-template-columns:1fr">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+                '<span class="small" style="font-weight:600">Bloco ' +
+                String(seg.ordem).padStart(2, "0") +
+                " · " +
+                fmt(seg.inicio_seg) +
+                "–" +
+                fmt(seg.fim_seg) +
+                "</span>" +
+                '<span class="pill ' +
+                pill.cls +
+                '">' +
+                pill.label +
+                "</span>" +
+                "</div>" +
+                transcricao +
+                retry +
+                "</li>"
+              );
+            })
+            .join("");
+          ul.querySelectorAll("[data-retry]").forEach(function (btn) {
+            btn.onclick = function () {
+              var id = btn.getAttribute("data-retry");
+              var seg = segmentos.find(function (x) {
+                return x.id === id;
+              });
+              if (!seg) return;
+              emit("camara:bloco-retry", {
+                sessao_id: currentSessao.id,
+                segmento_id: seg.id,
+                ordem: seg.ordem,
+                inicio_seg: seg.inicio_seg,
+                fim_seg: seg.fim_seg,
+                audio_path: seg.audio_path,
+              });
+            };
+          });
+
+          var transcritos = segmentos.filter(function (x) {
+            return x.transcricao;
+          });
+          var agregada = transcritos
+            .map(function (s2) {
+              return (
+                "[Bloco " +
+                String(s2.ordem).padStart(2, "0") +
+                " | " +
+                fmt(s2.inicio_seg) +
+                "–" +
+                fmt(s2.fim_seg) +
+                "]\n" +
+                s2.transcricao
+              );
+            })
+            .join("\n\n");
+          $("transcricao-details").classList.toggle("hide", !agregada);
+          $("transcricao-texto").textContent = agregada;
+        }
+
+        function iniciarGravacao() {
+          recording = true;
+          elapsed = 0;
+          renderGravacao();
+          emit("camara:record-start", { sessao_id: currentSessao.id });
+        }
+        function pararGravacao() {
+          finalizing = true;
+          renderGravacao();
+          emit("camara:record-stop", { sessao_id: currentSessao.id });
+        }
+
+        // ── Análise ─────────────────────────────────────────────────
+        function podeAnalisar() {
+          if (!currentSessao) return false;
+          if (currentSessao.modo === "texto") return !!currentSessao.texto_rapido;
+          return segmentos.some(function (s) {
+            return s.transcricao;
+          });
+        }
+
+        function listaAcionavel(titulo, itens, origem, nota) {
+          if (!itens || itens.length === 0) return "";
+          var linhas = itens
+            .map(function (t, idx) {
+              return (
+                '<div class="analise-item"><p>' +
+                esc(t) +
+                '</p><div class="acoes">' +
+                '<button class="btn ghost" data-semear="' +
+                idx +
+                '" data-origem="' +
+                esc(origem) +
+                '">🌱 semear hipótese</button>' +
+                '<button class="btn ghost" data-kairos="' +
+                idx +
+                '">📅 retorno Kairós</button>' +
+                "</div></div>"
+              );
+            })
+            .join("");
+          var notaHtml = nota
+            ? '<p class="faint small italic" style="margin-top:6px">' + esc(nota) + "</p>"
+            : "";
+          return (
+            '<div class="analise-block" data-lista="' +
+            esc(origem) +
+            '"><h3>' +
+            esc(titulo) +
+            "</h3>" +
+            linhas +
+            notaHtml +
+            "</div>"
+          );
+        }
+
+        function renderAnalise() {
+          var s = currentSessao;
+          var a = s && s.analise;
+          var podeBtn = podeAnalisar();
+          var btnAnalisar = $("btn-analisar");
+          btnAnalisar.classList.toggle("hide", !podeBtn);
+          btnAnalisar.disabled = analisando;
+          btnAnalisar.textContent = analisando
+            ? "⏳ analisando…"
+            : a
+              ? "✨ Reanalisar"
+              : "✨ Analisar";
+
+          var vazio = $("analise-vazio");
+          if (!a && !podeBtn) {
+            vazio.classList.remove("hide");
+            vazio.textContent = "A análise estará disponível quando houver pelo menos um bloco transcrito.";
+          } else if (!a && podeBtn && !analisando) {
+            vazio.classList.remove("hide");
+            vazio.textContent =
+              'Toque em "Analisar" para destilar resumo, temas, decisões, sinais e próximos gestos.';
+          } else {
+            vazio.classList.add("hide");
+          }
+
+          var corpo = $("analise-corpo");
+          if (!a) {
+            corpo.classList.add("hide");
+            corpo.innerHTML = "";
+            return;
+          }
+          corpo.classList.remove("hide");
+
+          var html = "";
+          if (s.analise_at) {
+            html +=
+              '<div class="faint small" style="text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px">analisada ' +
+              fmtDate(s.analise_at) +
+              "</div>";
+          }
+          html +=
+            '<div class="analise-block"><h3>Resumo operacional</h3><p style="font-size:0.92rem;white-space:pre-wrap">' +
+            esc(a.resumo_operacional) +
+            "</p></div>";
+
+          if (a.interlocutores && a.interlocutores.length > 0) {
+            html +=
+              '<div class="analise-block"><h3>Interlocutores prováveis</h3><ul style="margin:0;padding-left:18px">' +
+              a.interlocutores
+                .map(function (i) {
+                  return (
+                    '<li style="font-size:0.9rem;margin-bottom:4px">' +
+                    esc(i.nome) +
+                    ' <span class="faint small">· ' +
+                    esc(i.confianca) +
+                    "</span></li>"
+                  );
+                })
+                .join("") +
+              "</ul>" +
+              '<p class="faint small italic" style="margin-top:6px">Interlocutor provável ≠ vínculo confirmado.</p></div>';
+          }
+
+          html += listaAcionavel("Temas", a.temas, "tema");
+          html += listaAcionavel(
+            "Decisões detectadas",
+            a.decisoes,
+            "decisao",
+            "Decisão detectada ≠ compromisso sedimentado.",
+          );
+          html += listaAcionavel("Sinais relevantes", a.sinais, "sinal");
+          html += listaAcionavel("Próximos gestos", a.proximos_gestos, "proximo_gesto");
+          html += listaAcionavel(
+            "Candidatos para Revisão",
+            a.candidatos_revisao,
+            "candidato_revisao",
+            "Trechos densos que merecem virar hipótese — nunca memória direta.",
+          );
+
+          if (a.ata_markdown) {
+            html +=
+              '<div class="analise-block"><h3>Ata estruturada</h3>' +
+              '<div class="toolbar">' +
+              '<button class="btn outline" id="btn-copiar-ata" style="padding:6px 12px;font-size:0.78rem">📋 Copiar</button>' +
+              '<button class="btn outline" id="btn-baixar-ata" style="padding:6px 12px;font-size:0.78rem">⬇ Baixar .md</button>' +
+              "</div>" +
+              "<pre>" +
+              esc(a.ata_markdown) +
+              "</pre></div>";
+          }
+
+          if (a.infografico_svg) {
+            var dataUrl =
+              "data:image/svg+xml;charset=utf-8," + encodeURIComponent(a.infografico_svg);
+            html +=
+              '<div class="analise-block"><h3>Infográfico</h3>' +
+              '<div class="toolbar">' +
+              '<button class="btn outline" id="btn-baixar-svg" style="padding:6px 12px;font-size:0.78rem">⬇ Baixar .svg</button>' +
+              '<button class="btn outline" id="btn-copiar-svg" style="padding:6px 12px;font-size:0.78rem">📋 Copiar SVG</button>' +
+              "</div>" +
+              '<div class="svg-wrap"><img src="' +
+              dataUrl +
+              '" alt="Infográfico da reunião: ' +
+              esc(s.titulo) +
+              '" /></div></div>';
+          }
+
+          corpo.innerHTML = html;
+
+          corpo.querySelectorAll("[data-semear]").forEach(function (btn) {
+            btn.onclick = function () {
+              var origem = btn.getAttribute("data-origem");
+              var idx = Number(btn.getAttribute("data-semear"));
+              var itens = { tema: a.temas, decisao: a.decisoes, sinal: a.sinais, proximo_gesto: a.proximos_gestos, candidato_revisao: a.candidatos_revisao }[origem];
+              abrirSemear(itens[idx], origem);
+            };
+          });
+          corpo.querySelectorAll("[data-kairos]").forEach(function (btn) {
+            var block = btn.closest("[data-lista]");
+            var origem = block ? block.getAttribute("data-lista") : "tema";
+            var idx = Number(btn.getAttribute("data-kairos"));
+            btn.onclick = function () {
+              var itens = { tema: a.temas, decisao: a.decisoes, sinal: a.sinais, proximo_gesto: a.proximos_gestos, candidato_revisao: a.candidatos_revisao }[origem];
+              abrirKairos(itens[idx]);
+            };
+          });
+
+          var copiarAta = $("btn-copiar-ata");
+          if (copiarAta)
+            copiarAta.onclick = function () {
+              navigator.clipboard.writeText(a.ata_markdown).then(function () {
+                toast("Ata copiada.");
+              });
+            };
+          var baixarAta = $("btn-baixar-ata");
+          if (baixarAta)
+            baixarAta.onclick = function () {
+              baixar(a.ata_markdown, "text/markdown;charset=utf-8", "ata-" + slug(s.titulo) + ".md");
+            };
+          var baixarSvg = $("btn-baixar-svg");
+          if (baixarSvg)
+            baixarSvg.onclick = function () {
+              baixar(
+                a.infografico_svg,
+                "image/svg+xml;charset=utf-8",
+                "infografico-" + slug(s.titulo) + ".svg",
+              );
+            };
+          var copiarSvg = $("btn-copiar-svg");
+          if (copiarSvg)
+            copiarSvg.onclick = function () {
+              navigator.clipboard.writeText(a.infografico_svg).then(function () {
+                toast("SVG copiado.");
+              });
+            };
+        }
+
+        $("btn-analisar").onclick = function () {
+          analisando = true;
+          renderAnalise();
+          emit("camara:analisar", { sessao_id: currentSessao.id });
+        };
+
+        function slug(s) {
+          return (
+            s
+              .normalize("NFD")
+              .replace(/\p{M}/gu, "")
+              .replace(/[^a-zA-Z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+              .toLowerCase()
+              .slice(0, 60) || "camara"
+          );
+        }
+        function baixar(conteudo, mime, nome) {
+          var url = URL.createObjectURL(new Blob([conteudo], { type: mime }));
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = nome;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        }
+
+        // ── Modais: semear / kairós ─────────────────────────────────
+        function abrirSemear(texto, origem) {
+          acaoAtual = { tipo: "semear", texto: texto, origem: origem };
+          $("semear-titulo").value = texto.slice(0, 100);
+          $("semear-corpo").value = texto;
+          $("modal-semear").classList.remove("hide");
+        }
+        var semearPending = false;
+
+        function fecharSemear() {
+          $("modal-semear").classList.add("hide");
+          acaoAtual = null;
+        }
+        $("semear-cancelar").onclick = fecharSemear;
+        $("semear-confirmar").onclick = function () {
+          var title = $("semear-titulo").value.trim();
+          var body = $("semear-corpo").value.trim();
+          if (!title || !body) return;
+          semearPending = true;
+          emit("camara:semear", {
+            sessao_id: currentSessao.id,
+            title: title,
+            body: body,
+            origem: acaoAtual ? acaoAtual.origem : "manual",
+          });
+        };
+
+        function toLocalInput(d) {
+          function pad(n) {
+            return String(n).padStart(2, "0");
+          }
+          return (
+            d.getFullYear() +
+            "-" +
+            pad(d.getMonth() + 1) +
+            "-" +
+            pad(d.getDate()) +
+            "T" +
+            pad(d.getHours()) +
+            ":" +
+            pad(d.getMinutes())
+          );
+        }
+        function abrirKairos(texto) {
+          acaoAtual = { tipo: "kairos", texto: texto };
+          $("kairos-titulo").value = texto.slice(0, 100);
+          $("kairos-descricao").value = texto;
+          var d = new Date(Date.now() + 24 * 3600 * 1000);
+          d.setSeconds(0, 0);
+          $("kairos-quando").value = toLocalInput(d);
+          $("kairos-tipo").value = "compromisso";
+          $("modal-kairos").classList.remove("hide");
+        }
+        var kairosPending = false;
+
+        function fecharKairos() {
+          $("modal-kairos").classList.add("hide");
+          acaoAtual = null;
+        }
+        $("kairos-cancelar").onclick = fecharKairos;
+        document.querySelectorAll("#modal-kairos [data-delta]").forEach(function (btn) {
+          btn.onclick = function () {
+            var d = new Date(Date.now() + Number(btn.getAttribute("data-delta")));
+            d.setSeconds(0, 0);
+            $("kairos-quando").value = toLocalInput(d);
+          };
+        });
+        $("kairos-confirmar").onclick = function () {
+          var titulo = $("kairos-titulo").value.trim();
+          var quando = $("kairos-quando").value;
+          if (!titulo || !quando) return;
+          kairosPending = true;
+          emit("camara:kairos-criar", {
+            sessao_id: currentSessao.id,
+            titulo: titulo,
+            descricao: $("kairos-descricao").value.trim() || undefined,
+            inicio: new Date(quando).toISOString(),
+            tipo: $("kairos-tipo").value,
+          });
+        };
+
+        // ── Mensagens do host ───────────────────────────────────────
+        window.addEventListener("message", function (event) {
+          if (event.origin !== window.location.origin) return;
+          var msg = event.data;
+          if (!msg || msg.source !== "kaline-host") return;
+          var p = msg.payload || {};
+
+          if (msg.action === "camara:sessoes-ready") {
+            sessoes = p.sessoes || [];
+            renderListaSessoes();
+            return;
+          }
+          if (msg.action === "camara:sessao-criada") {
+            novoMode = null;
+            $("novo-input-titulo").value = "";
+            $("novo-input-texto").value = "";
+            renderNovoPicker();
+            if (p.sessao && p.sessao.modo === "audio") {
+              sessoes.unshift(p.sessao);
+              abrirSessao(p.sessao.id);
+            } else {
+              toast("Câmara rápida salva");
+              emit("camara:sessoes-request");
+            }
+            return;
+          }
+          if (msg.action === "camara:sessao-deletada") {
+            sessoes = sessoes.filter(function (s) {
+              return s.id !== p.sessao_id;
+            });
+            renderListaSessoes();
+            return;
+          }
+          if (msg.action === "camara:sessao-aberta") {
+            if (!currentSessao || currentSessao.id !== p.sessao_id) return;
+            segmentos = p.segmentos || [];
+            totalBlocos = segmentos.length;
+            renderSessao();
+            return;
+          }
+          if (msg.action === "camara:record-tick") {
+            if (!currentSessao || p.sessao_id !== currentSessao.id) return;
+            recording = true;
+            elapsed = p.elapsed || 0;
+            renderGravacao();
+            return;
+          }
+          if (msg.action === "camara:segmento-criado") {
+            if (!currentSessao || (p.segmento && p.segmento.sessao_id !== currentSessao.id)) return;
+            segmentos.push(p.segmento);
+            totalBlocos = segmentos.length;
+            renderGravacao();
+            return;
+          }
+          if (msg.action === "camara:segmento-atualizado") {
+            if (!currentSessao || (p.segmento && p.segmento.sessao_id !== currentSessao.id)) return;
+            var idx = segmentos.findIndex(function (s) {
+              return s.id === p.segmento.id;
+            });
+            if (idx === -1) segmentos.push(p.segmento);
+            else segmentos[idx] = Object.assign({}, segmentos[idx], p.segmento);
+            renderGravacao();
+            return;
+          }
+          if (msg.action === "camara:sessao-finalizada") {
+            recording = false;
+            finalizing = false;
+            if (currentSessao) currentSessao.status = "finalizado";
+            toast("Câmara finalizada. Mantenha esta tela aberta até os blocos pendentes concluírem.");
+            renderSessao();
+            return;
+          }
+          if (msg.action === "camara:analise-pronta") {
+            analisando = false;
+            if (currentSessao && currentSessao.id === p.sessao_id) {
+              currentSessao.analise = p.analise;
+              currentSessao.analise_at = new Date().toISOString();
+              toast("Análise pronta. Nenhuma memória foi criada automaticamente.");
+              renderAnalise();
+            }
+            return;
+          }
+          if (msg.action === "camara:hipotese-semeada") {
+            if (semearPending) {
+              semearPending = false;
+              fecharSemear();
+              toast("Hipótese semeada na Revisão de hoje.");
+            }
+            return;
+          }
+          if (msg.action === "camara:kairos-criado") {
+            if (kairosPending) {
+              kairosPending = false;
+              fecharKairos();
+              toast("Retorno Kairós criado na agenda.");
+            }
+            return;
+          }
+          if (msg.action === "camara:error") {
+            analisando = false;
+            finalizing = false;
+            recording = false;
+            semearPending = false;
+            kairosPending = false;
+            toast(p.message || "Algo falhou na Câmara do Eco.", true);
+            if (currentSessao) renderSessao();
+            return;
+          }
+        });
+
+        emit("microapp:ready");
+        emit("camara:sessoes-request");
+      })();
+    </script>
+  </body>
+</html>

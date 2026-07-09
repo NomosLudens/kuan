@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Kaline Presente</title>
+    <style>
+      :root {
+        --bg: #08080e;
+        --panel: rgba(255, 255, 255, 0.065);
+        --panel-strong: rgba(255, 255, 255, 0.115);
+        --line: rgba(255, 255, 255, 0.1);
+        --ivory: #f7efe4;
+        --muted: rgba(247, 239, 228, 0.64);
+        --kaline: #c98a65;
+        --rose: #be185d;
+        --danger: #ef4444;
+        --ok: #22c55e;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        color: var(--ivory);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        overflow: hidden;
+      }
+      body {
+        background:
+          radial-gradient(circle at 50% 44%, rgba(201, 138, 101, 0.2), transparent 34%),
+          radial-gradient(circle at 70% 84%, rgba(190, 24, 93, 0.17), transparent 44%),
+          radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.03), transparent 26%), var(--bg);
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.24),
+            transparent 20%,
+            transparent 76%,
+            rgba(0, 0, 0, 0.48)
+          ),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 90px);
+        mix-blend-mode: screen;
+        opacity: 0.36;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button {
+        border: 0;
+      }
+      .sr-only {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+      }
+
+      .voice-shell {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100vh;
+        height: 100svh;
+        min-height: 520px;
+        display: flex;
+        flex-direction: column;
+        padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+        gap: 14px;
+        isolation: isolate;
+      }
+
+      .topbar {
+        position: relative;
+        z-index: 3;
+        min-height: 48px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        flex: 0 0 auto;
+      }
+      .state-pill {
+        width: min(44vw, 180px);
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 8px 10px 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 14px 44px rgba(0, 0, 0, 0.22);
+      }
+      .state-dot {
+        flex: 0 0 auto;
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--kaline);
+        box-shadow: 0 0 18px rgba(201, 138, 101, 0.7);
+      }
+      #statusText {
+        margin: 0;
+        font-size: clamp(12px, 3.25vw, 14px);
+        line-height: 1.15;
+        font-weight: 720;
+        letter-spacing: -0.14px;
+        text-align: right;
+        transition:
+          opacity 0.16s ease,
+          transform 0.16s ease;
+      }
+      #statusText.dim {
+        opacity: 0.46;
+        transform: translateY(1px);
+      }
+
+      body[data-state="recording"] .state-dot {
+        background: var(--danger);
+        box-shadow: 0 0 18px rgba(239, 68, 68, 0.76);
+        animation: dotPulse 1s ease-in-out infinite;
+      }
+      body[data-state="transcribing"] .state-dot,
+      body[data-state="thinking"] .state-dot {
+        background: var(--rose);
+        box-shadow: 0 0 18px rgba(190, 24, 93, 0.72);
+      }
+      body[data-state="speaking"] .state-dot {
+        background: var(--ok);
+        box-shadow: 0 0 18px rgba(34, 197, 94, 0.7);
+        animation: dotPulse 1.25s ease-in-out infinite;
+      }
+      body[data-state="error"] .state-dot {
+        background: var(--danger);
+        box-shadow: 0 0 18px rgba(239, 68, 68, 0.8);
+      }
+      @keyframes dotPulse {
+        50% {
+          transform: scale(1.42);
+          opacity: 0.72;
+        }
+      }
+
+      .main-action-area {
+        position: relative;
+        z-index: 2;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .avatar-trigger-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .avatar-halo {
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(201, 138, 101, 0.26), transparent 62%);
+        filter: blur(12px);
+        opacity: 0.88;
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease,
+          background 0.22s ease;
+        pointer-events: none;
+      }
+      #mainVoiceButton {
+        position: relative;
+        z-index: 2;
+        width: min(58vw, 230px);
+        height: min(58vw, 230px);
+        max-width: 230px;
+        max-height: 230px;
+        min-width: 160px;
+        min-height: 160px;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--ivory);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        user-select: none;
+        transition:
+          transform 0.12s ease,
+          filter 0.22s ease;
+        overflow: visible;
+      }
+      #mainVoiceButton:active {
+        transform: scale(0.97);
+      }
+      .avatar-disc {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid rgba(247, 239, 228, 0.18);
+        background:
+          radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.14), transparent 42%),
+          linear-gradient(145deg, rgba(201, 138, 101, 0.32), rgba(190, 24, 93, 0.2));
+        box-shadow:
+          0 22px 72px rgba(201, 138, 101, 0.18),
+          inset 0 0 34px rgba(255, 255, 255, 0.04);
+      }
+      .avatar-disc img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .avatar-disc img.loaded {
+        opacity: 1;
+      }
+      .avatar-placeholder {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 64px;
+        opacity: 0.92;
+      }
+      .avatar-disc.has-image .avatar-placeholder {
+        display: none;
+      }
+
+      .record-badge {
+        position: absolute;
+        right: 4px;
+        bottom: 6px;
+        z-index: 5;
+        width: 54px;
+        height: 54px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: rgba(10, 10, 18, 0.92);
+        border: 1px solid rgba(247, 239, 228, 0.18);
+        box-shadow:
+          0 12px 34px rgba(0, 0, 0, 0.44),
+          inset 0 0 18px rgba(255, 255, 255, 0.04);
+        transition:
+          transform 0.18s ease,
+          background 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      .record-badge span {
+        font-size: 26px;
+        line-height: 1;
+        filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+      }
+
+      .wave-rings {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.22s ease;
+      }
+      .wave-rings .ring {
+        position: absolute;
+        width: min(58vw, 230px);
+        height: min(58vw, 230px);
+        max-width: 230px;
+        max-height: 230px;
+        min-width: 160px;
+        min-height: 160px;
+        border-radius: 999px;
+        border: 2px solid rgba(201, 138, 101, 0.5);
+        opacity: 0;
+      }
+      body[data-state="recording"] .wave-rings,
+      body[data-state="speaking"] .wave-rings {
+        opacity: 1;
+      }
+      body[data-state="recording"] .wave-rings .ring {
+        border-color: rgba(239, 68, 68, 0.55);
+        animation: wave 1.7s ease-out infinite;
+      }
+      body[data-state="speaking"] .wave-rings .ring {
+        border-color: rgba(201, 138, 101, 0.55);
+        animation: wave 2.05s ease-out infinite;
+      }
+      .wave-rings .ring:nth-child(2) {
+        animation-delay: 0.42s;
+      }
+      .wave-rings .ring:nth-child(3) {
+        animation-delay: 0.84s;
+      }
+      @keyframes wave {
+        0% {
+          transform: scale(1);
+          opacity: 0.62;
+        }
+        100% {
+          transform: scale(1.85);
+          opacity: 0;
+        }
+      }
+
+      .eq {
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 20px;
+        opacity: 0;
+        transition: opacity 0.22s ease;
+        pointer-events: none;
+      }
+      body[data-state="speaking"] .eq,
+      body[data-state="recording"] .eq {
+        opacity: 1;
+      }
+      .eq span {
+        width: 4px;
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--kaline), var(--rose));
+        animation: eq 1s ease-in-out infinite;
+      }
+      body[data-state="recording"] .eq span {
+        background: linear-gradient(180deg, #ef4444, var(--rose));
+      }
+      .eq span:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .eq span:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .eq span:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      .eq span:nth-child(5) {
+        animation-delay: 0.18s;
+      }
+      @keyframes eq {
+        50% {
+          height: 20px;
+        }
+      }
+
+      body[data-state="recording"] .avatar-halo {
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.38), transparent 62%);
+        animation: halo 1.55s ease-in-out infinite;
+      }
+      body[data-state="recording"] .record-badge {
+        background: rgba(68, 12, 18, 0.94);
+        box-shadow:
+          0 12px 34px rgba(239, 68, 68, 0.24),
+          inset 0 0 18px rgba(255, 255, 255, 0.06);
+      }
+      body[data-state="recording"] .record-badge span {
+        content: "";
+      }
+      body[data-state="speaking"] .avatar-halo {
+        background: radial-gradient(circle, rgba(201, 138, 101, 0.42), transparent 62%);
+        animation: halo 1.9s ease-in-out infinite;
+      }
+      body[data-state="thinking"] .avatar-disc,
+      body[data-state="transcribing"] .avatar-disc {
+        box-shadow:
+          0 22px 82px rgba(190, 24, 93, 0.34),
+          inset 0 0 36px rgba(255, 255, 255, 0.06);
+      }
+      body[data-state="thinking"] .avatar-disc img,
+      body[data-state="transcribing"] .avatar-disc img {
+        animation: softGlow 1.4s ease-in-out infinite;
+      }
+      @keyframes halo {
+        50% {
+          transform: scale(1.12);
+          opacity: 1;
+        }
+      }
+      @keyframes softGlow {
+        50% {
+          filter: brightness(1.08) saturate(1.08);
+        }
+      }
+
+      .audio-controls,
+      .bottom-actions {
+        position: relative;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+      .icon-button {
+        height: 64px;
+        border-radius: 23px;
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.092);
+        color: var(--ivory);
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow:
+          inset 0 0 28px rgba(255, 255, 255, 0.025),
+          0 16px 42px rgba(0, 0, 0, 0.18);
+        transition:
+          transform 0.12s ease,
+          background 0.18s ease,
+          border-color 0.18s ease;
+      }
+      .icon-button:active {
+        transform: scale(0.965);
+      }
+      .icon-button:hover {
+        background: var(--panel-strong);
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+      .button-symbol {
+        font-size: 34px;
+        line-height: 1;
+        filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.32));
+      }
+      .soft-divider {
+        position: relative;
+        z-index: 3;
+        height: 1px;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      }
+      button:focus {
+        outline: none;
+      }
+      button:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--kaline);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 4px rgba(201, 138, 101, 0.25);
+      }
+      #mainVoiceButton:focus-visible {
+        outline-offset: 8px;
+        box-shadow: 0 0 0 6px rgba(201, 138, 101, 0.28);
+      }
+
+      .chip {
+        position: fixed;
+        left: 50%;
+        top: calc(14px + env(safe-area-inset-top));
+        transform: translate(-50%, -16px);
+        z-index: 80;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.18);
+        border: 1px solid rgba(34, 197, 94, 0.42);
+        color: #bbf7d0;
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        backdrop-filter: blur(10px);
+      }
+      .chip.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(0, 0, 0, 0.52);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+      .drawer-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .drawer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        max-height: 84svh;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+        background: rgba(18, 18, 26, 0.96);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px 24px 0 0;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transform: translateY(100%);
+        transition: transform 0.25s ease;
+      }
+      .drawer.open {
+        transform: translateY(0);
+      }
+      .drawer-handle {
+        width: 44px;
+        height: 5px;
+        margin: 0 auto 2px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .drawer-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .close-btn {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: var(--panel);
+        color: var(--ivory);
+        font-size: 30px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .history {
+        flex: 1;
+        min-height: 126px;
+        max-height: 48svh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 6px 0;
+      }
+      .bubble {
+        max-width: 80%;
+        padding: 12px 14px;
+        border-radius: 18px;
+        font-size: 15px;
+        line-height: 1.35;
+        word-break: break-word;
+      }
+      .bubble.me {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #c98a65, #be185d);
+        color: #fff;
+        border-bottom-right-radius: 6px;
+      }
+      .bubble.klio {
+        align-self: flex-start;
+        background: var(--panel-strong);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: var(--ivory);
+        border-bottom-left-radius: 6px;
+      }
+      .composer {
+        display: flex;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .composer textarea {
+        flex: 1;
+        min-height: 46px;
+        max-height: 116px;
+        resize: none;
+        padding: 12px 14px;
+        border-radius: 15px;
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        color: var(--ivory);
+        outline: none;
+        font-size: 15px;
+      }
+      .send-btn {
+        width: 52px;
+        min-width: 52px;
+        height: 48px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #c98a65, #be185d);
+        color: #fff;
+        font-size: 32px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .file-hidden {
+        position: absolute;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+      noscript .js-warning {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        z-index: 90;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(239, 68, 68, 0.18);
+        border: 1px solid rgba(239, 68, 68, 0.36);
+        color: #fee2e2;
+        font-size: 13px;
+        line-height: 1.25;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      }
+
+      @media (max-width: 380px) {
+        .voice-shell {
+          padding-left: 16px;
+          padding-right: 16px;
+          gap: 10px;
+        }
+        .state-pill {
+          width: min(46vw, 156px);
+          min-height: 38px;
+          padding: 7px 9px 7px 10px;
+        }
+        #statusText {
+          font-size: 12px;
+        }
+        .icon-button {
+          height: 58px;
+          border-radius: 20px;
+        }
+        .button-symbol {
+          font-size: 31px;
+        }
+        .record-badge {
+          width: 48px;
+          height: 48px;
+        }
+        .record-badge span {
+          font-size: 22px;
+        }
+      }
+      @media (max-height: 700px) {
+        .voice-shell {
+          min-height: 0;
+          padding-top: 8px;
+          gap: 9px;
+        }
+        #mainVoiceButton {
+          width: min(50vw, 190px);
+          height: min(50vw, 190px);
+          min-width: 142px;
+          min-height: 142px;
+        }
+        .avatar-halo {
+          width: 238px;
+          height: 238px;
+        }
+        .wave-rings .ring {
+          width: min(50vw, 190px);
+          height: min(50vw, 190px);
+          min-width: 142px;
+          min-height: 142px;
+        }
+        .record-badge {
+          width: 46px;
+          height: 46px;
+        }
+        .record-badge span {
+          font-size: 22px;
+        }
+        .icon-button {
+          height: 52px;
+          border-radius: 18px;
+        }
+        .button-symbol {
+          font-size: 29px;
+        }
+        .eq {
+          bottom: -21px;
+          height: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body data-state="idle">
+    <div class="chip" id="chip">Tarefa recebida</div>
+
+    <main class="voice-shell" aria-label="Kaline Presente">
+      <section class="topbar" aria-label="Estado atual">
+        <div class="state-pill" aria-live="polite" aria-atomic="true">
+          <p id="statusText">Toque e fale</p>
+          <span class="state-dot" aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section class="main-action-area">
+        <div class="avatar-trigger-wrap">
+          <div class="avatar-halo" aria-hidden="true"></div>
+          <div class="wave-rings" aria-hidden="true">
+            <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+          </div>
+          <button id="mainVoiceButton" aria-label="Falar" title="Falar" type="button">
+            <span class="sr-only" id="mainText">Falar</span>
+            <div class="avatar-disc" id="avatarDisc" aria-hidden="true">
+              <img src="/brand-assets/kaline-avatar.png" alt="" draggable="false" id="avatarImg" />
+              <div class="avatar-placeholder">🕊️</div>
+            </div>
+            <span class="record-badge" id="recordBadge" aria-hidden="true"
+              ><span id="badgeIcon">🎙️</span></span
+            >
+          </button>
+          <div class="eq" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="audio-controls" aria-label="Controles de áudio">
+        <button
+          class="icon-button"
+          id="replayButton"
+          aria-label="Ouvir de novo"
+          title="Ouvir de novo"
+          type="button"
+        >
+          <span class="button-symbol" aria-hidden="true">🔊</span>
+        </button>
+        <button class="icon-button" id="stopButton" aria-label="Parar" title="Parar" type="button">
+          <span class="button-symbol" aria-hidden="true">⏹</span>
+        </button>
+      </section>
+
+      <div class="soft-divider" aria-hidden="true"></div>
+
+      <section class="bottom-actions" aria-label="Ações secundárias">
+        <button
+          class="icon-button"
+          id="chatButton"
+          aria-label="Abrir chat"
+          aria-expanded="false"
+          aria-controls="drawer"
+          title="Chat"
+          type="button"
+        >
+          <span class="button-symbol" aria-hidden="true">💬</span>
+        </button>
+        <button
+          class="icon-button"
+          id="taskButton"
+          aria-label="Enviar tarefa"
+          title="Tarefa"
+          type="button"
+        >
+          <span class="button-symbol" aria-hidden="true">📎</span>
+        </button>
+      </section>
+    </main>
+
+    <input
+      type="file"
+      id="fileInput"
+      class="file-hidden"
+      accept="image/*,.pdf,.txt,.docx"
+      aria-label="Selecionar tarefa"
+    />
+
+    <div class="drawer-backdrop" id="backdrop"></div>
+    <div class="drawer" id="drawer" role="dialog" aria-label="Chat" aria-modal="true">
+      <div class="drawer-handle" aria-hidden="true"></div>
+      <div class="drawer-head">
+        <span class="drawer-title">Chat</span>
+        <button
+          class="close-btn"
+          id="closeDrawer"
+          aria-label="Fechar chat"
+          title="Fechar"
+          type="button"
+        >
+          ×
+        </button>
+      </div>
+      <div class="history" id="history" aria-live="polite"></div>
+      <div class="composer">
+        <textarea id="composerInput" placeholder="Escreva uma mensagem..." rows="1"></textarea>
+        <button
+          class="send-btn"
+          id="sendBtn"
+          aria-label="Enviar mensagem"
+          title="Enviar"
+          type="button"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+
+    <noscript
+      ><div class="js-warning">
+        Para testar os cliques, abra este arquivo em um navegador com JavaScript ativo.
+      </div></noscript
+    >
+
+    <script>
+      (function () {
+        var body = document.body;
+        var statusText = document.getElementById("statusText");
+        var micBtn = document.getElementById("mainVoiceButton");
+        var mainText = document.getElementById("mainText");
+        var replayBtn = document.getElementById("replayButton");
+        var stopBtn = document.getElementById("stopButton");
+        var chatBtn = document.getElementById("chatButton");
+        var taskBtn = document.getElementById("taskButton");
+        var fileInput = document.getElementById("fileInput");
+        var chip = document.getElementById("chip");
+        var drawer = document.getElementById("drawer");
+        var backdrop = document.getElementById("backdrop");
+        var closeDrawer = document.getElementById("closeDrawer");
+        var history = document.getElementById("history");
+        var composerInput = document.getElementById("composerInput");
+        var sendBtn = document.getElementById("sendBtn");
+        var badgeIcon = document.getElementById("badgeIcon");
+        var avatarImg = document.getElementById("avatarImg");
+        var avatarDisc = document.getElementById("avatarDisc");
+
+        avatarImg.onload = function () {
+          avatarImg.className = "loaded";
+          avatarDisc.classList.add("has-image");
+        };
+        avatarImg.onerror = function () {
+          avatarImg.style.display = "none";
+        };
+
+        var STATES = {
+          idle: { text: "Toque e fale", badge: "🎙️", label: "Falar" },
+          recording: { text: "Estou ouvindo", badge: "⏹", label: "Enviar fala" },
+          transcribing: { text: "Escrevendo sua fala", badge: "⏳", label: "Escrevendo" },
+          thinking: { text: "Pensando", badge: "…", label: "Pensando" },
+          speaking: { text: "Falando", badge: "🔊", label: "Falando" },
+          done: { text: "Pode falar de novo", badge: "🎙️", label: "Falar de novo" },
+          error: { text: "Tente de novo", badge: "↻", label: "Tentar de novo" },
+        };
+
+        var current = "idle";
+        var timers = [];
+        var FAKE_USER = "Estou aqui.";
+        var FAKE_REPLY = "Estou presente. Pode seguir com o que precisar.";
+
+        function clearTimers() {
+          for (var i = 0; i < timers.length; i++) {
+            clearTimeout(timers[i]);
+          }
+          timers = [];
+        }
+        function later(fn, ms) {
+          var t = setTimeout(fn, ms);
+          timers.push(t);
+          return t;
+        }
+        function setState(s) {
+          current = s;
+          body.setAttribute("data-state", s);
+          var cfg = STATES[s] || STATES.idle;
+          statusText.className = "dim";
+          later(function () {
+            statusText.textContent = cfg.text;
+            badgeIcon.textContent = cfg.badge;
+            mainText.textContent = cfg.label;
+            micBtn.setAttribute("aria-label", cfg.label);
+            micBtn.setAttribute("title", cfg.label);
+            statusText.className = "";
+          }, 80);
+        }
+        function addBubble(who, text) {
+          var b = document.createElement("div");
+          b.className = "bubble " + (who === "me" ? "me" : "klio");
+          b.appendChild(document.createTextNode(text));
+          history.appendChild(b);
+          history.scrollTop = history.scrollHeight;
+        }
+        function runFlow() {
+          setState("transcribing");
+          later(function () {
+            setState("thinking");
+            later(function () {
+              addBubble("me", "Você falou: " + FAKE_USER);
+              later(function () {
+                addBubble("klio", FAKE_REPLY);
+                setState("speaking");
+                later(function () {
+                  setState("done");
+                }, 3000);
+              }, 520);
+            }, 950);
+          }, 780);
+        }
+
+        micBtn.addEventListener("click", function () {
+          if (current === "idle" || current === "done" || current === "error") {
+            clearTimers();
+            setState("recording");
+          } else if (current === "recording") {
+            clearTimers();
+            runFlow();
+          }
+        });
+        replayBtn.addEventListener("click", function () {
+          clearTimers();
+          setState("speaking");
+          later(function () {
+            setState("done");
+          }, 2800);
+        });
+        stopBtn.addEventListener("click", function () {
+          clearTimers();
+          setState("done");
+        });
+
+        var lastFocus = null;
+        function openDrawer() {
+          lastFocus = document.activeElement;
+          drawer.classList.add("open");
+          backdrop.classList.add("open");
+          chatBtn.setAttribute("aria-expanded", "true");
+          setTimeout(function () {
+            composerInput.focus();
+          }, 240);
+        }
+        function closeDrawerFn() {
+          drawer.classList.remove("open");
+          backdrop.classList.remove("open");
+          chatBtn.setAttribute("aria-expanded", "false");
+          if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+        }
+        chatBtn.addEventListener("click", openDrawer);
+        closeDrawer.addEventListener("click", closeDrawerFn);
+        backdrop.addEventListener("click", closeDrawerFn);
+
+        sendBtn.addEventListener("click", sendText);
+        composerInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendText();
+          }
+        });
+        function sendText() {
+          var v = composerInput.value.trim();
+          if (!v) return;
+          addBubble("me", v);
+          composerInput.value = "";
+          setTimeout(function () {
+            addBubble("klio", "Presente.");
+          }, 650);
+        }
+
+        taskBtn.addEventListener("click", function () {
+          fileInput.click();
+        });
+        fileInput.addEventListener("change", function () {
+          if (fileInput.files && fileInput.files.length) {
+            chip.classList.add("show");
+            setTimeout(function () {
+              chip.classList.remove("show");
+            }, 2100);
+            fileInput.value = "";
+          }
+        });
+
+        drawer.addEventListener("keydown", function (e) {
+          if (e.key !== "Tab") return;
+          var focusables = drawer.querySelectorAll(
+            'button, textarea, [tabindex]:not([tabindex="-1"])',
+          );
+          if (!focusables.length) return;
+          var first = focusables[0],
+            last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        });
+
+        document.addEventListener("keydown", function (e) {
+          var isDrawerOpen = drawer.classList.contains("open");
+          if (e.key === "Escape" && isDrawerOpen) {
+            e.preventDefault();
+            closeDrawerFn();
+            return;
+          }
+          var tag = (e.target && e.target.tagName) || "";
+          if (tag === "TEXTAREA" || tag === "INPUT") return;
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+          var k = e.key.toLowerCase();
+          if (k === "c") {
+            e.preventDefault();
+            isDrawerOpen ? closeDrawerFn() : openDrawer();
+          } else if (k === "t") {
+            e.preventDefault();
+            fileInput.click();
+          } else if (k === "r") {
+            e.preventDefault();
+            replayBtn.click();
+          } else if (k === "s") {
+            e.preventDefault();
+            stopBtn.click();
+          } else if ((k === " " || e.key === "Enter") && document.activeElement === document.body) {
+            e.preventDefault();
+            micBtn.click();
+          }
+        });
+
+        setState("idle");
+      })();
+    </script>
+  </body>
+</html>
