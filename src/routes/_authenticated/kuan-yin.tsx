@@ -27,7 +27,6 @@ export const Route = createFileRoute("/_authenticated/kuan-yin")({
 });
 
 const ADMIN_SCREENS = [
-  { to: "/kuan-yin/showroom", label: "Showroom", icon: Store },
   { to: "/kuan-yin/clientes", label: "Clientes", icon: Users },
   { to: "/kuan-yin/guardioes", label: "Guardiões", icon: ShieldCheck },
   { to: "/kuan-yin/agendamentos", label: "Agenda", icon: CalendarDays },
@@ -86,7 +85,7 @@ function KuanYinLayout() {
                   }
                 >
                   <LayoutGrid className="size-3.5" />
-                  Painéis
+                  Gestão
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">

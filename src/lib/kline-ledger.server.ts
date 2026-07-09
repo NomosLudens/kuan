@@ -10,7 +10,12 @@ export async function createBoundaryHandoffCandidate(input: {
   userId: string;
   threadId?: string | null;
   targetApp: "klio-coder" | "kuan-yin";
-  reason: "coding_scope" | "commercial_scope" | "legacy_klio_scope";
+  reason:
+    | "coding_scope"
+    | "personal_kaline_scope"
+    | "out_of_scope"
+    | "commercial_scope"
+    | "legacy_klio_scope";
   latestUserText: string;
   boundaryMessage: string;
 }): Promise<KlineLedgerResult> {
