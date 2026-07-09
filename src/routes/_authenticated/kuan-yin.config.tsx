@@ -25,6 +25,7 @@ type Form = {
   observacoes: string;
   public_slug: string;
   servicos_text: string; // linhas livres
+  precos_text: string;
   formas_pagamento_text: string;
   regras_agenda_text: string;
   limites_decisao_text: string;
@@ -39,6 +40,7 @@ const EMPTY: Form = {
   observacoes: "",
   public_slug: "",
   servicos_text: "",
+  precos_text: "",
   formas_pagamento_text: "",
   regras_agenda_text: "",
   limites_decisao_text: "",
@@ -103,6 +105,7 @@ function ConfigPage() {
           pix_chave: string | null;
           observacoes: string | null;
           servicos: unknown;
+          precos: unknown;
           formas_pagamento: unknown;
           regras_agenda: unknown;
           limites_decisao: unknown;
@@ -119,6 +122,7 @@ function ConfigPage() {
             observacoes: ctx.observacoes ?? "",
             public_slug: typeof ctx.public_slug === "string" ? ctx.public_slug : "",
             servicos_text: arrayToLines(ctx.servicos),
+            precos_text: jsonToText(ctx.precos),
             formas_pagamento_text: arrayToLines(ctx.formas_pagamento),
             regras_agenda_text: jsonToText(ctx.regras_agenda),
             limites_decisao_text: jsonToText(ctx.limites_decisao),
@@ -142,7 +146,7 @@ function ConfigPage() {
       return;
     }
     try {
-      await upsert({
+      const saved = (await upsert({
         data: {
           id: form.id,
           nome: form.nome.trim(),
@@ -152,12 +156,18 @@ function ConfigPage() {
           observacoes: form.observacoes.trim() || null,
           public_slug: publicSlug,
           servicos: linesToArray(form.servicos_text),
+          precos: textToJson(form.precos_text),
           formas_pagamento: linesToArray(form.formas_pagamento_text),
           regras_agenda: textToJson(form.regras_agenda_text),
           limites_decisao: textToJson(form.limites_decisao_text),
           regras_escalonamento: textToJson(form.regras_escalonamento_text),
         },
-      });
+      })) as { id?: string; public_slug?: string };
+      setForm((current) => ({
+        ...current,
+        id: saved.id ?? current.id,
+        public_slug: saved.public_slug ?? current.public_slug,
+      }));
       toast.success("Contexto do negócio salvo.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao salvar.");
@@ -199,6 +209,13 @@ function ConfigPage() {
           </Button>
         )}
       </div>
+
+      {!form.id && (
+        <div className="rounded-2xl border border-[color:var(--border)] bg-card/45 p-4 text-sm text-[color:var(--ivory-dim)]">
+          Nenhum contexto de negócio encontrado. Preencha os campos reais do Guardião e salve para
+          criar a página pública.
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="space-y-1">
@@ -247,6 +264,15 @@ function ConfigPage() {
             rows={4}
             value={form.servicos_text}
             onChange={(e) => setForm({ ...form, servicos_text: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1 sm:col-span-2">
+          <Label htmlFor="precos">Preços / faixas (chave: valor, uma por linha)</Label>
+          <Textarea
+            id="precos"
+            rows={3}
+            value={form.precos_text}
+            onChange={(e) => setForm({ ...form, precos_text: e.target.value })}
           />
         </div>
         <div className="space-y-1">
