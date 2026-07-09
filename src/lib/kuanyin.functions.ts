@@ -37,26 +37,20 @@ function normalizePublicSlug(value: string, fallback: string): string {
   return PUBLIC_SLUG_RESERVED.has(slug) ? `${slug}-kuanyin` : slug;
 }
 
-async function ensureUniqueGuardianSlug(
-  baseSlug: string,
+async function assertGuardianSlugAvailable(
+  publicSlug: string,
   businessContextId: string,
-): Promise<string> {
+): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  for (let attempt = 0; attempt < 50; attempt += 1) {
-    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
-    const { data } = await supabaseAdmin
-      .from("kuanyin_guardians")
-      .select("id, business_context_id")
-      .eq("public_slug", candidate)
-      .maybeSingle();
-    if (
-      !data ||
-      (data as { business_context_id: string }).business_context_id === businessContextId
-    ) {
-      return candidate;
-    }
+  const { data, error } = await supabaseAdmin
+    .from("kuanyin_guardians")
+    .select("id, business_context_id")
+    .eq("public_slug", publicSlug)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (data && (data as { business_context_id: string }).business_context_id !== businessContextId) {
+    throw new Error("Este slug público já está em uso por outro Guardião.");
   }
-  return `${baseSlug}-${businessContextId.slice(0, 8)}`;
 }
 
 async function getGuardianForContext(businessContextId: string) {
@@ -149,31 +143,22 @@ export const upsertBusinessContext = createServerFn({ method: "POST" })
     const adminUserId = await getWorkspaceOwnerForUser(userId);
     const baseSlug = normalizePublicSlug(requestedSlug ?? businessRow.nome, businessRow.nome);
     const existingGuardian = await getGuardianForContext(businessRow.id);
+    await assertGuardianSlugAvailable(baseSlug, businessRow.id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let guardian: unknown = null;
-    let guardianError: { message: string; code?: string } | null = null;
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const candidateBase = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
-      const publicSlug = await ensureUniqueGuardianSlug(candidateBase, businessRow.id);
-      const { data: saved, error: saveError } = await supabaseAdmin
-        .from("kuanyin_guardians")
-        .upsert(
-          {
-            user_id: userId,
-            admin_user_id: adminUserId,
-            business_context_id: businessRow.id,
-            public_slug: publicSlug,
-            status: existingGuardian?.status ?? "draft",
-          } as never,
-          { onConflict: "business_context_id" },
-        )
-        .select("id, public_slug, status")
-        .single();
-      guardian = saved;
-      guardianError = saveError as { message: string; code?: string } | null;
-      if (!guardianError) break;
-      if (guardianError.code !== "23505") break;
-    }
+    const { data: guardian, error: guardianError } = await supabaseAdmin
+      .from("kuanyin_guardians")
+      .upsert(
+        {
+          user_id: userId,
+          admin_user_id: adminUserId,
+          business_context_id: businessRow.id,
+          public_slug: baseSlug,
+          status: existingGuardian?.status ?? "published",
+        } as never,
+        { onConflict: "business_context_id" },
+      )
+      .select("id, public_slug, status")
+      .single();
     if (guardianError) throw new Error(guardianError.message);
 
     return {

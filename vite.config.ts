@@ -25,14 +25,10 @@ export default defineConfig({
         // Nota: o gerador do router é o embutido no tanstackStart(); um
         // TanStackRouterVite avulso aqui seria ignorado.
         //
-        // @ts-expect-error — node_modules tem duas versões de
-        // @tanstack/router-generator (raiz 1.166.36, aninhada em
-        // start-plugin-core 1.167.17); os .d.ts resolvidos vêm da versão
-        // antiga, que não lista este campo. Em runtime (router-generator
-        // 1.167.17, de fato usado) autoCodeSplitting é o nome estável — usar
-        // "experimental.enableCodeSplitting" lança erro pedindo essa troca.
+        // Versões diferentes dos tipos do TanStack Start divergem aqui;
+        // em runtime, autoCodeSplitting é aceito pelo plugin instalado.
         autoCodeSplitting: true,
-      },
+      } as never,
     }),
     react(),
   ],
