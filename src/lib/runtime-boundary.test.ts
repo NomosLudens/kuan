@@ -2,38 +2,28 @@ import { describe, it, expect } from "vitest";
 import { resolveRuntimeBoundary } from "./runtime-boundary";
 
 describe("resolveRuntimeBoundary", () => {
-  it("kaline/default não bloqueia e retorna runtimeFacet kaline", () => {
+  it("kaline/default não bloqueia e retorna runtimeFacet kuanyin", () => {
     const result = resolveRuntimeBoundary({ facet: "kaline", surface: "kaline", mode: "default" });
-    expect(result).toEqual({ blocked: false, runtimeFacet: "kaline" });
+    expect(result).toEqual({ blocked: false, runtimeFacet: "kuanyin" });
   });
 
-  it("kuanyin bloqueia para targetApp kuan-yin", () => {
+  it("kuanyin é escopo comercial permitido", () => {
     const result = resolveRuntimeBoundary({ facet: "kuanyin" });
-    expect(result).toEqual({
-      blocked: true,
-      targetApp: "kuan-yin",
-      reason: "commercial_scope",
-      message:
-        "Kuan-Yin não está disponível na Kaline Clean. Esse escopo será reconstruído em app separado.",
-    });
+    expect(result).toEqual({ blocked: false, runtimeFacet: "kuanyin" });
   });
 
-  it("mode commercial bloqueia", () => {
+  it("mode commercial é permitido", () => {
     const result = resolveRuntimeBoundary({ mode: "commercial" });
-    expect(result.blocked).toBe(true);
-    if (result.blocked) {
-      expect(result.targetApp).toBe("kuan-yin");
-    }
+    expect(result).toEqual({ blocked: false, runtimeFacet: "kuanyin" });
   });
 
-  it("surface klio bloqueia para targetApp klio-coder", () => {
+  it("surface klio bloqueia para Klio", () => {
     const result = resolveRuntimeBoundary({ surface: "klio" });
     expect(result).toEqual({
       blocked: true,
       targetApp: "klio-coder",
-      reason: "legacy_klio_scope",
-      message:
-        "Klio não está disponível na Kaline Clean. Esse escopo será atendido em app separado.",
+      reason: "out_of_scope",
+      message: "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.",
     });
   });
 
@@ -65,12 +55,21 @@ describe("resolveRuntimeBoundary", () => {
     expect(result.blocked).toBe(true);
   });
 
-  it("kharis não bloqueia e normaliza para kaline", () => {
+  it("kharis pessoal bloqueia fora da Kuan-Yin", () => {
     const result = resolveRuntimeBoundary({ facet: "kharis" });
     expect(result).toEqual({
-      blocked: false,
-      runtimeFacet: "kaline",
-      note: "Kháris foi incorporada à Kaline como cuidado, presença e orientação simples.",
+      blocked: true,
+      reason: "personal_kaline_scope",
+      message: "Esse pedido pertence à Kaline pessoal, não à Kuan-Yin comercial.",
+    });
+  });
+
+  it("pedido fora de escopo não aponta automaticamente para Klio", () => {
+    const result = resolveRuntimeBoundary({ latestUserText: "quero abrir o Drive" });
+    expect(result).toEqual({
+      blocked: true,
+      reason: "out_of_scope",
+      message: "Esse pedido está fora do escopo da Kuan-Yin comercial.",
     });
   });
 
