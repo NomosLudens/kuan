@@ -52,7 +52,9 @@ function HeaderBar() {
         className="flex h-14 min-w-0 flex-1 items-center justify-center gap-3 px-3 transition-colors hover:bg-[color:var(--ivory)]/[0.03]"
       >
         <img src={kuanyinApple.url} alt="" className="h-8 w-8 shrink-0 apple-glow" />
-        <span className="serif text-sm uppercase tracking-[0.28em] text-[color:var(--ivory)]">Kuan-Yin</span>
+        <span className="serif text-sm uppercase tracking-[0.28em] text-[color:var(--ivory)]">
+          Kuan-Yin
+        </span>
       </button>
     </header>
   );

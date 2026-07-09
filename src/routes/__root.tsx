@@ -230,7 +230,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Kuan-Yin: presença comercial para Guardiões do Negócio.",
       },
       { property: "og:title", content: "Kuan-Yin — presença comercial" },
-      { property: "og:description", content: "Atendimento, agenda, pedidos e pagamentos pendentes com confirmação humana." },
+      {
+        property: "og:description",
+        content: "Atendimento, agenda, pedidos e pagamentos pendentes com confirmação humana.",
+      },
       { property: "og:type", content: "website" },
     ],
     links: [

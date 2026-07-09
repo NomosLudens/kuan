@@ -18,7 +18,8 @@ export type RuntimeBoundaryDecision =
       message: string;
     };
 
-const CODE_MESSAGE = "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.";
+const CODE_MESSAGE =
+  "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.";
 const PERSONAL_MESSAGE = "Esse pedido pertence à Kaline pessoal, não à Kuan-Yin comercial.";
 
 export function resolveRuntimeBoundary(input: RuntimeBoundaryInput): RuntimeBoundaryDecision {
