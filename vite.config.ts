@@ -25,9 +25,10 @@ export default defineConfig({
         // Nota: o gerador do router é o embutido no tanstackStart(); um
         // TanStackRouterVite avulso aqui seria ignorado.
         //
-        // autoCodeSplitting é suportado pela versão do TanStack Start instalada.
+        // Versões diferentes dos tipos do TanStack Start divergem aqui;
+        // em runtime, autoCodeSplitting é aceito pelo plugin instalado.
         autoCodeSplitting: true,
-      },
+      } as never,
     }),
     react(),
   ],
