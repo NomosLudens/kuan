@@ -120,9 +120,11 @@ function asArray(value: unknown): string[] {
 
 function renderKeyValueList(value: unknown): string[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-  return Object.entries(value as Record<string, unknown>).map(
-    ([key, val]) => `${key}: ${String(val)}`,
-  );
+  return Object.entries(value as Record<string, unknown>).map(([key, val]) => {
+    if (Array.isArray(val)) return `${key}: ${val.map(String).join(", ")}`;
+    if (val && typeof val === "object") return `${key}: ${JSON.stringify(val)}`;
+    return `${key}: ${String(val)}`;
+  });
 }
 
 function stablePublicKey(value?: string | null): string {
@@ -415,6 +417,7 @@ export const getGuardianPublicPage = createServerFn({ method: "POST" })
         type: ctx.tipo,
         tone: ctx.tom_voz,
         services: asArray(ctx.servicos),
+        prices: renderKeyValueList(ctx.precos),
         paymentMethods: asArray(ctx.formas_pagamento),
         pixKey: ctx.pix_chave,
         scheduleRules: renderKeyValueList(ctx.regras_agenda),
