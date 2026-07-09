@@ -1,0 +1,377 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: var(--gold);
+  --color-amber: var(--amber);
+  --color-ivory: var(--ivory);
+  --color-wine: var(--wine);
+  --color-burgundy: var(--burgundy);
+  --color-kaline: var(--kaline);
+  --color-klio: var(--klio);
+  --color-khora: var(--khora);
+  --color-kharis: var(--kharis);
+  --color-kairos: var(--kairos);
+  --color-kuanyin: var(--kuanyin);
+  --color-drive: var(--drive);
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+/* K∧LINE theme — palette supplied by the user. */
+:root {
+  --radius: 0.75rem;
+
+  /* Facet tokens */
+  --kaline: #ff4400; /* laranja neon / presença viva / centro */
+  --klio: #7a1f2b; /* vinho acadêmico / estudo */
+  --khora: #a56a43; /* cobre-terra / corpo */
+  --kharis: #1d3354; /* azul profundo / cuidado */
+  --kairos: #6c8ead; /* azul névoa / tempo */
+  --kuanyin: #be185d; /* magenta / comércio */
+  --drive: #16a34a; /* verde / mobilidade */
+
+  /* Brand aliases kept for existing components. */
+  --obsidian: #08080e;
+  --burgundy: var(--klio);
+  --wine: var(--klio);
+  --gold: var(--kaline);
+  --amber: var(--khora);
+  --ivory: #f3ebdd;
+  --ivory-dim: color-mix(in oklab, var(--ivory) 72%, var(--kairos));
+
+  --background: var(--obsidian);
+  --foreground: var(--ivory);
+  --card: oklch(0.16 0.03 18);
+  --card-foreground: var(--ivory);
+  --popover: oklch(0.16 0.03 18);
+  --popover-foreground: var(--ivory);
+  --primary: var(--gold);
+  --primary-foreground: oklch(0.15 0.02 30);
+  --secondary: var(--wine);
+  --secondary-foreground: var(--ivory);
+  --muted: oklch(0.22 0.04 18);
+  --muted-foreground: var(--ivory-dim);
+  --accent: var(--burgundy);
+  --accent-foreground: var(--ivory);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: var(--ivory);
+  --border: color-mix(in oklab, var(--kaline) 18%, transparent);
+  --input: color-mix(in oklab, var(--kaline) 18%, transparent);
+  --ring: var(--gold);
+
+  --sidebar: oklch(0.14 0.025 25);
+  --sidebar-foreground: var(--ivory);
+  --sidebar-primary: var(--gold);
+  --sidebar-primary-foreground: oklch(0.15 0.02 30);
+  --sidebar-accent: oklch(0.2 0.06 18);
+  --sidebar-accent-foreground: var(--ivory);
+  --sidebar-border: color-mix(in oklab, var(--kaline) 15%, transparent);
+  --sidebar-ring: var(--gold);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background: var(--obsidian);
+    color: var(--ivory);
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* Mobile: comportamento nativo de toque */
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none; /* sem bounce branco no topo iOS */
+  }
+  html {
+    touch-action: manipulation;
+  } /* corta delay de 300ms em alguns navegadores */
+  /* Evitar scroll horizontal acidental em mobile estreito */
+  body {
+    overflow-x: clip;
+  }
+  body {
+    /* --facet-accent é setado pelo ChatView (ver useEffect) com a cor da faceta ativa
+       (Kaline/Kháris/Kuan-Yin); fora de um chat, cai no laranja padrão da Kaline. */
+    background:
+      radial-gradient(1100px 700px at 80% -10%, color-mix(in oklab, var(--facet-accent, var(--kaline)) 45%, transparent), transparent 60%),
+      radial-gradient(900px 600px at -10% 20%, color-mix(in oklab, var(--facet-accent, var(--kaline)) 30%, transparent), transparent 65%),
+      radial-gradient(700px 500px at 50% 110%, color-mix(in oklab, var(--kaline) 6%, transparent), transparent 70%),
+      var(--obsidian);
+    min-height: 100dvh;
+    transition: background 0.4s ease;
+  }
+  .serif {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+  .gold-glow {
+    filter: drop-shadow(0 0 14px color-mix(in oklab, var(--kaline) 55%, transparent))
+      drop-shadow(0 0 32px color-mix(in oklab, var(--kaline) 30%, transparent));
+  }
+  .ruby-glow {
+    filter: drop-shadow(0 0 14px color-mix(in oklab, var(--kuanyin) 55%, transparent))
+      drop-shadow(0 0 32px color-mix(in oklab, var(--kuanyin) 30%, transparent));
+  }
+  @keyframes apple-pulse {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 14px color-mix(in oklab, var(--kaline) 45%, transparent));
+    }
+    50% {
+      filter: drop-shadow(0 0 28px color-mix(in oklab, var(--kaline) 75%, transparent));
+    }
+  }
+  .apple-glow {
+    animation: apple-pulse 4.5s ease-in-out infinite;
+  }
+
+  /* ============================================================
+     Mobile-first utilities
+     ============================================================ */
+
+  /* Safe-area helpers para iPhone com home bar */
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Garantir min 44x44 em qualquer interativo em touch devices.
+     Não afeta hover-devices (desktop fica como está). */
+  @media (pointer: coarse) {
+    button:not([aria-hidden="true"]),
+    a[role="button"],
+    [role="button"],
+    [role="menuitem"],
+    [role="tab"] {
+      min-height: 44px;
+    }
+    /* botões icon-only — Sidebar/Calendar/etc.: garantir largura também */
+    button[aria-label]:where(:has(svg:only-child)),
+    a[aria-label]:where(:has(svg:only-child)) {
+      min-width: 44px;
+    }
+  }
+
+  /* Tap-feedback nativo — TODO botão herda spring + press sutil */
+  button,
+  a[role="button"],
+  [role="button"],
+  [role="tab"] {
+    -webkit-touch-callout: none;
+    transition:
+      transform 90ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 90ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  button:active,
+  a[role="button"]:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+  }
+
+  /* Halo de foco coerente com a paleta (em vez do azul default) */
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--kaline) 70%, transparent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Cartão "vivo" — usado em superfícies do cockpit */
+  .lift-card {
+    transition:
+      transform var(--dur-med) var(--ease-out-soft),
+      box-shadow var(--dur-med) var(--ease-out-soft),
+      border-color var(--dur-med) var(--ease-out-soft);
+  }
+  @media (hover: hover) {
+    .lift-card:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in oklab, var(--kaline) 35%, transparent);
+      box-shadow: 0 12px 32px -16px color-mix(in oklab, var(--kaline) 25%, transparent);
+    }
+  }
+  .lift-card:active {
+    transform: translateY(0) scale(0.99);
+  }
+
+  /* ============================================================
+     Motion tokens — fluidez nativa
+     Springs assimétricos: entrada rápida, saída suave (iOS-like).
+     ============================================================ */
+  :root {
+    --ease-spring: cubic-bezier(0.22, 1, 0.36, 1); /* iOS spring */
+    --ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1); /* Material emphasized */
+    --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-instant: 90ms;
+    --dur-fast: 160ms;
+    --dur-med: 260ms;
+    --dur-slow: 420ms;
+  }
+
+  /* Press feedback — escala sutil + transição rápida */
+  .press-scale {
+    transition:
+      transform var(--dur-instant) var(--ease-spring),
+      opacity var(--dur-instant) var(--ease-spring);
+  }
+  .press-scale:active {
+    transform: scale(0.97);
+    opacity: 0.92;
+  }
+  @media (hover: hover) {
+    .press-scale:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  /* Fade-up para entrada de conteúdo (cards, listas, mensagens) */
+  @keyframes kaline-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .fade-up {
+    animation: kaline-fade-up var(--dur-med) var(--ease-out-soft) both;
+  }
+
+  /* Stagger — aplicar em filhos imediatos de uma lista */
+  .stagger > * {
+    animation: kaline-fade-up var(--dur-med) var(--ease-out-soft) both;
+  }
+  .stagger > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger > *:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .stagger > *:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .stagger > *:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .stagger > *:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .stagger > *:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .stagger > *:nth-child(7) {
+    animation-delay: 240ms;
+  }
+  .stagger > *:nth-child(8) {
+    animation-delay: 280ms;
+  }
+  .stagger > *:nth-child(n + 9) {
+    animation-delay: 320ms;
+  }
+
+  /* Skeleton shimmer mais elegante que pulse padrão */
+  @keyframes kaline-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      oklch(0.28 0.02 30 / 0.4) 0%,
+      oklch(0.36 0.03 30 / 0.6) 50%,
+      oklch(0.28 0.02 30 / 0.4) 100%
+    );
+    background-size: 200% 100%;
+    animation: kaline-shimmer 1.6s linear infinite;
+  }
+
+  /* View Transitions API — crossfade nativo entre rotas */
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: var(--dur-med);
+      animation-timing-function: var(--ease-out-soft);
+    }
+    ::view-transition-old(root) {
+      animation-name: kaline-vt-fade-out;
+    }
+    ::view-transition-new(root) {
+      animation-name: kaline-vt-fade-in;
+    }
+  }
+  @keyframes kaline-vt-fade-out {
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @keyframes kaline-vt-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* Respeitar usuário com preferência reduzida */
+  @media (prefers-reduced-motion: reduce) {
+    .fade-up,
+    .stagger > *,
+    .shimmer {
+      animation: none !important;
+    }
+    .press-scale {
+      transition: none !important;
+    }
+  }
+}
