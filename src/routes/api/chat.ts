@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createOpenRouterProvider } from "@/lib/openrouter.server";
 import { AI_MODELS } from "@/lib/ai-models.server";
 import { KALINE_SYSTEM_PROMPT } from "@/lib/kaline-prompt";
+import { KUANYIN_FACET_BLOCK, renderBusinessContextBlock } from "@/lib/kuanyin-prompt";
 
 import { LEGAL_ANTIHALLUCINATION_BLOCK } from "@/lib/legal-prompt";
 import { CHAT_IDENTITY_REINFORCEMENT_BLOCK } from "@/lib/chat-identity-reinforcement";
@@ -57,6 +58,18 @@ NUNCA emita um bloco de ação estruturada (ex.: \`\`\`kuanyin-action\`\`\`, pro
 SÓ emita ação estruturada quando o usuário ENUNCIAR claramente, neste turno ou no anterior, intenção concreta com os dados mínimos necessários (ex.: "agende com Fulano dia X às Y", "cadastra essa cliente", "vira semente isso aqui", "marca treino de pernas terça 18h").
 Quando faltar dado ou clareza, NÃO emita o bloco — pergunte de forma curta o que falta.
 Todo bloco emitido é PREVIEW: nada é gravado até o usuário clicar "Confirmar" no cartão. Por isso, NUNCA escreva frases como "agendei", "cadastrei", "criei", "marquei", "registrei", "já está salvo" — diga "deixei o preview para você confirmar", "preparei a proposta abaixo", "confirma se está certo". Não invente confirmação que ainda não aconteceu.
+`;
+
+const KUAN_PRODUCT_BOUNDARY_BLOCK = `
+
+=== KUAN-YIN PRODUCT BOUNDARY ===
+Kuan-Yin é app comercial próprio para Guardiões do Negócio e clientes sem login.
+Escopo permitido: negócio, serviços, agenda, clientes, pedidos, comprovantes, pagamentos pendentes, respostas comerciais e revisão humana.
+Fora de escopo: código, Klio, Kaline pessoal, jurídico, Drive, Códice, treinos, diagnóstico clínico, promessa de resultado e confirmação automática de pagamento.
+Comprovante recebido não é pagamento confirmado. Posso deixar pendente para conferência do Guardião.
+Pedido de agendamento não é agendamento confirmado. Posso preparar uma proposta de agendamento para confirmação do Guardião.
+Cliente não executa ação administrativa. Guardião confirma ação sensível.
+Nada sensível é salvo sem preview/confirmação. Sem dashboard falso. Sem mock tratado como produto real.
 `;
 
 const KLIO_PEDAGOGICAL_BLOCK = `
@@ -252,7 +265,7 @@ export const Route = createFileRoute("/api/chat")({
                 userId: userId,
                 threadId: body.threadId,
                 targetApp: boundary.targetApp,
-                reason: boundary.reason,
+                reason: "coding_scope",
                 latestUserText,
                 boundaryMessage: boundary.message,
               });
@@ -286,7 +299,7 @@ export const Route = createFileRoute("/api/chat")({
           );
         }
 
-        const facet: Facet = "kaline";
+        const facet: Facet = "kuanyin";
         const baseSystem = KALINE_SYSTEM_PROMPT;
 
         // Antialucinação jurídica em todas as facetas.
@@ -301,6 +314,23 @@ export const Route = createFileRoute("/api/chat")({
           contextoBlock = "\n\n" + renderContextoVivoBlock(ctx);
         } catch {
           // se a leitura falhar, segue sem contexto vivo (presença honesta > bloqueio)
+        }
+
+
+        let businessContextBlock = "";
+        try {
+          const { data: businessContext } = await supabaseAsUser
+            .from("business_contexts")
+            .select(
+              "nome, tipo, servicos, precos, tom_voz, formas_pagamento, pix_chave, regras_agenda, limites_decisao, regras_escalonamento, observacoes",
+            )
+            .eq("user_id", userId)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          businessContextBlock = "\n\n" + renderBusinessContextBlock(businessContext);
+        } catch {
+          businessContextBlock = "\n\n" + renderBusinessContextBlock(null);
         }
 
         // Regime de presença (Semáforo) — modulação do tom/tamanho/iniciativa.
@@ -331,6 +361,9 @@ export const Route = createFileRoute("/api/chat")({
         const system =
           baseSystem +
           CHAT_IDENTITY_REINFORCEMENT_BLOCK +
+          KUANYIN_FACET_BLOCK +
+          KUAN_PRODUCT_BOUNDARY_BLOCK +
+          businessContextBlock +
           identidadeBlock +
           legalBlock +
           contextoBlock +

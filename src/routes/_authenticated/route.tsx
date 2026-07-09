@@ -1,5 +1,4 @@
-import { kalineWordmark } from "@/lib/brand-assets";
-import { kalineApple } from "@/lib/brand-assets";
+import { kuanyinApple } from "@/lib/brand-assets";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
@@ -52,8 +51,8 @@ function HeaderBar() {
         title="Menu"
         className="flex h-14 min-w-0 flex-1 items-center justify-center gap-3 px-3 transition-colors hover:bg-[color:var(--ivory)]/[0.03]"
       >
-        <img src={kalineApple.url} alt="" className="h-8 w-8 shrink-0 apple-glow" />
-        <img src={kalineWordmark.url} alt="K∧LINE" className="h-4 w-auto" />
+        <img src={kuanyinApple.url} alt="" className="h-8 w-8 shrink-0 apple-glow" />
+        <span className="serif text-sm uppercase tracking-[0.28em] text-[color:var(--ivory)]">Kuan-Yin</span>
       </button>
     </header>
   );
