@@ -316,7 +316,6 @@ export const Route = createFileRoute("/api/chat")({
           // se a leitura falhar, segue sem contexto vivo (presença honesta > bloqueio)
         }
 
-
         let businessContextBlock = "";
         try {
           const { data: businessContext } = await supabaseAsUser
