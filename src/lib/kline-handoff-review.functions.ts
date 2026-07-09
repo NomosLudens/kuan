@@ -4,7 +4,12 @@ import { requireSupabaseAuth } from "../integrations/supabase/auth-middleware";
 
 export type HandoffTargetApp = "klio-coder" | "kuan-yin";
 
-export type HandoffReason = "coding_scope" | "commercial_scope" | "legacy_klio_scope";
+export type HandoffReason =
+  | "coding_scope"
+  | "personal_kaline_scope"
+  | "out_of_scope"
+  | "commercial_scope"
+  | "legacy_klio_scope";
 
 export type HandoffReviewStatus = "pending" | "approved" | "rejected" | "archived";
 
@@ -139,6 +144,8 @@ export function _normalizeHandoffCandidate(
 
     if (
       p.reason === "coding_scope" ||
+      p.reason === "personal_kaline_scope" ||
+      p.reason === "out_of_scope" ||
       p.reason === "commercial_scope" ||
       p.reason === "legacy_klio_scope"
     ) {

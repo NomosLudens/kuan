@@ -57,7 +57,20 @@ describe("resolveRuntimeBoundary", () => {
 
   it("kharis pessoal bloqueia fora da Kuan-Yin", () => {
     const result = resolveRuntimeBoundary({ facet: "kharis" });
-    expect(result).toEqual({ blocked: false, runtimeFacet: "kuanyin" });
+    expect(result).toEqual({
+      blocked: true,
+      reason: "personal_kaline_scope",
+      message: "Esse pedido pertence à Kaline pessoal, não à Kuan-Yin comercial.",
+    });
+  });
+
+  it("pedido fora de escopo não aponta automaticamente para Klio", () => {
+    const result = resolveRuntimeBoundary({ latestUserText: "quero abrir o Drive" });
+    expect(result).toEqual({
+      blocked: true,
+      reason: "out_of_scope",
+      message: "Esse pedido está fora do escopo da Kuan-Yin comercial.",
+    });
   });
 
   it("texto comum com palavra 'app' não bloqueia", () => {

@@ -265,7 +265,7 @@ export const Route = createFileRoute("/api/chat")({
                 userId: userId,
                 threadId: body.threadId,
                 targetApp: boundary.targetApp,
-                reason: "coding_scope",
+                reason: boundary.reason,
                 latestUserText,
                 boundaryMessage: boundary.message,
               });
