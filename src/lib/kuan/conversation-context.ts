@@ -42,7 +42,7 @@ export async function resolveRuntimeAudienceContext(
     publicThreadId?: string | null;
     visitorKey?: string | null;
     clientDisplayName?: string | null;
-  }
+  },
 ): Promise<KuanRuntimeAudienceContext> {
   // 1. Private (Authenticated) Chat Context
   if (params.userId) {

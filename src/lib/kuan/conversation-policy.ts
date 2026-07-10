@@ -135,9 +135,9 @@ const NORMALIZED_SEXUAL_PHRASES = [
   "pagamento por sexo",
 ];
 
-export function detectPublicClientBlockedIntent(input: string):
-  | { blocked: true; intent: string; sexual: boolean }
-  | { blocked: false } {
+export function detectPublicClientBlockedIntent(
+  input: string,
+): { blocked: true; intent: string; sexual: boolean } | { blocked: false } {
   const norm = normalizeText(input);
 
   for (const phrase of NORMALIZED_INJECTION_PHRASES) {
@@ -154,4 +154,3 @@ export function detectPublicClientBlockedIntent(input: string):
 
   return { blocked: false };
 }
-
