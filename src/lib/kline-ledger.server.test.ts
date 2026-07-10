@@ -175,7 +175,7 @@ describe("kline-ledger.server", () => {
       boundaryMessage: "Blocked msg",
     });
 
-    expect(mockSupabase.from().update).toBeUndefined();
-    expect(mockSupabase.from().delete).toBeUndefined();
+    expect(mockSupabase.from("kline_events").update).toBeUndefined();
+    expect(mockSupabase.from("kline_events").delete).toBeUndefined();
   });
 });
