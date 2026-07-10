@@ -409,20 +409,15 @@ export const getGuardianPublicPage = createServerFn({ method: "POST" })
     return {
       ok: true as const,
       guardian: {
-        id: ctx.guardianId,
-        businessContextId: ctx.id,
         slug: ctx.publicSlug,
-        status: ctx.publicStatus,
         name: ctx.nome,
         type: ctx.tipo,
         tone: ctx.tom_voz,
         services: asArray(ctx.servicos),
         prices: renderKeyValueList(ctx.precos),
         paymentMethods: asArray(ctx.formas_pagamento),
-        pixKey: ctx.pix_chave,
         scheduleRules: renderKeyValueList(ctx.regras_agenda),
         notes: ctx.observacoes,
-        updatedAt: ctx.updated_at,
         canonicalPath: `/g/${ctx.publicSlug}`,
       },
     };
@@ -699,7 +694,7 @@ Seja claro, curto e comercialmente cuidadoso.
       precos: ctx.precos,
       tom_voz: ctx.tom_voz,
       formas_pagamento: ctx.formas_pagamento,
-      pix_chave: ctx.pix_chave,
+      pix_chave: null, // Removido do contexto público temporariamente
       regras_agenda: ctx.regras_agenda,
       limites_decisao: {},
       regras_escalonamento: {},
