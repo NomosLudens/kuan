@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 export const listGuardianInboxThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { status?: "open" | "closed" | "all" }) => d)
+  .validator((input: unknown) => z.object({ status: z.enum(["open", "closed", "all"]).optional() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
     let query = supabase
@@ -30,7 +31,7 @@ export const listGuardianInboxThreads = createServerFn({ method: "POST" })
 
 export const getGuardianInboxThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { threadId: string }) => d)
+  .validator((input: unknown) => z.object({ threadId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
 
@@ -71,22 +72,25 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
 
 export const sendGuardianManualReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { threadId: string; message: string }) => {
-    if (!d.message.trim()) throw new Error("Mensagem vazia.");
-    return d;
-  })
+  .validator((input: unknown) =>
+    z.object({
+      threadId: z.string().uuid(),
+      message: z.string().trim().min(1, "Mensagem vazia.").max(3000, "Mensagem muito longa."),
+    }).parse(input)
+  )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
 
     // Verify ownership
     const { data: thread, error: threadError } = await supabase
       .from("kuanyin_public_chat_threads")
-      .select("id, guardian_id")
+      .select("id, guardian_id, status")
       .eq("user_id", userId)
       .eq("id", data.threadId)
       .single();
 
     if (threadError) throw new Error("Atendimento não encontrado ou indisponível.");
+    if (thread.status === "closed") throw new Error("Reabra o atendimento antes de responder.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -105,24 +109,29 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("kuanyin_public_chat_threads")
       .update({ updated_at: new Date().toISOString() } as never)
-      .eq("id", thread.id);
+      .eq("id", thread.id)
+      .eq("user_id", userId);
 
     return { ok: true };
   });
 
 export const setGuardianThreadStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { threadId: string; status: "open" | "closed" }) => d)
+  .validator((input: unknown) =>
+    z.object({ threadId: z.string().uuid(), status: z.enum(["open", "closed"]) }).parse(input)
+  )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("kuanyin_public_chat_threads")
       .update({ status: data.status, updated_at: new Date().toISOString() } as never)
       .eq("user_id", userId)
-      .eq("id", data.threadId);
+      .eq("id", data.threadId)
+      .select("id, status")
+      .single();
 
-    if (error) throw new Error("Não foi possível atualizar o status.");
+    if (error || !updated) throw new Error("Não foi possível atualizar o status.");
 
-    return { ok: true };
+    return { ok: true, status: updated.status };
   });
