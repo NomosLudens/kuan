@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Casa Certa Serviços — Atendimento por Kuan-Yin</title>
+<meta name="description" content="Kuan-Yin entende a solicitação, organiza informações iniciais e prepara a visita técnica com clareza." />
+<meta property="og:title" content="Casa Certa Serviços — Kuan-Yin Showroom" />
+<meta property="og:description" content="Manutenção residencial com triagem técnica clara." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0d1117; --bg-soft:#161c25;
+  --surface:rgba(255,255,255,.04); --surface-strong:rgba(255,255,255,.08);
+  --line:rgba(255,255,255,.10);
+  --graphite:#1f2733; --blue:#3B82F6; --orange:#F97316; --green:#22C55E;
+  --text:#E6EDF3; --muted:#8B98A8;
+  --grad:linear-gradient(135deg,#3B82F6 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden;background:
+  radial-gradient(800px 500px at 90% -10%,rgba(59,130,246,.15),transparent 60%),
+  radial-gradient(600px 400px at -10% 20%,rgba(249,115,22,.08),transparent 65%),
+  var(--bg)}
+a{color:inherit;text-decoration:none}
+.mono{font-family:'Space Grotesk',sans-serif}
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+
+.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(13,17,23,.75);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-family:'Space Grotesk',sans-serif}
+.brand .dot{width:10px;height:10px;border-radius:2px;background:var(--grad)}
+.brand small{display:block;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:-2px}
+.nav-links{display:flex;align-items:center;gap:22px}
+.nav-links a{color:var(--muted);font-size:14px}
+.nav-links a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:transform .25s,background .25s;font-family:'Space Grotesk',sans-serif}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:#ea6510;transform:translateY(-1px)}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--surface-strong)}
+@media(max-width:760px){.nav-links a:not(.btn){display:none}}
+
+.hero{padding:80px 0 60px}
+.eyebrow{font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:var(--blue);font-weight:600}
+.status-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:6px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);font-size:12px;color:var(--green);margin-left:8px;font-family:'Space Grotesk',sans-serif}
+.status-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(40px,6vw,72px);line-height:1.05;letter-spacing:-.02em;margin:18px 0 16px;font-weight:600}
+h1 em{font-style:normal;color:var(--orange)}
+.lead{font-size:18px;color:var(--muted);max-width:620px;margin-bottom:18px}
+.resume{font-size:16px;color:var(--text);max-width:620px;margin-top:22px;padding:18px 20px;background:var(--surface);border-left:3px solid var(--orange);border-radius:8px}
+
+section{padding:70px 0}
+h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,4.2vw,48px);line-height:1.1;letter-spacing:-.02em;font-weight:600;margin:12px 0 14px}
+.section-head{max-width:720px;margin-bottom:40px}
+.section-head p{color:var(--muted);font-size:17px}
+
+.ask{padding:36px;border-radius:16px;background:linear-gradient(180deg,rgba(59,130,246,.08),rgba(255,255,255,.02));border:1px solid var(--line);text-align:center}
+.ask h3{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;margin-bottom:20px}
+.ask .opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.ask .opts button{padding:10px 18px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);color:var(--text);font-size:14px;cursor:pointer;transition:.2s;font-family:'Space Grotesk',sans-serif;font-weight:500}
+.ask .opts button:hover{background:var(--blue);border-color:var(--blue)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:760px){.grid-2{grid-template-columns:1fr}}
+.card{padding:26px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:transform .3s,border-color .3s;position:relative}
+.card:hover{transform:translateY(-3px);border-color:var(--blue)}
+.card .tag{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
+.card h3{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14px}
+
+.chat-wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:30px;align-items:start}
+@media(max-width:880px){.chat-wrap{grid-template-columns:1fr}}
+.chat-info p{color:var(--muted);margin-bottom:14px;font-size:15px}
+.chat-info .tip{padding:16px;border-radius:10px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--orange);font-size:13px;color:var(--muted)}
+.chat{border-radius:16px;background:var(--graphite);border:1px solid var(--line);padding:18px;min-height:540px;display:flex;flex-direction:column}
+.chat-head{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.avatar{width:42px;height:42px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-size:18px;color:#fff;font-weight:700}
+.chat-head h4{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600}
+.chat-head p{font-size:11px;color:var(--muted)}
+.demo-tag{margin-left:auto;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);padding:4px 8px;border-radius:4px;background:var(--surface)}
+.stream{flex:1;padding:18px 4px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:380px}
+.bubble{padding:11px 15px;border-radius:10px;font-size:14px;max-width:85%;animation:in .4s both}
+.bubble.ai{background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.25);align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.me{background:var(--surface-strong);border:1px solid var(--line);align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.system{align-self:center;font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--green);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);padding:8px 14px;border-radius:6px;letter-spacing:.05em}
+@keyframes in{from{opacity:0;transform:translateY(5px)}}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:11px 14px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.25);border-radius:10px}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:bl 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bl{50%{opacity:.3}}
+.choices{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;border-top:1px solid var(--line);margin-top:auto}
+.choices button{padding:9px 14px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);color:var(--text);font-size:13px;cursor:pointer;transition:.2s;font-family:'Space Grotesk',sans-serif;font-weight:500}
+.choices button:hover{background:var(--blue);border-color:var(--blue)}
+.choices button.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+.ethic{padding:36px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(249,115,22,.04));border:1px solid var(--line)}
+.ethic ul{list-style:none;margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:680px){.ethic ul{grid-template-columns:1fr}}
+.ethic li{padding-left:22px;position:relative;color:var(--muted);font-size:14px}
+.ethic li::before{content:"▸";position:absolute;left:0;top:0;color:var(--orange);font-family:'Space Grotesk',sans-serif}
+
+.cta-final{margin:60px 0 80px;padding:56px 36px;border-radius:20px;text-align:center;background:radial-gradient(700px 360px at 50% 0%,rgba(59,130,246,.18),transparent 60%);border:1px solid var(--line)}
+.cta-final h2{max-width:680px;margin:0 auto 14px}
+.cta-final p{color:var(--muted);max-width:560px;margin:0 auto 26px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+
+footer{padding:30px 0 50px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center;font-family:'Space Grotesk',sans-serif;letter-spacing:.05em}
+
+.reveal{opacity:0;transform:translateY(16px);transition:.7s}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+.composer{display:flex;gap:8px;align-items:center;padding-top:12px;margin-top:10px;border-top:1px solid var(--line)}
+.composer input{flex:1;padding:11px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);color:var(--text);font-size:13px;font-family:inherit;outline:none;cursor:not-allowed}
+.composer input::placeholder{color:var(--muted)}
+.composer .send{width:38px;height:38px;border-radius:8px;background:var(--grad);border:none;color:#fff;cursor:not-allowed;display:grid;place-items:center;opacity:.85;flex-shrink:0}
+.composer .send svg{width:16px;height:16px}
+@media(max-width:380px){.nav-in .btn-primary{padding:10px 14px;font-size:13px}}
+
+/* ====== Mobile polish ====== */
+@media(max-width:760px){
+  .container{padding:0 18px}
+  .nav-in{height:60px}
+  .nav-links{gap:10px}
+  .nav-links .btn-ghost{display:none}
+  .nav-links .btn{padding:9px 14px;font-size:13px}
+  .brand small{font-size:9px;letter-spacing:.26em}
+  .hero{padding:48px 0 36px}
+  section{padding:48px 0}
+  h1{font-size:clamp(32px,8vw,44px) !important;line-height:1.06}
+  h2{font-size:clamp(26px,6.5vw,34px) !important}
+  .lead,.resume,.section-head p{font-size:15px}
+  .ask{padding:22px}
+  .ask h3{font-size:20px}
+  .chat{min-height:auto;padding:14px}
+  .stream{max-height:340px}
+  .cta-final{padding:36px 22px;margin:30px 0 50px}
+  .cta-final h2{font-size:clamp(24px,6vw,30px) !important}
+  .ethic{padding:24px}
+  .grid-2{gap:12px}
+  .card{padding:20px}
+}
+
+/* ====== Editorial layer ====== */
+body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:500}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace !important;letter-spacing:.26em !important;font-size:11px !important}
+
+
+/* Avatar in hairline frame */
+.chat-head .avatar{border-radius:8px;position:relative}
+.chat-head .avatar::after{content:"";position:absolute;inset:-4px;border:1px solid var(--line);border-radius:12px;pointer-events:none}
+.chat-head p{font-family:'JetBrains Mono',monospace !important;letter-spacing:.18em;text-transform:uppercase;font-size:10px !important}
+.chat-head .status{font-family:'JetBrains Mono',monospace !important;letter-spacing:.18em;text-transform:uppercase;font-size:10px !important}
+.composer .hint{font-family:'JetBrains Mono',monospace !important;letter-spacing:.22em;text-transform:uppercase}
+
+
+/* ====== Scenario segments ====== */
+.segments{display:flex;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--surface)}
+.segments button{flex:1;padding:10px 12px;background:transparent;border:none;cursor:pointer;font-family:'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.18em;font-size:10px;color:var(--muted);border-right:1px solid var(--line);transition:.2s;line-height:1.3;text-align:center}
+.segments button:last-child{border-right:none}
+.segments button:hover{color:var(--text);background:var(--bg)}
+.segments button.active{background:var(--bg);color:var(--text)}
+.segments .num{display:block;font-size:9px;opacity:.6;margin-bottom:2px}
+@media(max-width:520px){.segments{overflow-x:auto;scroll-snap-type:x mandatory}.segments button{min-width:42%;scroll-snap-align:start;font-size:9.5px;padding:9px 10px}}
+
+/* === Como atende aqui === */
+.como-atende-sec{padding-top:30px!important;padding-bottom:30px!important}
+.como-atende{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+@media(max-width:780px){.como-atende{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:420px){.como-atende{grid-template-columns:1fr}}
+.como-atende .cstep{padding:22px 20px;background:var(--bg);position:relative}
+.como-atende .cstep .cn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:10px}
+.como-atende .cstep h4{font-size:17px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.como-atende .cstep p{color:var(--muted);font-size:13.5px;line-height:1.5}
+/* === Compromissos strip === */
+.compromissos{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:30px}
+@media(max-width:680px){.compromissos{grid-template-columns:1fr}}
+.compromissos .comp{padding:20px;background:var(--bg);text-align:center}
+.compromissos .comp .cn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.compromissos .comp strong{font-size:14.5px;font-weight:600;display:block;line-height:1.35}
+</style>
+<link rel="icon" type="image/png" href="/assets/kuan-yin-apple.png">
+<meta property="og:image" content="/assets/kuan-yin-avatar.png">
+<meta name="twitter:image" content="/assets/kuan-yin-avatar.png">
+<meta name="twitter:card" content="summary_large_image">
+<style id="kuan-brand-override">
+.brand{position:relative}
+.brand .mark{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(232,28,150,.55));transition:filter .3s ease,transform .3s ease}
+.brand:hover .mark{filter:drop-shadow(0 0 22px rgba(232,28,150,.85));transform:scale(1.06)}
+.chat-head .avatar{padding:0!important;background:transparent!important;overflow:hidden;border:1px solid rgba(232,28,150,.45);box-shadow:0 0 24px rgba(232,28,150,.35),inset 0 0 12px rgba(232,28,150,.25)}
+.chat-head .avatar img,.mock-head .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.mock-head .avatar{padding:0!important;background:transparent!important;overflow:hidden;border:1px solid rgba(232,28,150,.45);box-shadow:0 0 24px rgba(232,28,150,.35)}
+.chat-head .avatar::after,.mock-head .avatar::after{display:none!important}
+</style>
+<style id="kuan-overlap-fix">
+/* Avoid floating Personalizar overlapping content */
+body{padding-bottom:96px!important}
+/* Header brand row safety on small screens */
+.nav-in{flex-wrap:nowrap;gap:10px}
+.brand{min-width:0;flex:0 1 auto}
+.brand span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-links{flex-shrink:0}
+@media(max-width:480px){
+  .brand .mark{width:28px;height:28px}
+  .brand span{font-size:13px}
+  .brand small{display:block;font-size:9px;letter-spacing:.22em;opacity:.7}
+}
+/* Hero apple must never overlap text on mobile */
+@media(max-width:780px){
+  .hero{padding-top:18px}
+  .hero-apple{position:relative!important;display:block;margin:0 auto 8px;top:auto!important;right:auto!important;left:auto!important;width:120px!important;height:120px!important;opacity:.85!important;animation:kuanFloat 7s ease-in-out infinite}
+}
+/* Avoid full + short label both visible (keep one) */
+.btn .full{display:inline}
+.btn .short{display:none}
+@media(max-width:640px){.btn .full{display:none}.btn .short{display:inline}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="/showroom"><img class="mark" src="/assets/kuan-yin-apple.png" alt="Kuan-Yin"><span>Kuan-Yin<small>Showroom</small></span></a>
+    <div class="nav-links">
+      <a href="/showroom">Início</a>
+      <a href="/showroom#demos">Demonstrações</a>
+      <a href="/showroom" class="btn btn-ghost">← Voltar</a>
+      <a href="/showroom#cta" class="btn btn-primary">Quero uma Kuan-Yin</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container reveal">
+    <span class="eyebrow">Demonstração — Assistência Residencial</span><span class="status-pill">equipe operando</span>
+    <h1>Casa Certa <em>Serviços</em></h1>
+    <p class="lead">Acolhe a solicitação, entende a demanda residencial e organiza a visita técnica antes do orçamento.</p>
+    <p class="resume">A Casa Certa Serviços atende demandas residenciais com foco em manutenção, avaliação técnica, pequenos reparos e organização de visitas.</p>
+  </div>
+</header>
+
+<section class="como-atende-sec">
+  <div class="container">
+    <div class="section-head reveal" style="margin-bottom:22px">
+      <span class="eyebrow">Como Kuan-Yin atende aqui</span>
+      <h2 style="margin-top:8px">Quatro passos do <em>primeiro contato</em></h2>
+    </div>
+    <div class="como-atende reveal">
+      <div class="cstep"><span class="cn">01 · Passo</span><h4>Acolhe</h4><p>Recebe sem checklist técnico frio.</p></div>
+      <div class="cstep"><span class="cn">02 · Passo</span><h4>Entende</h4><p>Pergunta o serviço, a urgência e o contexto.</p></div>
+      <div class="cstep"><span class="cn">03 · Passo</span><h4>Explica</h4><p>Apresenta avaliação, reparos e tipos de visita.</p></div>
+      <div class="cstep"><span class="cn">04 · Passo</span><h4>Encaminha</h4><p>Prepara a visita técnica para o time confirmar.</p></div>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="container reveal">
+    <div class="ask">
+      <h3>O que você precisa resolver hoje?</h3>
+      <div class="opts">
+        <button data-jump="ar">Ar-condicionado</button>
+        <button data-jump="eletrica">Elétrica simples</button>
+        <button data-jump="vaz">Vazamento</button>
+        <button data-jump="inst">Instalação</button>
+        <button data-jump="orc">Orçamento</button>
+        <button data-jump="visita">Quero uma visita técnica</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Serviços</span>
+      <h2>Atendimentos técnicos</h2>
+      <p>Cada serviço é apresentado com clareza sobre escopo, segurança e necessidade de avaliação presencial.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card reveal"><span class="tag">→ Avaliação</span><h3>Visita técnica</h3><p>Avaliação presencial para identificar causa, escopo e orçamento com mais segurança.</p></div>
+      <div class="card reveal"><span class="tag">→ Climatização</span><h3>Limpeza de ar-condicionado</h3><p>Serviço preventivo e corretivo leve para manutenção do equipamento.</p></div>
+      <div class="card reveal"><span class="tag">→ Elétrica</span><h3>Pequenos reparos elétricos</h3><p>Atendimento para demandas simples, sempre respeitando segurança e avaliação técnica.</p></div>
+      <div class="card reveal"><span class="tag">→ Instalação</span><h3>Instalação</h3><p>Serviço sob análise de local, materiais, condições e complexidade.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Atendimento simulado</span>
+      <h2>Converse com a Kuan-Yin da Casa Certa</h2>
+      <p>Triagem objetiva, sem fechar diagnóstico à distância.</p>
+    </div>
+    <div class="chat-wrap">
+      <div class="chat-info reveal">
+        <p>O fluxo é interativo. Use os botões para guiar a conversa — nada é enviado de fato.</p>
+        <div class="tip"><strong>Personalização:</strong> entende a demanda, classifica urgência e organiza a visita técnica para o time confirmar, sem prometer prazo nem valor.</div>
+      </div>
+      <div class="chat reveal">
+        <div class="chat-head">
+          <div class="avatar"><img src="/assets/kuan-yin-avatar.png" alt="Kuan-Yin"></div>
+          <div><h4>Kuan-Yin · Casa Certa</h4><p>objetiva, técnica, transparente</p></div>
+          <div class="demo-tag">demo</div>
+        </div>
+        <div class="segments" role="tablist">
+          <button data-scn="start" class="active"><span class="num">01</span>Chamado</button>
+          <button data-scn="startB"><span class="num">02</span>Reforma</button>
+          <button data-scn="startC"><span class="num">03</span>Manutenção</button>
+          <button data-scn="startD"><span class="num">04</span>Emergência</button>
+          <button data-scn="startE"><span class="num">05</span>Pós-serviço</button>
+        </div>
+        <div class="stream" id="stream"></div>
+        <div class="choices" id="choices"></div>
+        <div class="composer" aria-hidden="true">
+          <input placeholder="ou digite sua mensagem…" disabled />
+          <button class="send" disabled aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="ethic reveal">
+      <span class="eyebrow">Como Kuan-Yin foi personalizada aqui</span>
+      <h2 style="margin-top:10px">Atendimento com limite e responsabilidade</h2>
+      <p style="color:var(--muted);margin-top:10px">Nesta página, Kuan-Yin foi configurada para fazer triagem por sintoma, registrar contexto útil para o técnico e encaminhar para visita presencial sempre que o caso pedir avaliação.</p>
+      <ul>
+        <li>Não promete diagnóstico remoto definitivo</li>
+        <li>Não fecha preço sem avaliação técnica</li>
+        <li>Respeita normas de segurança elétrica e hidráulica</li>
+        <li>Encaminha visita técnica quando necessário</li>
+        <li>Registra contexto para o técnico chegar preparado</li>
+        <li>Mantém comunicação objetiva e transparente</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<section style="padding-top:0">
+  <div class="container reveal">
+    <div class="compromissos">
+      <div class="comp"><span class="cn">não</span><strong>promete resultado</strong></div>
+      <div class="comp"><span class="cn">não</span><strong>inventa disponibilidade</strong></div>
+      <div class="comp"><span class="cn">não</span><strong>decide o que é sensível</strong></div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="container">
+    <div class="cta-final reveal">
+      <h2>Quer uma Kuan-Yin com a voz da sua operação?</h2>
+      <p>Triagem, agenda e regras técnicas configuradas para o seu negócio. O cliente chega organizado, o técnico chega preparado.</p>
+      <div class="cta-row">
+        <a href="/showroom#cta" class="btn btn-primary">Quero uma demonstração</a>
+        <a href="/showroom" class="btn btn-ghost">← Voltar ao showroom</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">SIMULAÇÃO DEMONSTRATIVA · KUAN-YIN SHOWROOM</div></footer>
+
+<script>
+const tree={
+  start:{ai:"Olá. Sou a Kuan-Yin da Casa Certa. O que você precisa resolver hoje?",opts:[
+    {label:"Ar-condicionado",next:"ar"},{label:"Elétrica simples",next:"eletrica"},{label:"Vazamento",next:"vaz"},
+    {label:"Instalação",next:"inst"},{label:"Orçamento",next:"orc"},{label:"Quero uma visita técnica",next:"visita"}
+  ]},
+  ar:{me:"Ar-condicionado",ai:"Entendi. Para ar-condicionado, a equipe costuma verificar sintomas como vazamento, ruído, baixa refrigeração ou necessidade de limpeza. O que está acontecendo com o equipamento?",opts:[
+    {label:"Está pingando",next:"pingando"},{label:"Não está gelando",next:"gelando"},{label:"Faz barulho",next:"barulho"},{label:"Quero limpeza",next:"limpeza"}
+  ]},
+  pingando:{me:"Está pingando",ai:"Esse sinal pode ter causas diferentes, como dreno obstruído, instalação, sujeira ou inclinação. Posso preparar uma solicitação de visita técnica para avaliação, sem fechar diagnóstico à distância.",opts:[
+    {label:"Preparar visita",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  gelando:{me:"Não está gelando",ai:"Pode ser falta de manutenção, gás, filtro ou outros pontos. Para um diagnóstico seguro, a equipe precisa avaliar presencialmente. Quer que eu prepare uma visita?",opts:[
+    {label:"Preparar visita",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  barulho:{me:"Faz barulho",ai:"Ruídos podem indicar fixação, hélice ou desgaste. Esse caso pede inspeção presencial. Posso registrar uma solicitação de visita?",opts:[
+    {label:"Preparar visita",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  limpeza:{me:"Quero limpeza",ai:"Limpeza preventiva é serviço previsto. Para confirmar valor e duração, a equipe avalia o modelo e o local. Posso registrar a solicitação?",opts:[
+    {label:"Registrar solicitação",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  eletrica:{me:"Elétrica simples",ai:"Para serviços elétricos, segurança vem primeiro. Pode descrever brevemente o que precisa? Troca de ponto, instalação de luminária, problema em tomada ou outro?",opts:[
+    {label:"Troca de ponto",next:"final"},{label:"Instalação de luminária",next:"final"},{label:"Problema em tomada",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  vaz:{me:"Vazamento",ai:"Vazamentos pedem visita técnica para localização correta da origem. Posso preparar a solicitação de visita prioritária?",opts:[
+    {label:"Preparar visita prioritária",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  inst:{me:"Instalação",ai:"Para instalações, a equipe analisa local, materiais e complexidade antes de confirmar escopo e valor. Posso encaminhar para uma conversa técnica?",opts:[
+    {label:"Encaminhar",next:"humano"},{label:"Preparar visita",next:"final"}
+  ]},
+  orc:{me:"Orçamento",ai:"Orçamentos seguros costumam exigir visita técnica. Posso registrar sua demanda e preparar essa visita?",opts:[
+    {label:"Preparar visita",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  visita:{me:"Quero uma visita técnica",ai:"Combinado. Para preparar, preciso saber o tipo de demanda principal.",opts:[
+    {label:"Ar-condicionado",next:"ar"},{label:"Elétrica",next:"eletrica"},{label:"Vazamento",next:"vaz"},{label:"Instalação",next:"inst"}
+  ]},
+  humano:{me:"Falar com a equipe",ai:"Entendido. Estou encaminhando este contato para a equipe da Casa Certa retornar.",system:"Encaminhado para atendimento humano.",opts:[{label:"Reiniciar conversa",next:"start",reset:true}]},
+  final:{ai:"Pronto. Registrei o contexto técnico. A equipe vai validar disponibilidade e confirmar a visita com você.",system:"Solicitação preparada — aguardando confirmação da equipe.",opts:[
+    {label:"Falar com humano",next:"humano"},{label:"Reiniciar conversa",next:"start",reset:true}
+  ]},
+  startB:{ai:"Conta brevemente o escopo da reforma. Para pequenos serviços, a equipe consegue orçar com uma visita técnica.",opts:[
+    {label:"Pintura de cômodo",next:"final"},{label:"Reforma de banheiro",next:"humano"},{label:"Marcenaria sob medida",next:"humano"},{label:"Outro serviço",next:"orc"}
+  ]},
+  startC:{ai:"A manutenção programada cuida do imóvel antes do problema acontecer. Tem alguma frente em mente?",opts:[
+    {label:"Limpeza de ar-condicionado",next:"limpeza"},{label:"Revisão elétrica",next:"final"},{label:"Hidráulica preventiva",next:"final"},{label:"Combinar tudo",next:"humano"}
+  ]},
+  startD:{ai:"Conta brevemente o ocorrido. Para emergências reais (gás, energia, água), acione antes os serviços públicos.",opts:[
+    {label:"Vazamento ativo",next:"d_vaz"},{label:"Pane elétrica parcial",next:"d_pane"},{label:"Sem água",next:"d_agua"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  d_vaz:{me:"Vazamento ativo",ai:"Feche o registro geral se possível. Vou marcar como prioritário para a equipe encaixar a visita.",system:"Chamado registrado como prioritário.",opts:[
+    {label:"Preparar visita prioritária",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  d_pane:{me:"Pane elétrica",ai:"Verifique o disjuntor principal. A equipe consegue visita técnica para diagnóstico no menor prazo possível.",opts:[
+    {label:"Preparar visita",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  d_agua:{me:"Sem água",ai:"Confira primeiro se o problema é de rua junto à concessionária. Se for interno, abro chamado prioritário.",opts:[
+    {label:"É interno, abrir chamado",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  startE:{ai:"Posso registrar um retorno sobre serviço recente. Como podemos te ajudar?",opts:[
+    {label:"Algo voltou a falhar",next:"e_falha"},{label:"Tirar dúvida do serviço",next:"e_duv"},{label:"Deixar feedback",next:"e_feed"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  e_falha:{me:"Voltou a falhar",ai:"Sinto pelo incidente. Serviços recentes têm garantia. Registro o caso e priorizo a revisão.",system:"Chamado de garantia aberto.",opts:[
+    {label:"Preparar revisão",next:"final"},{label:"Falar com a equipe",next:"humano"}
+  ]},
+  e_duv:{me:"Dúvida pós-serviço",ai:"Posso registrar a dúvida e encaminhar ao técnico responsável para resposta clara.",opts:[
+    {label:"Encaminhar técnico",next:"humano"},{label:"Preparar retorno",next:"final"}
+  ]},
+  e_feed:{me:"Deixar feedback",ai:"Seu retorno ajuda a equipe a calibrar o atendimento. Registrar aqui ou conversar com a coordenação?",opts:[
+    {label:"Registrar aqui",next:"final"},{label:"Falar com coordenação",next:"humano"}
+  ]}
+};
+const stream=document.getElementById('stream'),choices=document.getElementById('choices');
+function add(k,t){const d=document.createElement('div');d.className='bubble '+k;d.textContent=t;stream.appendChild(d);stream.scrollTop=stream.scrollHeight}
+function typing(){const t=document.createElement('div');t.className='typing';t.innerHTML='<span></span><span></span><span></span>';stream.appendChild(t);stream.scrollTop=stream.scrollHeight;return t}
+function render(id){const n=tree[id];if(!n)return;choices.innerHTML='';if(n.me)add('me',n.me);const t=typing();setTimeout(()=>{t.remove();if(n.ai)add('ai',n.ai);if(n.system){const s=document.createElement('div');s.className='bubble system';s.textContent='● '+n.system;stream.appendChild(s)}(n.opts||[]).forEach((o,i)=>{const b=document.createElement('button');if(i===0&&id!=='start')b.classList.add('primary');b.textContent=o.label;b.onclick=()=>{if(o.reset){stream.innerHTML='';let currentScenario='start';
+function startScenario(id){currentScenario=id;stream.innerHTML='';document.querySelectorAll('.segments button').forEach(b=>b.classList.toggle('active',b.dataset.scn===id));render(id)}
+document.querySelectorAll('.segments button').forEach(b=>b.onclick=()=>startScenario(b.dataset.scn));
+startScenario('start');return}render(o.next)};choices.appendChild(b)})},700+Math.random()*400)}
+render('start');
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{stream.innerHTML='';render(b.dataset.jump);document.querySelector('.chat').scrollIntoView({behavior:'smooth',block:'center'})});
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+<!-- KUAN-BRAND-PANEL:START -->
+<style id="kuan-brand-panel-style">
+/* Mobile reading polish — applies everywhere */
+@media (max-width:560px){
+  .lead{font-size:15.5px!important;line-height:1.55!important}
+  .section-head p{font-size:15px!important;line-height:1.55!important}
+  .bubble,.msg .bubble{font-size:14.5px!important;line-height:1.55!important}
+  .opts button,.ask .opts button{font-size:11.5px!important;padding:11px 14px!important;min-height:42px}
+  .segments button{min-height:44px}
+  .card p{font-size:13.5px!important;line-height:1.55!important}
+  .resume{font-size:16px!important;line-height:1.5!important}
+}
+/* Panel */
+#kbp-btn{position:fixed;right:14px;bottom:14px;z-index:9999;padding:11px 16px;border:1px solid rgba(255,255,255,.18);background:rgba(15,8,18,.85);backdrop-filter:blur(12px);color:#fff;font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;border-radius:999px;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45);transition:transform .2s}
+#kbp-btn:hover{transform:translateY(-1px)}
+#kbp-btn .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#E879F9,#7C3AED);margin-right:8px;vertical-align:middle;box-shadow:0 0 10px #E879F9}
+#kbp-sheet{position:fixed;inset:auto 0 0 0;z-index:10000;background:#0b0610;color:#F3E8F2;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -20px 60px rgba(0,0,0,.6);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto;font-family:'Manrope',ui-sans-serif,system-ui,sans-serif}
+#kbp-sheet.open{transform:translateY(0)}
+#kbp-sheet .kbp-in{max-width:780px;margin:0 auto;padding:18px 18px 28px}
+.kbp-grab{width:42px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin:6px auto 14px}
+.kbp-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.kbp-h h4{font:600 13px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:#fff}
+.kbp-h .kbp-x{background:transparent;border:1px solid rgba(255,255,255,.18);color:#fff;padding:6px 10px;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:6px}
+.kbp-row{margin-bottom:14px}
+.kbp-row label{display:block;font:500 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:#bfa8b5;margin-bottom:6px}
+.kbp-row input[type=text],.kbp-row textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:11px 12px;font:400 14px/1.45 'Manrope',sans-serif;border-radius:8px;outline:none}
+.kbp-row textarea{min-height:96px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.kbp-row input:focus,.kbp-row textarea:focus{border-color:rgba(232,121,249,.55)}
+.kbp-colors{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kbp-colors label.cc{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);padding:7px 10px;border-radius:8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#bfa8b5;cursor:pointer}
+.kbp-colors input[type=color]{width:30px;height:30px;border:none;background:transparent;padding:0;cursor:pointer}
+.kbp-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.kbp-presets button{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
+.kbp-presets button:hover{border-color:rgba(255,255,255,.32)}
+.kbp-presets .swatch{width:14px;height:14px;border-radius:50%;display:inline-block}
+.kbp-chips{display:flex;gap:8px;flex-wrap:wrap}
+.kbp-chips button{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:9px 14px;border-radius:999px;cursor:pointer;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
+.kbp-chips button.active{background:linear-gradient(135deg,#E879F9,#7C3AED);border-color:transparent;color:#0b0610}
+.kbp-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.kbp-actions button{flex:1;min-width:120px;padding:13px 16px;border-radius:8px;border:none;cursor:pointer;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.22em;text-transform:uppercase}
+.kbp-apply{background:linear-gradient(135deg,#E879F9,#7C3AED);color:#0b0610}
+.kbp-reset{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18)!important}
+.kbp-hint{font-size:11px;color:#8B7585;margin-top:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+@media(max-width:520px){
+  #kbp-btn{padding:10px 14px;font-size:10px}
+  #kbp-sheet .kbp-in{padding:14px 14px 22px}
+}
+</style>
+
+<button id="kbp-btn" type="button"><span class="dot"></span>Personalizar</button>
+<aside id="kbp-sheet" aria-hidden="true">
+  <div class="kbp-in">
+    <div class="kbp-grab"></div>
+    <div class="kbp-h">
+      <h4>Branding · Vitrine</h4>
+      <button class="kbp-x" type="button" data-kbp-close>Fechar</button>
+    </div>
+
+    <div class="kbp-row">
+      <label>Nome do negócio</label>
+      <input type="text" id="kbp-name" placeholder="Ex: Maison Lúmina" maxlength="48" />
+    </div>
+
+    <div class="kbp-row">
+      <label>Tagline / Subtítulo (opcional)</label>
+      <input type="text" id="kbp-tag" placeholder="Ex: beleza, técnica e experiência" maxlength="90" />
+    </div>
+
+    <div class="kbp-row">
+      <label>Paleta</label>
+      <div class="kbp-colors">
+        <label class="cc">Primária <input type="color" id="kbp-c1" value="#E879F9"></label>
+        <label class="cc">Secundária <input type="color" id="kbp-c2" value="#7C3AED"></label>
+      </div>
+      <div class="kbp-presets" id="kbp-presets"></div>
+    </div>
+
+    <div class="kbp-row">
+      <label>Tom de voz</label>
+      <div class="kbp-chips" id="kbp-tone">
+        <button type="button" data-tone="acolhedor" class="active">Acolhedor</button>
+        <button type="button" data-tone="tecnico">Técnico</button>
+        <button type="button" data-tone="premium">Premium</button>
+        <button type="button" data-tone="direto">Direto</button>
+      </div>
+    </div>
+
+    <div class="kbp-row">
+      <label>Serviços (um por linha, até 6)</label>
+      <textarea id="kbp-svcs" placeholder="Corte feminino&#10;Maquiagem social&#10;Design de sobrancelhas"></textarea>
+      <p class="kbp-hint">Substitui os títulos dos cards de serviços em ordem.</p>
+    </div>
+
+    <div class="kbp-actions">
+      <button type="button" class="kbp-apply" data-kbp-apply>Aplicar</button>
+      <button type="button" class="kbp-reset" data-kbp-reset>Resetar</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+(function(){
+  var KEY = 'kbp:' + location.pathname;
+  var PRESETS = [
+    {name:'Magenta',  c1:'#E879F9', c2:'#7C3AED'},
+    {name:'Champagne',c1:'#E8C8AA', c2:'#C9A26B'},
+    {name:'Âmbar',    c1:'#D6A85A', c2:'#C7783E'},
+    {name:'Oceano',   c1:'#3A7787', c2:'#1E4E5F'},
+    {name:'Azul',     c1:'#60A5FA', c2:'#1E3A8A'},
+    {name:'Verde',    c1:'#86EFAC', c2:'#15803D'},
+    {name:'Coral',    c1:'#FB7185', c2:'#9F1239'}
+  ];
+  var TONES = {
+    acolhedor:{eyebrow:'Atendimento humano',font:'inherit'},
+    tecnico:  {eyebrow:'Precisão técnica', font:'inherit'},
+    premium:  {eyebrow:'Experiência premium',font:'inherit'},
+    direto:   {eyebrow:'Direto ao ponto',  font:'inherit'}
+  };
+
+  function $(s,r){return (r||document).querySelector(s)}
+  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+
+  // Cache originals once
+  var ORIG = {
+    title: document.title,
+    brand: null, brandSmall:null,
+    h1Html:null, eyebrow:null,
+    services: [], asks: [],
+    chatHeadName:null
+  };
+  function snap(){
+    var brand = $('.brand span') || $('.brand');
+    if(brand){
+      // First text node of .brand span (avoiding nested <small>)
+      var clone = brand.cloneNode(true);
+      var smalls = clone.querySelectorAll('small'); smalls.forEach(function(s){s.remove()});
+      ORIG.brand = clone.textContent.trim();
+      var small = brand.querySelector('small');
+      ORIG.brandSmall = small ? small.textContent : '';
+    }
+    var h1 = $('.hero h1') || $('h1');
+    if(h1){ ORIG.h1Html = h1.innerHTML }
+    var eb = $('.hero .eyebrow');
+    if(eb){ ORIG.eyebrow = eb.textContent }
+    ORIG.services = $$('.card h3').map(function(n){return n.textContent});
+    ORIG.asks = $$('.ask .opts button').map(function(n){return n.textContent});
+    var chn = $('.chat-head strong') || $('.chat-head .name');
+    if(chn){ ORIG.chatHeadName = chn.textContent }
+  }
+
+  function setBrandText(name){
+    var brand = $('.brand span'); if(!brand) return;
+    // Preserve <small>
+    var small = brand.querySelector('small');
+    brand.textContent = name;
+    if(small){ brand.appendChild(small) }
+  }
+  function applyOverrideStyle(c1,c2){
+    var id='kbp-override';
+    var st=document.getElementById(id);
+    if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st)}
+    var grad='linear-gradient(135deg,'+c1+' 0%,'+c2+' 100%)';
+    st.textContent = ':root{'+
+      '--grad:'+grad+'!important;'+
+      '--magenta:'+c1+'!important;--rose:'+c1+'!important;--amethyst:'+c1+'!important;'+
+      '--violet:'+c2+'!important;--wine:'+c2+'!important;'+
+      '--champagne:'+c1+'!important;--gold:'+c2+'!important;--rose:'+c1+'!important;'+
+      '--amber:'+c1+'!important;--copper:'+c2+'!important;--gold-soft:'+c1+'!important;'+
+      '--teal:'+c2+'!important;--teal-soft:'+c1+'!important;--sage:'+c1+'!important;--coral:'+c1+'!important;'+
+      '--blue:'+c1+'!important;--orange:'+c1+'!important;--green:'+c1+'!important;'+
+      '--kbp-c1:'+c1+';--kbp-c2:'+c2+';'+
+    '}'+
+    '.brand .mark{filter:drop-shadow(0 0 16px '+c1+'88)!important}'+
+    '.chat-head .avatar,.mock-head .avatar{border-color:'+c1+'88!important;box-shadow:0 0 22px '+c1+'55!important}';
+  }
+
+  function apply(state, persist){
+    if(state.name){
+      setBrandText(state.name);
+      document.title = state.name + ' — Kuan-Yin';
+      var h1 = $('.hero h1');
+      if(h1) h1.innerHTML = state.name.replace(/\s+(\S+)$/, ' <em>$1</em>');
+      var chn = $('.chat-head strong') || $('.chat-head .name');
+      if(chn) chn.textContent = 'Kuan-Yin · ' + state.name;
+    } else {
+      if(ORIG.brand) setBrandText(ORIG.brand);
+      document.title = ORIG.title;
+      var h1b = $('.hero h1'); if(h1b && ORIG.h1Html) h1b.innerHTML = ORIG.h1Html;
+      var chn2 = $('.chat-head strong') || $('.chat-head .name');
+      if(chn2 && ORIG.chatHeadName) chn2.textContent = ORIG.chatHeadName;
+    }
+    if(state.tag){
+      var lead = $('.hero .lead'); if(lead) lead.textContent = state.tag;
+    }
+    if(state.tone){
+      document.body.setAttribute('data-tone', state.tone);
+      var eb = $('.hero .eyebrow');
+      if(eb && TONES[state.tone]) eb.textContent = TONES[state.tone].eyebrow;
+    } else if(ORIG.eyebrow){
+      var eb2 = $('.hero .eyebrow'); if(eb2) eb2.textContent = ORIG.eyebrow;
+    }
+    if(state.c1 && state.c2){ applyOverrideStyle(state.c1, state.c2) }
+    else { var o=document.getElementById('kbp-override'); if(o) o.remove() }
+
+    var svcNodes = $$('.card h3');
+    var svcs = (state.services||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
+    svcNodes.forEach(function(node,i){
+      node.textContent = svcs[i] || ORIG.services[i] || node.textContent;
+    });
+
+    if(persist){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)) }catch(e){}
+    }
+  }
+
+  function reset(){
+    try{ localStorage.removeItem(KEY) }catch(e){}
+    apply({}, false);
+    fillForm({});
+  }
+
+  function fillForm(state){
+    $('#kbp-name').value = state.name||'';
+    $('#kbp-tag').value = state.tag||'';
+    $('#kbp-c1').value = state.c1||'#E879F9';
+    $('#kbp-c2').value = state.c2||'#7C3AED';
+    $('#kbp-svcs').value = state.services||'';
+    var tone = state.tone||'acolhedor';
+    $$('#kbp-tone button').forEach(function(b){
+      b.classList.toggle('active', b.dataset.tone===tone);
+    });
+  }
+
+  function readForm(){
+    var tone = ($$('#kbp-tone button.active')[0]||{}).dataset;
+    return {
+      name: $('#kbp-name').value.trim(),
+      tag:  $('#kbp-tag').value.trim(),
+      c1:   $('#kbp-c1').value,
+      c2:   $('#kbp-c2').value,
+      tone: tone ? tone.tone : 'acolhedor',
+      services: $('#kbp-svcs').value
+    };
+  }
+
+  function init(){
+    snap();
+    // Presets
+    var p = $('#kbp-presets');
+    PRESETS.forEach(function(P){
+      var b=document.createElement('button');
+      b.type='button';
+      b.innerHTML='<span class="swatch" style="background:linear-gradient(135deg,'+P.c1+','+P.c2+')"></span>'+P.name;
+      b.addEventListener('click',function(){
+        $('#kbp-c1').value=P.c1; $('#kbp-c2').value=P.c2;
+      });
+      p.appendChild(b);
+    });
+    // Tone chips
+    $$('#kbp-tone button').forEach(function(b){
+      b.addEventListener('click',function(){
+        $$('#kbp-tone button').forEach(function(x){x.classList.remove('active')});
+        b.classList.add('active');
+      });
+    });
+    // Open/close
+    var sheet = $('#kbp-sheet');
+    $('#kbp-btn').addEventListener('click',function(){ sheet.classList.add('open') });
+    $$('[data-kbp-close]').forEach(function(x){x.addEventListener('click',function(){sheet.classList.remove('open')})});
+    $('[data-kbp-apply]').addEventListener('click',function(){
+      var s = readForm(); apply(s,true); sheet.classList.remove('open');
+    });
+    $('[data-kbp-reset]').addEventListener('click',function(){ reset() });
+
+    // Restore
+    var saved = null;
+    try{ saved = JSON.parse(localStorage.getItem(KEY)||'null') }catch(e){}
+    if(saved){ fillForm(saved); apply(saved,false); }
+    else { fillForm({}); }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+})();
+</script>
+<!-- KUAN-BRAND-PANEL:END -->
+
+
+<style id="intent-picker-css">
+.intent-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.intent-picker label{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.intent-picker select{flex:1;min-width:180px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 36px 10px 12px;font:inherit;font-size:14px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.intent-picker select:focus{outline:none;border-color:var(--text)}
+.intent-picker .badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.7}
+@media(max-width:520px){.intent-picker label{flex-basis:100%}}
+</style>
+<script id="intent-picker-js">
+(function(){
+  function build(){
+    var segs=document.querySelector('.segments');if(!segs||segs.dataset.picker)return;
+    segs.dataset.picker='1';
+    var wrap=document.createElement('div');wrap.className='intent-picker';
+    wrap.innerHTML='<label for="intent-sel">Intenção do cliente</label><select id="intent-sel"></select><span class="badge">cenário</span>';
+    var sel=wrap.querySelector('select');
+    segs.querySelectorAll('button[data-scn]').forEach(function(b){
+      var num=(b.querySelector('.num')||{}).textContent||'';
+      var label=b.textContent.replace(num,'').trim();
+      var o=document.createElement('option');o.value=b.dataset.scn;o.textContent=(num?num+' · ':'')+label;
+      if(b.classList.contains('active'))o.selected=true;
+      sel.appendChild(o);
+    });
+    segs.parentNode.insertBefore(wrap,segs);
+    sel.addEventListener('change',function(){
+      var btn=segs.querySelector('button[data-scn="'+sel.value+'"]');
+      if(btn)btn.click();
+      var st=document.getElementById('stream');if(st)st.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    new MutationObserver(function(){
+      var act=segs.querySelector('button.active');if(act&&sel.value!==act.dataset.scn)sel.value=act.dataset.scn;
+    }).observe(segs,{subtree:true,attributes:true,attributeFilter:['class']});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+
+</body>
+</html>

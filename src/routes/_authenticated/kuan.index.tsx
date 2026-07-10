@@ -1,64 +1,81 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, MessageCircle, Settings, ShieldCheck } from "lucide-react";
+import { MessageCircle, Settings, ShieldCheck, Store } from "lucide-react";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Button } from "@/components/ui/button";
+import { ensureThread } from "@/lib/ensure-thread";
+import { ChatView } from "@/components/ChatView";
+import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
 export const Route = createFileRoute("/_authenticated/kuan/")({
-  component: KuanLandingPage,
+  loader: async () => {
+    const id = await ensureThread("kuanyin");
+    return { threadId: id };
+  },
+  component: KuanChatPage,
+  errorComponent: RouteErrorBoundary,
+  notFoundComponent: () => <RouteNotFoundBoundary />,
 });
 
-function KuanLandingPage() {
+function KuanChatPage() {
+  const { threadId } = Route.useLoaderData();
+
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col justify-center px-4 py-10 sm:px-6">
-      <section className="rounded-[2rem] border border-[color:var(--border)] bg-card/60 p-6 shadow-2xl shadow-black/20 sm:p-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-          <img
-            src={kuanyinApple.url}
-            alt=""
-            className="h-16 w-16 shrink-0"
-            style={{ filter: "drop-shadow(0 0 14px rgba(236, 72, 153, 0.45))" }}
-          />
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-[color:var(--ivory-dim)]">
-              Kuan · superfície principal
-            </p>
-            <h1 className="serif mt-2 text-3xl text-[color:oklch(0.86_0.06_350)] sm:text-4xl">
-              Configure seu negócio antes de atender.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--ivory-dim)]">
-              Kuan-Yin continua sendo a marca visual, mas a rota principal é /kuan. O primeiro passo
-              real é registrar nome, serviços, tom de voz e regras do Guardião.
-            </p>
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      {/* Header com CTAs secundários */}
+      <header className="flex-none border-b border-[color:var(--border)] bg-card/40 p-3 sm:p-4">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={kuanyinApple.url}
+              alt=""
+              className="h-10 w-10 shrink-0 apple-glow"
+              style={{ filter: "drop-shadow(0 0 10px rgba(236, 72, 153, 0.45))" }}
+            />
+            <div className="min-w-0">
+              <h1 className="serif text-xl sm:text-2xl text-[color:oklch(0.86_0.06_350)] truncate">
+                Conversa com Kuan
+              </h1>
+              <p className="text-xs text-[color:var(--ivory-dim)] truncate">
+                Superfície principal do Guardião
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+              <Link to="/kuan/onboarding">
+                <Settings className="mr-1.5 h-3.5 w-3.5" /> Configurar
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+              <Link to="/kuan/inbox">
+                <MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Atendimentos
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+              <Link to="/kuan/guardioes">
+                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" /> Guardiões
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+              <Link to="/kuan/showroom">
+                <Store className="mr-1.5 h-3.5 w-3.5" /> Showroom
+              </Link>
+            </Button>
           </div>
         </div>
+      </header>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Button asChild className="h-12 justify-between rounded-2xl px-5">
-            <Link to="/kuan/onboarding">
-              <span className="inline-flex items-center gap-2">
-                <Settings className="h-4 w-4" /> Configurar negócio
-              </span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-12 justify-between rounded-2xl px-5">
-            <Link to="/kuan/inbox">
-              <span className="inline-flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" /> Ver atendimentos
-              </span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-12 justify-between rounded-2xl px-5">
-            <Link to="/kuan/guardioes">
-              <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" /> Gerenciar Guardiões
-              </span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </section>
+      {/* Container do Chat */}
+      <main className="flex-1 min-h-0 mx-auto w-full max-w-5xl">
+        {threadId ? (
+          <ChatView threadId={threadId} />
+        ) : (
+          <div className="flex h-full items-center justify-center p-8 text-sm text-[color:var(--ivory-dim)]">
+            Iniciando conversa...
+          </div>
+        )}
+      </main>
     </div>
   );
 }
