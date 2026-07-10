@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -535,6 +536,16 @@ export const confirmAppointment = createServerFn({ method: "POST" })
     } catch {
       // segue mesmo se calendário falhar
     }
+    
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "appointment status changed: proposed -> confirmed",
+      excerpt: `appointment_id:${data.id}`,
+    });
+    
     return appt;
   });
 
@@ -551,6 +562,16 @@ export const cancelAppointment = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "appointment status changed: -> cancelled",
+      excerpt: `appointment_id:${data.id}`,
+    });
+
     return row;
   });
 
@@ -571,6 +592,15 @@ export const completeAppointment = createServerFn({ method: "POST" })
     if (error || !row) {
       throw new Error("O agendamento precisa estar confirmado para ser concluído.");
     }
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "appointment status changed: confirmed -> completed",
+      excerpt: `appointment_id:${data.id}`,
+    });
 
     return row;
   });
@@ -626,6 +656,16 @@ export const confirmOrder = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "order status changed: proposed -> confirmed",
+      excerpt: `order_id:${data.id}`,
+    });
+
     return row;
   });
 
@@ -642,6 +682,16 @@ export const cancelOrder = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "order status changed: -> cancelled",
+      excerpt: `order_id:${data.id}`,
+    });
+
     return row;
   });
 
@@ -662,6 +712,15 @@ export const deliverOrder = createServerFn({ method: "POST" })
     if (error || !row) {
       throw new Error("O pedido precisa estar confirmado para ser entregue.");
     }
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "order status changed: confirmed -> delivered",
+      excerpt: `order_id:${data.id}`,
+    });
 
     return row;
   });
@@ -720,6 +779,16 @@ export const verifyPayment = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "payment status changed: received_proof -> verified",
+      excerpt: `payment_id:${data.id}`,
+    });
+
     return row;
   });
 
@@ -738,6 +807,16 @@ export const rejectPayment = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "payment status changed: -> rejected",
+      excerpt: `payment_id:${data.id}`,
+    });
+
     return row;
   });
 

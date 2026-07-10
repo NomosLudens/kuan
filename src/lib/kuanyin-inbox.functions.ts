@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 
 export const listGuardianInboxThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -116,6 +117,16 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
       .eq("id", thread.id)
       .eq("user_id", userId);
 
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: "guardian manual reply sent",
+      excerpt: `thread_id:${thread.id}`,
+      threadId: thread.id,
+    });
+
     return { ok: true };
   });
 
@@ -136,6 +147,16 @@ export const setGuardianThreadStatus = createServerFn({ method: "POST" })
       .single();
 
     if (error || !updated) throw new Error("Não foi possível atualizar o status.");
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      severity: "info",
+      note: `thread status changed: -> ${data.status}`,
+      excerpt: `thread_id:${data.threadId}`,
+      threadId: data.threadId,
+    });
 
     return { ok: true, status: updated.status };
   });
