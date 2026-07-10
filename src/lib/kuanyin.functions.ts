@@ -8,7 +8,12 @@ import { z } from "zod";
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 type JsonSerializable =
-  string | number | boolean | null | JsonSerializable[] | { [key: string]: JsonSerializable };
+  | string
+  | number
+  | boolean
+  | null
+  | JsonSerializable[]
+  | { [key: string]: JsonSerializable };
 
 const JsonValue: z.ZodType<unknown> = z.lazy(() =>
   z.union([
