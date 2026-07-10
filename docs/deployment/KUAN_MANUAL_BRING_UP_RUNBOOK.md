@@ -74,6 +74,16 @@ parar.
 
 ## Passo 4 — rodar inspeção SQL
 
+Se o Supabase estiver vazio, o operador pode rodar no Supabase SQL Editor:
+
+`docs/deployment/KUAN_EMPTY_SUPABASE_BOOTSTRAP.sql`
+
+Este bootstrap é exclusivo para banco vazio e provisiona a baseline seguida dos índices comerciais seguros e da inspeção final.
+
+Se o Supabase já tiver qualquer tabela/dado:
+
+não rodar bootstrap; usar apenas inspeção.
+
 Rodar no Supabase SQL Editor ou via CLI o arquivo:
 
 `docs/deployment/KUAN_SUPABASE_INSPECTION.sql`
