@@ -153,7 +153,7 @@ function publicInteractionLimited(
 const DEFAULT_DAILY_AI_CAP = 200;
 
 function guardianDailyAiCap(): number {
-  const raw = process.env.KALINE_KUANYIN_PUBLIC_DAILY_CAP;
+  const raw = process.env.KUAN_PUBLIC_DAILY_CAP ?? process.env.KALINE_KUANYIN_PUBLIC_DAILY_CAP;
   const parsed = raw ? parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_DAILY_AI_CAP;
 }
