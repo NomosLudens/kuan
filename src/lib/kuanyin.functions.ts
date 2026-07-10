@@ -69,17 +69,43 @@ async function getGuardianForContext(businessContextId: string) {
   } | null;
 }
 
-async function getWorkspaceOwnerForUser(userId: string): Promise<string | null> {
+async function getEditableGuardianForUser(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("workspace_members")
-    .select("owner_id, modules")
-    .eq("member_id", userId)
+
+  const { data: owned, error: ownedError } = await supabaseAdmin
+    .from("kuanyin_guardians")
+    .select("id, user_id, admin_user_id, business_context_id, public_slug, status")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
-  const row = data as { owner_id: string; modules?: string[] } | null;
-  if (!row?.owner_id) return null;
-  return Array.isArray(row.modules) && row.modules.includes("kuanyin") ? row.owner_id : null;
+  if (ownedError) throw new Error(ownedError.message);
+  if (owned) return owned as GuardianLinkRow;
+
+  const { data: managed, error: managedError } = await supabaseAdmin
+    .from("kuanyin_guardians")
+    .select("id, user_id, admin_user_id, business_context_id, public_slug, status")
+    .eq("admin_user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(2);
+  if (managedError) throw new Error(managedError.message);
+  const rows = (managed ?? []) as GuardianLinkRow[];
+  if (rows.length > 1) {
+    throw new Error(
+      "Mais de um Guardião é gerenciado por esta conta. Entre como o Guardião operacional para editar /kuan/config.",
+    );
+  }
+  return rows[0] ?? null;
 }
+
+type GuardianLinkRow = {
+  id: string;
+  user_id: string;
+  admin_user_id: string | null;
+  business_context_id: string;
+  public_slug: string;
+  status: string;
+};
 
 function genGuardianInviteToken(): string {
   const bytes = new Uint8Array(24);
@@ -108,21 +134,22 @@ const BusinessContextInput = z.object({
 export const getBusinessContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
+    const { userId } = context;
+    const guardian = await getEditableGuardianForUser(userId);
+    if (!guardian) return null;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
       .from("business_contexts")
       .select("*")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(1)
+      .eq("id", guardian.business_context_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!data) return null;
-    const guardian = await getGuardianForContext((data as { id: string }).id);
     return {
       ...(data as Record<string, unknown>),
-      public_slug: guardian?.public_slug ?? slugifyGuardianName((data as { nome: string }).nome),
-      public_status: guardian?.status ?? "draft",
+      public_slug: guardian.public_slug,
+      public_status: guardian.status,
     };
   });
 
@@ -130,34 +157,48 @@ export const upsertBusinessContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => BusinessContextInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
     const { public_slug: requestedSlug, ...businessData } = data;
-    const payload = { ...businessData, user_id: userId } as never;
-    const { data: row, error } = await supabase
+    const editableGuardian = await getEditableGuardianForUser(userId);
+    if (!editableGuardian) {
+      throw new Error("Nenhum Guardião vinculado a esta conta. Peça um convite ao admin.");
+    }
+
+    const businessContextId = data.id ?? editableGuardian.business_context_id;
+    if (data.id && data.id !== editableGuardian.business_context_id) {
+      throw new Error("Este contexto de negócio não pertence ao Guardião vinculado a esta conta.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      ...businessData,
+      id: businessContextId,
+      user_id: editableGuardian.user_id,
+    } as never;
+    const { data: existingContext, error: existingError } = await supabaseAdmin
       .from("business_contexts")
-      .upsert(payload, { onConflict: "id" })
-      .select("*")
-      .single();
+      .select("id")
+      .eq("id", businessContextId)
+      .maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+
+    const query = existingContext
+      ? supabaseAdmin.from("business_contexts").update(payload).eq("id", businessContextId)
+      : supabaseAdmin.from("business_contexts").insert(payload);
+    const { data: row, error } = await query.select("*").single();
     if (error) throw new Error(error.message);
 
     const businessRow = row as unknown as { id: string; nome: string };
-    const adminUserId = await getWorkspaceOwnerForUser(userId);
     const baseSlug = normalizePublicSlug(requestedSlug ?? businessRow.nome, businessRow.nome);
-    const existingGuardian = await getGuardianForContext(businessRow.id);
     await assertGuardianSlugAvailable(baseSlug, businessRow.id);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: guardian, error: guardianError } = await supabaseAdmin
       .from("kuanyin_guardians")
-      .upsert(
-        {
-          user_id: userId,
-          admin_user_id: adminUserId,
-          business_context_id: businessRow.id,
-          public_slug: baseSlug,
-          status: existingGuardian?.status ?? "published",
-        } as never,
-        { onConflict: "business_context_id" },
-      )
+      .update({
+        business_context_id: businessRow.id,
+        public_slug: baseSlug,
+        status: editableGuardian.status || "draft",
+      } as never)
+      .eq("id", editableGuardian.id)
       .select("id, public_slug, status")
       .single();
     if (guardianError) throw new Error(guardianError.message);

@@ -223,8 +223,8 @@ function GuardioesPage() {
           <ShieldCheck className="mb-3 h-5 w-5 text-[color:var(--gold)]" aria-hidden />
           <h2 className="serif text-xl text-[color:var(--ivory)]">Nenhum Guardião ainda</h2>
           <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">
-            Convide um Guardião ou configure seu próprio negócio na aba Negócio para publicar a
-            primeira presença pública.
+            Convide um Guardião. Depois que a pessoa aceitar o convite, ela configura o próprio
+            negócio em /kuan/config e a presença aparece aqui para gestão do admin.
           </p>
         </section>
       )}
