@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, MessageCircle, Settings } from "lucide-react";
+import { ArrowRight, MessageCircle, Settings, ShieldCheck } from "lucide-react";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +32,7 @@ function KuanLandingPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Button asChild className="h-12 justify-between rounded-2xl px-5">
             <Link to="/kuan/onboarding">
               <span className="inline-flex items-center gap-2">
@@ -45,6 +45,14 @@ function KuanLandingPage() {
             <Link to="/kuan/inbox">
               <span className="inline-flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" /> Ver atendimentos
+              </span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="h-12 justify-between rounded-2xl px-5">
+            <Link to="/kuan/guardioes">
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" /> Gerenciar Guardiões
               </span>
               <ArrowRight className="h-4 w-4" />
             </Link>
