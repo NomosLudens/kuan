@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listOrders, confirmOrder, cancelOrder, createPortalToken } from "@/lib/kuanyin.functions";
+import {
+  listOrders,
+  confirmOrder,
+  cancelOrder,
+  deliverOrder,
+  createPortalToken,
+} from "@/lib/kuanyin.functions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
@@ -25,6 +31,7 @@ function PedidosPage() {
   const list = useServerFn(listOrders);
   const confirm = useServerFn(confirmOrder);
   const cancel = useServerFn(cancelOrder);
+  const deliver = useServerFn(deliverOrder);
   const mkToken = useServerFn(createPortalToken);
   async function share(orderId: string) {
     try {
@@ -120,6 +127,23 @@ function PedidosPage() {
                       Cancelar
                     </Button>
                   </div>
+                )}
+                {r.status === "confirmed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await deliver({ data: { id: r.id } });
+                        toast.success("Pedido entregue.");
+                        reload();
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Falha ao entregar.");
+                      }
+                    }}
+                  >
+                    Marcar como entregue
+                  </Button>
                 )}
                 <Button size="sm" variant="ghost" onClick={() => share(r.id)}>
                   Compartilhar
