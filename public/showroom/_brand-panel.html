@@ -1,0 +1,287 @@
+<!-- KUAN-BRAND-PANEL:START -->
+<style id="kuan-brand-panel-style">
+/* Mobile reading polish — applies everywhere */
+@media (max-width:560px){
+  .lead{font-size:15.5px!important;line-height:1.55!important}
+  .section-head p{font-size:15px!important;line-height:1.55!important}
+  .bubble,.msg .bubble{font-size:14.5px!important;line-height:1.55!important}
+  .opts button,.ask .opts button{font-size:11.5px!important;padding:11px 14px!important;min-height:42px}
+  .segments button{min-height:44px}
+  .card p{font-size:13.5px!important;line-height:1.55!important}
+  .resume{font-size:16px!important;line-height:1.5!important}
+}
+/* Panel */
+#kbp-btn{position:fixed;right:14px;bottom:14px;z-index:9999;padding:11px 16px;border:1px solid rgba(255,255,255,.18);background:rgba(15,8,18,.85);backdrop-filter:blur(12px);color:#fff;font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;border-radius:999px;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45);transition:transform .2s}
+#kbp-btn:hover{transform:translateY(-1px)}
+#kbp-btn .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#E879F9,#7C3AED);margin-right:8px;vertical-align:middle;box-shadow:0 0 10px #E879F9}
+#kbp-sheet{position:fixed;inset:auto 0 0 0;z-index:10000;background:#0b0610;color:#F3E8F2;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -20px 60px rgba(0,0,0,.6);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto;font-family:'Manrope',ui-sans-serif,system-ui,sans-serif}
+#kbp-sheet.open{transform:translateY(0)}
+#kbp-sheet .kbp-in{max-width:780px;margin:0 auto;padding:18px 18px 28px}
+.kbp-grab{width:42px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin:6px auto 14px}
+.kbp-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.kbp-h h4{font:600 13px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:#fff}
+.kbp-h .kbp-x{background:transparent;border:1px solid rgba(255,255,255,.18);color:#fff;padding:6px 10px;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:6px}
+.kbp-row{margin-bottom:14px}
+.kbp-row label{display:block;font:500 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:#bfa8b5;margin-bottom:6px}
+.kbp-row input[type=text],.kbp-row textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:11px 12px;font:400 14px/1.45 'Manrope',sans-serif;border-radius:8px;outline:none}
+.kbp-row textarea{min-height:96px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.kbp-row input:focus,.kbp-row textarea:focus{border-color:rgba(232,121,249,.55)}
+.kbp-colors{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kbp-colors label.cc{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);padding:7px 10px;border-radius:8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#bfa8b5;cursor:pointer}
+.kbp-colors input[type=color]{width:30px;height:30px;border:none;background:transparent;padding:0;cursor:pointer}
+.kbp-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.kbp-presets button{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
+.kbp-presets button:hover{border-color:rgba(255,255,255,.32)}
+.kbp-presets .swatch{width:14px;height:14px;border-radius:50%;display:inline-block}
+.kbp-chips{display:flex;gap:8px;flex-wrap:wrap}
+.kbp-chips button{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:9px 14px;border-radius:999px;cursor:pointer;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
+.kbp-chips button.active{background:linear-gradient(135deg,#E879F9,#7C3AED);border-color:transparent;color:#0b0610}
+.kbp-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.kbp-actions button{flex:1;min-width:120px;padding:13px 16px;border-radius:8px;border:none;cursor:pointer;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.22em;text-transform:uppercase}
+.kbp-apply{background:linear-gradient(135deg,#E879F9,#7C3AED);color:#0b0610}
+.kbp-reset{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18)!important}
+.kbp-hint{font-size:11px;color:#8B7585;margin-top:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+@media(max-width:520px){
+  #kbp-btn{padding:10px 14px;font-size:10px}
+  #kbp-sheet .kbp-in{padding:14px 14px 22px}
+}
+</style>
+
+<button id="kbp-btn" type="button"><span class="dot"></span>Personalizar</button>
+<aside id="kbp-sheet" aria-hidden="true">
+  <div class="kbp-in">
+    <div class="kbp-grab"></div>
+    <div class="kbp-h">
+      <h4>Branding · Vitrine</h4>
+      <button class="kbp-x" type="button" data-kbp-close>Fechar</button>
+    </div>
+
+    <div class="kbp-row">
+      <label>Nome do negócio</label>
+      <input type="text" id="kbp-name" placeholder="Ex: Maison Lúmina" maxlength="48" />
+    </div>
+
+    <div class="kbp-row">
+      <label>Tagline / Subtítulo (opcional)</label>
+      <input type="text" id="kbp-tag" placeholder="Ex: beleza, técnica e experiência" maxlength="90" />
+    </div>
+
+    <div class="kbp-row">
+      <label>Paleta</label>
+      <div class="kbp-colors">
+        <label class="cc">Primária <input type="color" id="kbp-c1" value="#E879F9"></label>
+        <label class="cc">Secundária <input type="color" id="kbp-c2" value="#7C3AED"></label>
+      </div>
+      <div class="kbp-presets" id="kbp-presets"></div>
+    </div>
+
+    <div class="kbp-row">
+      <label>Tom de voz</label>
+      <div class="kbp-chips" id="kbp-tone">
+        <button type="button" data-tone="acolhedor" class="active">Acolhedor</button>
+        <button type="button" data-tone="tecnico">Técnico</button>
+        <button type="button" data-tone="premium">Premium</button>
+        <button type="button" data-tone="direto">Direto</button>
+      </div>
+    </div>
+
+    <div class="kbp-row">
+      <label>Serviços (um por linha, até 6)</label>
+      <textarea id="kbp-svcs" placeholder="Corte feminino&#10;Maquiagem social&#10;Design de sobrancelhas"></textarea>
+      <p class="kbp-hint">Substitui os títulos dos cards de serviços em ordem.</p>
+    </div>
+
+    <div class="kbp-actions">
+      <button type="button" class="kbp-apply" data-kbp-apply>Aplicar</button>
+      <button type="button" class="kbp-reset" data-kbp-reset>Resetar</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+(function(){
+  var KEY = 'kbp:' + location.pathname;
+  var PRESETS = [
+    {name:'Magenta',  c1:'#E879F9', c2:'#7C3AED'},
+    {name:'Champagne',c1:'#E8C8AA', c2:'#C9A26B'},
+    {name:'Âmbar',    c1:'#D6A85A', c2:'#C7783E'},
+    {name:'Oceano',   c1:'#3A7787', c2:'#1E4E5F'},
+    {name:'Azul',     c1:'#60A5FA', c2:'#1E3A8A'},
+    {name:'Verde',    c1:'#86EFAC', c2:'#15803D'},
+    {name:'Coral',    c1:'#FB7185', c2:'#9F1239'}
+  ];
+  var TONES = {
+    acolhedor:{eyebrow:'Atendimento humano',font:'inherit'},
+    tecnico:  {eyebrow:'Precisão técnica', font:'inherit'},
+    premium:  {eyebrow:'Experiência premium',font:'inherit'},
+    direto:   {eyebrow:'Direto ao ponto',  font:'inherit'}
+  };
+
+  function $(s,r){return (r||document).querySelector(s)}
+  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+
+  // Cache originals once
+  var ORIG = {
+    title: document.title,
+    brand: null, brandSmall:null,
+    h1Html:null, eyebrow:null,
+    services: [], asks: [],
+    chatHeadName:null
+  };
+  function snap(){
+    var brand = $('.brand span') || $('.brand');
+    if(brand){
+      // First text node of .brand span (avoiding nested <small>)
+      var clone = brand.cloneNode(true);
+      var smalls = clone.querySelectorAll('small'); smalls.forEach(function(s){s.remove()});
+      ORIG.brand = clone.textContent.trim();
+      var small = brand.querySelector('small');
+      ORIG.brandSmall = small ? small.textContent : '';
+    }
+    var h1 = $('.hero h1') || $('h1');
+    if(h1){ ORIG.h1Html = h1.innerHTML }
+    var eb = $('.hero .eyebrow');
+    if(eb){ ORIG.eyebrow = eb.textContent }
+    ORIG.services = $$('.card h3').map(function(n){return n.textContent});
+    ORIG.asks = $$('.ask .opts button').map(function(n){return n.textContent});
+    var chn = $('.chat-head strong') || $('.chat-head .name');
+    if(chn){ ORIG.chatHeadName = chn.textContent }
+  }
+
+  function setBrandText(name){
+    var brand = $('.brand span'); if(!brand) return;
+    // Preserve <small>
+    var small = brand.querySelector('small');
+    brand.textContent = name;
+    if(small){ brand.appendChild(small) }
+  }
+  function applyOverrideStyle(c1,c2){
+    var id='kbp-override';
+    var st=document.getElementById(id);
+    if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st)}
+    var grad='linear-gradient(135deg,'+c1+' 0%,'+c2+' 100%)';
+    st.textContent = ':root{'+
+      '--grad:'+grad+'!important;'+
+      '--magenta:'+c1+'!important;--rose:'+c1+'!important;--amethyst:'+c1+'!important;'+
+      '--violet:'+c2+'!important;--wine:'+c2+'!important;'+
+      '--champagne:'+c1+'!important;--gold:'+c2+'!important;--rose:'+c1+'!important;'+
+      '--amber:'+c1+'!important;--copper:'+c2+'!important;--gold-soft:'+c1+'!important;'+
+      '--teal:'+c2+'!important;--teal-soft:'+c1+'!important;--sage:'+c1+'!important;--coral:'+c1+'!important;'+
+      '--blue:'+c1+'!important;--orange:'+c1+'!important;--green:'+c1+'!important;'+
+      '--kbp-c1:'+c1+';--kbp-c2:'+c2+';'+
+    '}'+
+    '.brand .mark{filter:drop-shadow(0 0 16px '+c1+'88)!important}'+
+    '.chat-head .avatar,.mock-head .avatar{border-color:'+c1+'88!important;box-shadow:0 0 22px '+c1+'55!important}';
+  }
+
+  function apply(state, persist){
+    if(state.name){
+      setBrandText(state.name);
+      document.title = state.name + ' — Kuan-Yin';
+      var h1 = $('.hero h1');
+      if(h1) h1.innerHTML = state.name.replace(/\s+(\S+)$/, ' <em>$1</em>');
+      var chn = $('.chat-head strong') || $('.chat-head .name');
+      if(chn) chn.textContent = 'Kuan-Yin · ' + state.name;
+    } else {
+      if(ORIG.brand) setBrandText(ORIG.brand);
+      document.title = ORIG.title;
+      var h1b = $('.hero h1'); if(h1b && ORIG.h1Html) h1b.innerHTML = ORIG.h1Html;
+      var chn2 = $('.chat-head strong') || $('.chat-head .name');
+      if(chn2 && ORIG.chatHeadName) chn2.textContent = ORIG.chatHeadName;
+    }
+    if(state.tag){
+      var lead = $('.hero .lead'); if(lead) lead.textContent = state.tag;
+    }
+    if(state.tone){
+      document.body.setAttribute('data-tone', state.tone);
+      var eb = $('.hero .eyebrow');
+      if(eb && TONES[state.tone]) eb.textContent = TONES[state.tone].eyebrow;
+    } else if(ORIG.eyebrow){
+      var eb2 = $('.hero .eyebrow'); if(eb2) eb2.textContent = ORIG.eyebrow;
+    }
+    if(state.c1 && state.c2){ applyOverrideStyle(state.c1, state.c2) }
+    else { var o=document.getElementById('kbp-override'); if(o) o.remove() }
+
+    var svcNodes = $$('.card h3');
+    var svcs = (state.services||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
+    svcNodes.forEach(function(node,i){
+      node.textContent = svcs[i] || ORIG.services[i] || node.textContent;
+    });
+
+    if(persist){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)) }catch(e){}
+    }
+  }
+
+  function reset(){
+    try{ localStorage.removeItem(KEY) }catch(e){}
+    apply({}, false);
+    fillForm({});
+  }
+
+  function fillForm(state){
+    $('#kbp-name').value = state.name||'';
+    $('#kbp-tag').value = state.tag||'';
+    $('#kbp-c1').value = state.c1||'#E879F9';
+    $('#kbp-c2').value = state.c2||'#7C3AED';
+    $('#kbp-svcs').value = state.services||'';
+    var tone = state.tone||'acolhedor';
+    $$('#kbp-tone button').forEach(function(b){
+      b.classList.toggle('active', b.dataset.tone===tone);
+    });
+  }
+
+  function readForm(){
+    var tone = ($$('#kbp-tone button.active')[0]||{}).dataset;
+    return {
+      name: $('#kbp-name').value.trim(),
+      tag:  $('#kbp-tag').value.trim(),
+      c1:   $('#kbp-c1').value,
+      c2:   $('#kbp-c2').value,
+      tone: tone ? tone.tone : 'acolhedor',
+      services: $('#kbp-svcs').value
+    };
+  }
+
+  function init(){
+    snap();
+    // Presets
+    var p = $('#kbp-presets');
+    PRESETS.forEach(function(P){
+      var b=document.createElement('button');
+      b.type='button';
+      b.innerHTML='<span class="swatch" style="background:linear-gradient(135deg,'+P.c1+','+P.c2+')"></span>'+P.name;
+      b.addEventListener('click',function(){
+        $('#kbp-c1').value=P.c1; $('#kbp-c2').value=P.c2;
+      });
+      p.appendChild(b);
+    });
+    // Tone chips
+    $$('#kbp-tone button').forEach(function(b){
+      b.addEventListener('click',function(){
+        $$('#kbp-tone button').forEach(function(x){x.classList.remove('active')});
+        b.classList.add('active');
+      });
+    });
+    // Open/close
+    var sheet = $('#kbp-sheet');
+    $('#kbp-btn').addEventListener('click',function(){ sheet.classList.add('open') });
+    $$('[data-kbp-close]').forEach(function(x){x.addEventListener('click',function(){sheet.classList.remove('open')})});
+    $('[data-kbp-apply]').addEventListener('click',function(){
+      var s = readForm(); apply(s,true); sheet.classList.remove('open');
+    });
+    $('[data-kbp-reset]').addEventListener('click',function(){ reset() });
+
+    // Restore
+    var saved = null;
+    try{ saved = JSON.parse(localStorage.getItem(KEY)||'null') }catch(e){}
+    if(saved){ fillForm(saved); apply(saved,false); }
+    else { fillForm({}); }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+})();
+</script>
+<!-- KUAN-BRAND-PANEL:END -->

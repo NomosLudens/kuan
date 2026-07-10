@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Sparkle,
   Sprout,
+  Store,
   UserCircle,
   Users,
 } from "lucide-react";
@@ -64,6 +65,7 @@ const APP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "camara-do-eco": Mic,
   kuanyin: Briefcase,
   "kuan-guardioes": ShieldCheck,
+  "kuan-showroom": Store,
   drive: Gauge,
   jardim: Flower2,
   "registro-vivo": Feather,
