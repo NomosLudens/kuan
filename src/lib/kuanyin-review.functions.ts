@@ -128,21 +128,61 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
     const { userId, supabase } = context;
     const newStatus = data.action === "confirm" ? "confirmed" : "rejected";
 
-    let table = "";
-    if (data.type === "kuanyin.client.review") table = "kuanyin_clients";
-    if (data.type === "kuanyin.appointment.review") table = "kuanyin_appointments";
-    if (data.type === "kuanyin.order.review") table = "kuanyin_orders";
-    if (data.type === "kuanyin.payment.review") table = "kuanyin_payments";
+    let updated: { id: string; status: string } | null = null;
+    let error: any = null;
 
-    if (!table) throw new Error("Tipo de revisão inválido.");
-
-    const { data: updated, error } = await supabase
-      .from(table)
-      .update({ status: newStatus, updated_at: new Date().toISOString() } as never)
-      .eq("user_id", userId)
-      .eq("id", data.id)
-      .select("id, status")
-      .single();
+    switch (data.type) {
+      case "kuanyin.client.review": {
+        const res = await supabase
+          .from("kuanyin_clients")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("id", data.id)
+          .select("id, status")
+          .single();
+        updated = res.data;
+        error = res.error;
+        break;
+      }
+      case "kuanyin.appointment.review": {
+        const res = await supabase
+          .from("kuanyin_appointments")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("id", data.id)
+          .select("id, status")
+          .single();
+        updated = res.data;
+        error = res.error;
+        break;
+      }
+      case "kuanyin.order.review": {
+        const res = await supabase
+          .from("kuanyin_orders")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("id", data.id)
+          .select("id, status")
+          .single();
+        updated = res.data;
+        error = res.error;
+        break;
+      }
+      case "kuanyin.payment.review": {
+        const res = await supabase
+          .from("kuanyin_payments")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("id", data.id)
+          .select("id, status")
+          .single();
+        updated = res.data;
+        error = res.error;
+        break;
+      }
+      default:
+        throw new Error("Tipo de revisão inválido.");
+    }
 
     if (error || !updated) {
       throw new Error(
