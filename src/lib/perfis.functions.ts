@@ -23,6 +23,95 @@ const inviteSchema = z.object({
   origin: z.string().url().max(300),
 });
 
+function slugifyGuardianSeed(value: string): string {
+  const slug = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 56);
+  return slug || "guardiao";
+}
+
+async function createKuanYinGuardianLink(params: {
+  adminUserId: string;
+  guardianUserId: string;
+  email: string;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from("kuanyin_guardians")
+    .select("id, admin_user_id, metadata")
+    .eq("user_id", params.guardianUserId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+  if (existing) {
+    const existingGuardian = existing as {
+      id: string;
+      admin_user_id: string | null;
+      metadata: Record<string, unknown> | null;
+    };
+    const { error: updateError } = await supabaseAdmin
+      .from("kuanyin_guardians")
+      .update({
+        ...(existingGuardian.admin_user_id ? {} : { admin_user_id: params.adminUserId }),
+        metadata: {
+          ...(existingGuardian.metadata ?? {}),
+          linked_by_invite: true,
+          linked_at: new Date().toISOString(),
+        },
+      } as never)
+      .eq("id", existingGuardian.id);
+    if (updateError) throw new Error(updateError.message);
+    return;
+  }
+
+  const fallbackName = params.email.split("@")[0] || "Guardião";
+  const { data: contextRow, error: contextError } = await supabaseAdmin
+    .from("business_contexts")
+    .insert({
+      user_id: params.guardianUserId,
+      nome: fallbackName,
+      tipo: "",
+      observacoes:
+        "Contexto criado pelo aceite de convite Kuan-Yin. O Guardião deve substituir pelos dados reais do negócio em /kuan/config.",
+    } as never)
+    .select("id")
+    .single();
+  if (contextError || !contextRow) {
+    throw new Error(contextError?.message ?? "Falha ao criar contexto do Guardião.");
+  }
+
+  const createdContextId = (contextRow as { id: string }).id;
+  const cleanupCreatedContext = async () => {
+    await supabaseAdmin.from("business_contexts").delete().eq("id", createdContextId);
+  };
+  const base = slugifyGuardianSeed(fallbackName);
+  let publicSlug = base;
+  for (let i = 0; i < 8; i += 1) {
+    const { error: guardianError } = await supabaseAdmin.from("kuanyin_guardians").insert({
+      user_id: params.guardianUserId,
+      admin_user_id: params.adminUserId,
+      business_context_id: createdContextId,
+      public_slug: publicSlug,
+      status: "draft",
+      metadata: { linked_by_invite: true, linked_at: new Date().toISOString() },
+    } as never);
+    if (!guardianError) return;
+    if (!/duplicate key|unique/i.test(guardianError.message)) {
+      await cleanupCreatedContext();
+      throw new Error(guardianError.message);
+    }
+    publicSlug = `${base}-${crypto.randomUUID().slice(0, 6)}`.slice(0, 80);
+  }
+  await cleanupCreatedContext();
+  throw new Error("Não foi possível reservar um slug público para o Guardião.");
+}
+
 function genToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
@@ -125,13 +214,27 @@ export const acceptInvite = createServerFn({ method: "POST" })
       throw new Error("Você é o próprio admin deste workspace — convide outra pessoa.");
     }
 
-    // Cria/atualiza vínculo. UNIQUE(member_id) impede vínculos cruzados.
-    const { error: linkErr } = await supabaseAdmin
+    // Cria/atualiza vínculo sem depender de UNIQUE(member_id) no schema.
+    const { data: existingMember, error: existingMemberError } = await supabaseAdmin
       .from("workspace_members")
-      .upsert(
-        { owner_id: invite.owner_id, member_id: userId, modules: invite.modules },
-        { onConflict: "member_id" },
-      );
+      .select("id")
+      .eq("owner_id", invite.owner_id)
+      .eq("member_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (existingMemberError) throw new Error(existingMemberError.message);
+
+    const memberPayload = {
+      owner_id: invite.owner_id,
+      member_id: userId,
+      modules: invite.modules,
+    } as never;
+    const { error: linkErr } = existingMember
+      ? await supabaseAdmin
+          .from("workspace_members")
+          .update(memberPayload)
+          .eq("id", (existingMember as { id: string }).id)
+      : await supabaseAdmin.from("workspace_members").insert(memberPayload);
     if (linkErr) throw new Error(linkErr.message);
 
     // Marca convite como aceito + rebaixa user para member
@@ -156,6 +259,14 @@ export const acceptInvite = createServerFn({ method: "POST" })
       .from("profiles")
       .update({ role: "user", assigned_facet: assignedFacet })
       .eq("id", userId);
+
+    if (modules.includes("kuanyin")) {
+      await createKuanYinGuardianLink({
+        adminUserId: invite.owner_id,
+        guardianUserId: userId,
+        email: invite.email,
+      });
+    }
 
     return { owner_id: invite.owner_id, modules: invite.modules };
   });

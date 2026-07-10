@@ -57,6 +57,15 @@ type GuardianRow = {
   created_at: string;
   updated_at: string;
   business_contexts: { nome: string; tipo: string | null; updated_at: string } | null;
+  metadata?: {
+    guardian_preferences?: {
+      preferred_cta?: string;
+      visual_style?: string;
+      client_style?: string;
+      must_review?: string[];
+    };
+    public_page_blueprint?: { status?: string; journey?: string[] };
+  } | null;
   is_owner?: boolean;
 };
 
@@ -157,7 +166,11 @@ function GuardioesPage() {
       })) as { shareLink: string; emailSent: boolean };
       setInviteLink(res.shareLink);
       setEmail("");
-      toast.success(res.emailSent ? "Convite enviado por e-mail." : "Convite criado para copiar.");
+      toast.success(
+        res.emailSent
+          ? "Convite enviado ao Guardião."
+          : "Convite criado. Copie o link e envie manualmente ao Guardião.",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao criar convite.");
     } finally {
@@ -177,8 +190,9 @@ function GuardioesPage() {
               Presenças públicas Kuan-Yin
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-[color:var(--ivory-dim)]">
-              Gerencie os Guardiões vinculados a você, publique ou suspenda páginas públicas e
-              convide novos clientes do admin para configurar a própria Kuan-Yin comercial.
+              Gerencie Guardiões vinculados a você, publique ou suspenda páginas públicas e
+              acompanhe atendimentos recebidos. Convide Guardiões para configurar e operar suas
+              próprias presenças comerciais.
             </p>
             <p className="mt-3 text-xs text-[color:var(--ivory-dim)]">
               {rows.length} Guardião(ões) encontrados · {publishedCount} publicado(s)
@@ -187,14 +201,18 @@ function GuardioesPage() {
           <div className="rounded-2xl border border-[color:var(--border)] bg-background/50 p-3 lg:w-80">
             <div className="mb-2 flex items-center gap-2 text-sm text-[color:var(--ivory)]">
               <Mail className="h-4 w-4 text-[color:var(--gold)]" aria-hidden />
-              Convidar Guardião
+              Convite de Guardião
             </div>
+            <p className="mb-3 text-xs text-[color:var(--ivory-dim)]">
+              Envie este convite para a pessoa que vai configurar e operar o próprio negócio dentro
+              da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta operacional.
+            </p>
             <div className="flex gap-2">
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="cliente@negocio.com"
+                placeholder="guardiao@negocio.com"
               />
               <Button disabled={inviteBusy} onClick={createInvite}>
                 {inviteBusy ? "..." : "Convidar"}
@@ -205,8 +223,14 @@ function GuardioesPage() {
                 type="button"
                 className="mt-2 w-full rounded-xl border border-[color:var(--border)] px-3 py-2 text-left text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)]"
                 onClick={async () => {
-                  await navigator.clipboard.writeText(inviteLink).catch(() => {});
-                  toast.success("Link copiado.");
+                  try {
+                    await navigator.clipboard.writeText(inviteLink);
+                    toast.success("Link de convite copiado.");
+                  } catch {
+                    toast.error(
+                      "Não consegui copiar automaticamente. Selecione e copie o link de convite.",
+                    );
+                  }
                 }}
               >
                 <Copy className="mr-2 inline h-3.5 w-3.5" aria-hidden />
@@ -223,8 +247,8 @@ function GuardioesPage() {
           <ShieldCheck className="mb-3 h-5 w-5 text-[color:var(--gold)]" aria-hidden />
           <h2 className="serif text-xl text-[color:var(--ivory)]">Nenhum Guardião ainda</h2>
           <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">
-            Convide um Guardião ou configure seu próprio negócio na aba Negócio para publicar a
-            primeira presença pública.
+            Convide um Guardião. Depois que a pessoa aceitar o convite, ela configura o próprio
+            negócio em /kuan/config e a presença aparece aqui para gestão do admin.
           </p>
         </section>
       )}
@@ -341,11 +365,31 @@ function GuardioesPage() {
                     )}
                   </div>
                   <p className="mt-2 text-xs text-[color:var(--ivory-dim)]">
-                    Link público: <code className="text-[color:var(--ivory)]">{publicPath}</code>
+                    Link público para clientes:{" "}
+                    <code className="text-[color:var(--ivory)]">{publicPath}</code>
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
+                    Este link é para clientes. Não exige login. Cliente não recebe convite de conta;
+                    cliente recebe link público de atendimento.
                   </p>
                   <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
                     {STATUS_HELP[guardian.status]}
                   </p>
+                  {guardian.metadata?.guardian_preferences && (
+                    <p className="mt-2 text-xs text-[color:var(--ivory-dim)]">
+                      Preferências: CTA “
+                      {guardian.metadata.guardian_preferences.preferred_cta ??
+                        "Solicitar esse horário"}
+                      ” · visual “
+                      {guardian.metadata.guardian_preferences.visual_style || "não informado"}”
+                    </p>
+                  )}
+                  {guardian.metadata?.public_page_blueprint && (
+                    <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
+                      Proposta pública: {guardian.metadata.public_page_blueprint.status ?? "draft"}.
+                      Nada é publicado automaticamente sem revisão.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -353,6 +397,23 @@ function GuardioesPage() {
                     <a href={publicUrl} target="_blank" rel="noopener noreferrer">
                       Abrir <ExternalLink className="ml-1.5 h-3.5 w-3.5" aria-hidden />
                     </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(publicUrl);
+                        toast.success("Link público copiado.");
+                      } catch {
+                        toast.error(
+                          "Não consegui copiar automaticamente. Selecione e copie o link exibido.",
+                        );
+                      }
+                    }}
+                  >
+                    <Copy className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                    Copiar link público
                   </Button>
                   {guardian.is_owner ? (
                     <Button asChild variant="ghost" size="sm">
