@@ -1,5 +1,5 @@
 -- ============================================================================
--- Kaline Totalidade — Baseline única e idempotente para deploy novo
+-- Kuan — Baseline única e idempotente para deploy novo
 -- ============================================================================
 -- Consolida as 39 migrations incrementais anteriores (agora em
 -- diretório legado de migrations) num único arquivo, para provisionar um
@@ -1406,11 +1406,14 @@ where table_schema = 'public'
 order by table_name;
 
 -- constraints Kuan
-select conname, conrelid::regclass as table_name, pg_get_constraintdef(oid) as definition
+select
+  conname,
+  conrelid::regclass as relation_name,
+  pg_get_constraintdef(oid) as definition
 from pg_constraint
 where conrelid::regclass::text like 'public.kuanyin_%'
    or conrelid::regclass::text = 'public.business_contexts'
-order by table_name::text, conname;
+order by conrelid::regclass::text, conname;
 
 -- indexes Kuan
 select schemaname, tablename, indexname, indexdef
