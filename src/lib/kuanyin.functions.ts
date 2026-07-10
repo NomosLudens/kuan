@@ -554,6 +554,33 @@ export const cancelAppointment = createServerFn({ method: "POST" })
     return row;
   });
 
+export const completeAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Verify current status
+    const { data: current, error: checkError } = await supabase
+      .from("kuanyin_appointments")
+      .select("status")
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .single();
+    if (checkError) throw new Error(checkError.message);
+    if (current.status !== "confirmed") {
+      throw new Error("O agendamento precisa estar confirmado para ser concluído.");
+    }
+    const { data: row, error } = await supabase
+      .from("kuanyin_appointments")
+      .update({ status: "completed" } as never)
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
 export const listAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -616,6 +643,33 @@ export const cancelOrder = createServerFn({ method: "POST" })
     const { data: row, error } = await supabase
       .from("kuanyin_orders")
       .update({ status: "cancelled" } as never)
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deliverOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Verify current status
+    const { data: current, error: checkError } = await supabase
+      .from("kuanyin_orders")
+      .select("status")
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .single();
+    if (checkError) throw new Error(checkError.message);
+    if (current.status !== "confirmed") {
+      throw new Error("O pedido precisa estar confirmado para ser entregue.");
+    }
+    const { data: row, error } = await supabase
+      .from("kuanyin_orders")
+      .update({ status: "delivered" } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
       .select("*")

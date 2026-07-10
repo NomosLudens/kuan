@@ -5,6 +5,7 @@ import {
   listAppointments,
   confirmAppointment,
   cancelAppointment,
+  completeAppointment,
   createPortalToken,
 } from "@/lib/kuanyin.functions";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ function AgendaPage() {
   const list = useServerFn(listAppointments);
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
+  const complete = useServerFn(completeAppointment);
   const mkToken = useServerFn(createPortalToken);
   async function share(apptId: string) {
     try {
@@ -138,6 +140,23 @@ function AgendaPage() {
                       Cancelar
                     </Button>
                   </div>
+                )}
+                {r.status === "confirmed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await complete({ data: { id: r.id } });
+                        toast.success("Agendamento concluído.");
+                        reload();
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Falha ao concluir.");
+                      }
+                    }}
+                  >
+                    Concluir
+                  </Button>
                 )}
                 <Button size="sm" variant="ghost" onClick={() => share(r.id)}>
                   Compartilhar
