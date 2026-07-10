@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { createBoundaryHandoffCandidate } from "./kline-ledger.server";
 
 describe("kline-ledger.server", () => {
-  let mockSupabase: { from: Mock; [key: string]: unknown };
+  type ExpectedSupabase = Parameters<typeof createBoundaryHandoffCandidate>[0]["supabase"];
+  let mockSupabase: ExpectedSupabase;
   let mockInsert: Mock;
   let mockSelect: Mock;
   let mockSingle: Mock;
@@ -20,7 +21,7 @@ describe("kline-ledger.server", () => {
       from: vi.fn().mockReturnValue({
         insert: mockInsert,
       }),
-    };
+    } as unknown as ExpectedSupabase;
   });
 
   it("1. cria evento handoff.candidate com target_app klio-coder", async () => {
@@ -129,14 +130,20 @@ describe("kline-ledger.server", () => {
     });
 
     const calls = mockInsert.mock.calls;
-    const eventInsert = calls.find(
-      (call: [{ event_type?: string; payload: { clipped_text: string } }]) =>
-        call[0].event_type === "handoff.candidate",
-    );
+    const eventInsert = calls.find((call: unknown[]) => {
+      const arg = call[0] as { event_type?: string; payload: { clipped_text: string } };
+      return arg && arg.event_type === "handoff.candidate";
+    });
 
     expect(eventInsert).toBeDefined();
-    expect(eventInsert[0].payload.clipped_text.length).toBeLessThanOrEqual(1203);
-    expect(eventInsert[0].payload.clipped_text.endsWith("...")).toBe(true);
+    expect(
+      (eventInsert![0] as { payload: { clipped_text: string } }).payload.clipped_text.length,
+    ).toBeLessThanOrEqual(1203);
+    expect(
+      (eventInsert![0] as { payload: { clipped_text: string } }).payload.clipped_text.endsWith(
+        "...",
+      ),
+    ).toBe(true);
   });
 
   it("6. não lança erro se Supabase falhar", async () => {
