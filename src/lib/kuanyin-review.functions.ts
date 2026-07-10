@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 import { z } from "zod";
 
 export type ReviewItemType =
@@ -189,6 +190,14 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         "Não foi possível resolver o item. Ele pode não existir ou já ter sido alterado.",
       );
     }
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "review_action_resolved",
+      note: `${data.type} ${data.action}`,
+      excerpt: `entity_id:${data.id}`,
+    });
 
     return { ok: true, status: updated.status };
   });
