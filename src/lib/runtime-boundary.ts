@@ -19,7 +19,7 @@ export type RuntimeBoundaryDecision =
     };
 
 const CODE_MESSAGE =
-  "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.";
+  "Kuan-Yin não escreve código. Esse escopo deve sair da superfície comercial.";
 const PERSONAL_MESSAGE = "Esse pedido pertence à Kaline pessoal, não à Kuan-Yin comercial.";
 const OUT_OF_SCOPE_MESSAGE = "Esse pedido está fora do escopo da Kuan-Yin comercial.";
 

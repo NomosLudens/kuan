@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/onboarding")({
+export const Route = createFileRoute("/_authenticated/kuan/onboarding")({
   component: OnboardingPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
@@ -109,7 +109,7 @@ function OnboardingPage() {
         },
       });
       toast.success("Contexto do negócio salvo.");
-      navigate({ to: "/kuan-yin/config" });
+      navigate({ to: "/kuan/config" });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao salvar.");
     } finally {
@@ -169,7 +169,7 @@ function OnboardingPage() {
             Pronto para gravar
           </div>
           <p className="text-sm text-[color:var(--ivory-dim)]">
-            Revise. Você pode editar tudo depois em <code>/kuan-yin/config</code>.
+            Revise. Você pode editar tudo depois em <code>/kuan/config</code>.
           </p>
           <ul className="text-sm text-[color:var(--ivory)] space-y-1">
             {STEPS.map((s) => (

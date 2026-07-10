@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/clientes")({
+export const Route = createFileRoute("/_authenticated/kuan/clientes")({
   component: ClientesPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
