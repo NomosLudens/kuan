@@ -56,9 +56,10 @@ function publicVisitorKey(slug: string): string {
   try {
     const existing = window.localStorage.getItem(storageKey);
     if (existing) return existing;
-    const next = typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const next =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     window.localStorage.setItem(storageKey, next);
     return next;
   } catch {
@@ -155,7 +156,12 @@ function GuardianPublicPage() {
     setChatError(null);
     try {
       const result = await sendMessage({
-        data: { guardianId: state.guardian.slug, visitorKey, threadId: threadId ?? undefined, message: text },
+        data: {
+          guardianId: state.guardian.slug,
+          visitorKey,
+          threadId: threadId ?? undefined,
+          message: text,
+        },
       });
       if (!result.ok) {
         setChatError("Não foi possível enviar agora. Tente novamente em instantes.");
@@ -221,7 +227,8 @@ function GuardianPublicPage() {
             </p>
           )}
           <p className="mt-4 text-xs text-[color:var(--ivory-dim)]">
-            Link público: <code className="text-[color:var(--ivory)]">{guardian.canonicalPath}</code>
+            Link público:{" "}
+            <code className="text-[color:var(--ivory)]">{guardian.canonicalPath}</code>
           </p>
         </div>
 
@@ -233,10 +240,21 @@ function GuardianPublicPage() {
         )}
 
         <div className="grid gap-5 lg:grid-cols-2">
-          <InfoCard title="Serviços"><List values={guardian.services} empty="Serviços ainda não publicados." /></InfoCard>
-          <InfoCard title="Preços / faixas"><List values={guardian.prices} empty="Preços ainda não publicados." /></InfoCard>
-          <InfoCard title="Formas de pagamento"><List values={guardian.paymentMethods} empty="Formas de pagamento ainda não publicadas." /></InfoCard>
-          <InfoCard title="Agenda"><List values={guardian.scheduleRules} empty="Regras de agenda ainda não publicadas." /></InfoCard>
+          <InfoCard title="Serviços">
+            <List values={guardian.services} empty="Serviços ainda não publicados." />
+          </InfoCard>
+          <InfoCard title="Preços / faixas">
+            <List values={guardian.prices} empty="Preços ainda não publicados." />
+          </InfoCard>
+          <InfoCard title="Formas de pagamento">
+            <List
+              values={guardian.paymentMethods}
+              empty="Formas de pagamento ainda não publicadas."
+            />
+          </InfoCard>
+          <InfoCard title="Agenda">
+            <List values={guardian.scheduleRules} empty="Regras de agenda ainda não publicadas." />
+          </InfoCard>
         </div>
 
         <div className="rounded-3xl border border-[color:var(--gold)]/35 bg-[color:var(--gold)]/10 p-5 text-sm leading-relaxed text-[color:var(--ivory)]">
@@ -247,16 +265,23 @@ function GuardianPublicPage() {
         <div className="rounded-3xl border border-[color:var(--border)] bg-card/50 p-5">
           <h2 className="serif text-2xl text-[color:var(--ivory)]">Converse com a Kuan-Yin</h2>
           <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">
-            Cliente sem login: deixe dúvidas, pedido de horário, nome e contato se quiser. A Kuan-Yin orienta; o Guardião confirma depois.
+            Cliente sem login: deixe dúvidas, pedido de horário, nome e contato se quiser. A
+            Kuan-Yin orienta; o Guardião confirma depois.
           </p>
           <div className="mt-4 min-h-40 space-y-3 rounded-2xl border border-[color:var(--border)] bg-background/40 p-4">
-            {conversationLoading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando conversa…</p>}
+            {conversationLoading && (
+              <p className="text-sm text-[color:var(--ivory-dim)]">Carregando conversa…</p>
+            )}
             {!conversationLoading && messages.length === 0 && (
-              <p className="text-sm text-[color:var(--ivory-dim)]">Sem mensagens ainda. Envie sua primeira pergunta.</p>
+              <p className="text-sm text-[color:var(--ivory-dim)]">
+                Sem mensagens ainda. Envie sua primeira pergunta.
+              </p>
             )}
             {messages.map((item) => (
               <div key={item.id} className={item.role === "visitor" ? "text-right" : "text-left"}>
-                <div className={`inline-block max-w-[85%] rounded-2xl px-4 py-2 text-sm ${item.role === "visitor" ? "bg-[color:var(--gold)]/20 text-[color:var(--ivory)]" : "bg-card text-[color:var(--ivory)]"}`}>
+                <div
+                  className={`inline-block max-w-[85%] rounded-2xl px-4 py-2 text-sm ${item.role === "visitor" ? "bg-[color:var(--gold)]/20 text-[color:var(--ivory)]" : "bg-card text-[color:var(--ivory)]"}`}
+                >
                   <p className="whitespace-pre-wrap">{item.text}</p>
                 </div>
               </div>
@@ -272,7 +297,9 @@ function GuardianPublicPage() {
               placeholder="Pergunte sobre serviços, preços, horários ou informe que tem um comprovante."
             />
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-[color:var(--ivory-dim)]">Nenhum agendamento ou pagamento é confirmado por este chat.</p>
+              <p className="text-xs text-[color:var(--ivory-dim)]">
+                Nenhum agendamento ou pagamento é confirmado por este chat.
+              </p>
               <Button type="submit" disabled={sending || conversationLoading || !hasPublicData}>
                 {sending ? "Enviando…" : "Enviar"}
               </Button>
@@ -289,8 +316,15 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-[color:var(--ivory)]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
         <div className="mb-6 flex items-center gap-2">
-          <img src={kuanyinApple.url} alt="" className="h-7 w-7" style={{ filter: "drop-shadow(0 0 8px rgba(236,72,153,0.45))" }} />
-          <span className="text-[10px] uppercase tracking-[0.24em] text-[color:var(--ivory-dim)]">presença pública · Kuan-Yin</span>
+          <img
+            src={kuanyinApple.url}
+            alt=""
+            className="h-7 w-7"
+            style={{ filter: "drop-shadow(0 0 8px rgba(236,72,153,0.45))" }}
+          />
+          <span className="text-[10px] uppercase tracking-[0.24em] text-[color:var(--ivory-dim)]">
+            presença pública · Kuan-Yin
+          </span>
         </div>
         {children}
       </div>
@@ -299,14 +333,30 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return <div className="rounded-3xl border border-[color:var(--border)] bg-card/45 p-5"><h2 className="serif mb-4 text-xl text-[color:var(--ivory)]">{title}</h2>{children}</div>;
+  return (
+    <div className="rounded-3xl border border-[color:var(--border)] bg-card/45 p-5">
+      <h2 className="serif mb-4 text-xl text-[color:var(--ivory)]">{title}</h2>
+      {children}
+    </div>
+  );
 }
 
 function Notice({ title, text }: { title: string; text: string }) {
-  return <div className="rounded-2xl border border-[color:var(--border)] bg-card/50 p-5"><h1 className="serif text-xl text-[color:var(--ivory)]">{title}</h1><p className="mt-2 text-sm text-[color:var(--ivory-dim)]">{text}</p></div>;
+  return (
+    <div className="rounded-2xl border border-[color:var(--border)] bg-card/50 p-5">
+      <h1 className="serif text-xl text-[color:var(--ivory)]">{title}</h1>
+      <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">{text}</p>
+    </div>
+  );
 }
 
 function List({ values, empty }: { values: string[]; empty: string }) {
   if (!values.length) return <p className="text-sm text-[color:var(--ivory-dim)]">{empty}</p>;
-  return <ul className="space-y-2 text-sm text-[color:var(--ivory)]">{values.map((value) => <li key={value}>• {value}</li>)}</ul>;
+  return (
+    <ul className="space-y-2 text-sm text-[color:var(--ivory)]">
+      {values.map((value) => (
+        <li key={value}>• {value}</li>
+      ))}
+    </ul>
+  );
 }
