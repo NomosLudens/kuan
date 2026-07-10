@@ -1,8 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type KlineLedgerResult =
-  | { ok: true; eventId?: string }
-  | { ok: false; error: string; cause?: unknown };
+  { ok: true; eventId?: string } | { ok: false; error: string; cause?: unknown };
 
 export async function createBoundaryHandoffCandidate(input: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

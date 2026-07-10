@@ -3,12 +3,7 @@ export type SemaphoreState = "neutral" | "green" | "yellow" | "red" | "blue";
 
 export type SetStatus = "pending" | "completed" | "skipped" | "failed";
 export type SessionStatus =
-  | "planned"
-  | "in_progress"
-  | "paused"
-  | "completed"
-  | "skipped"
-  | "cancelled";
+  "planned" | "in_progress" | "paused" | "completed" | "skipped" | "cancelled";
 
 export type PlannedSet = {
   set_number: number;

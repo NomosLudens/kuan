@@ -74,6 +74,22 @@ const STEPS: Step[] = [
     placeholder: "ex.: claro, delicado, com fotos reais do portfólio; evitar promessas exageradas",
     multiline: true,
   },
+
+  {
+    key: "preferred_jargon_text",
+    title: "Quais termos você gosta de usar?",
+    prompt: "Um termo por linha. Use apenas linguagem que seus clientes entendem.",
+    placeholder: "Procedimento personalizado\nAvaliação inicial\nPlano de cuidado",
+    multiline: true,
+  },
+  {
+    key: "avoid_terms_text",
+    title: "Quais termos a Kuan deve evitar?",
+    prompt:
+      "Um termo por linha. Inclua promessas, exageros ou palavras que não combinam com seu atendimento.",
+    placeholder: "Garantido\nConfirmar esse horário\nPagamento confirmado",
+    multiline: true,
+  },
   {
     key: "autonomy_limits_text",
     title: "O que a Kuan nunca deve decidir sozinha?",
@@ -145,6 +161,8 @@ function OnboardingPage() {
       const formasPagamento = linesToArray(a.formas_pagamento_text);
       const autonomyLimits = linesToArray(a.autonomy_limits_text);
       const mustReview = linesToArray(a.must_review_text);
+      const preferredJargon = linesToArray(a.preferred_jargon_text);
+      const avoidTerms = linesToArray(a.avoid_terms_text);
       await upsert({
         data: {
           nome: a.nome,
@@ -169,8 +187,8 @@ function OnboardingPage() {
             preferred_cta: "Solicitar esse horário",
             autonomy_limits: autonomyLimits,
             must_review: mustReview,
-            avoid_terms: ["Confirmar esse horário"],
-            preferred_jargon: servicos,
+            avoid_terms: avoidTerms,
+            preferred_jargon: preferredJargon,
             notes: "Preferências coletadas pela Trilha do Guardião; revisar antes de publicar.",
           },
           public_page_blueprint: {

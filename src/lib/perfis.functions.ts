@@ -43,12 +43,32 @@ async function createKuanYinGuardianLink(params: {
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("kuanyin_guardians")
-    .select("id")
+    .select("id, admin_user_id, metadata")
     .eq("user_id", params.guardianUserId)
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (existingError) throw new Error(existingError.message);
-  if (existing) return;
+  if (existing) {
+    const existingGuardian = existing as {
+      id: string;
+      admin_user_id: string | null;
+      metadata: Record<string, unknown> | null;
+    };
+    const { error: updateError } = await supabaseAdmin
+      .from("kuanyin_guardians")
+      .update({
+        ...(existingGuardian.admin_user_id ? {} : { admin_user_id: params.adminUserId }),
+        metadata: {
+          ...(existingGuardian.metadata ?? {}),
+          linked_by_invite: true,
+          linked_at: new Date().toISOString(),
+        },
+      } as never)
+      .eq("id", existingGuardian.id);
+    if (updateError) throw new Error(updateError.message);
+    return;
+  }
 
   const fallbackName = params.email.split("@")[0] || "Guardião";
   const { data: contextRow, error: contextError } = await supabaseAdmin
@@ -66,22 +86,29 @@ async function createKuanYinGuardianLink(params: {
     throw new Error(contextError?.message ?? "Falha ao criar contexto do Guardião.");
   }
 
+  const createdContextId = (contextRow as { id: string }).id;
+  const cleanupCreatedContext = async () => {
+    await supabaseAdmin.from("business_contexts").delete().eq("id", createdContextId);
+  };
   const base = slugifyGuardianSeed(fallbackName);
   let publicSlug = base;
   for (let i = 0; i < 8; i += 1) {
     const { error: guardianError } = await supabaseAdmin.from("kuanyin_guardians").insert({
       user_id: params.guardianUserId,
       admin_user_id: params.adminUserId,
-      business_context_id: (contextRow as { id: string }).id,
+      business_context_id: createdContextId,
       public_slug: publicSlug,
       status: "draft",
       metadata: { linked_by_invite: true, linked_at: new Date().toISOString() },
     } as never);
     if (!guardianError) return;
-    if (!/duplicate key|unique/i.test(guardianError.message))
+    if (!/duplicate key|unique/i.test(guardianError.message)) {
+      await cleanupCreatedContext();
       throw new Error(guardianError.message);
+    }
     publicSlug = `${base}-${crypto.randomUUID().slice(0, 6)}`.slice(0, 80);
   }
+  await cleanupCreatedContext();
   throw new Error("Não foi possível reservar um slug público para o Guardião.");
 }
 
@@ -191,7 +218,9 @@ export const acceptInvite = createServerFn({ method: "POST" })
     const { data: existingMember, error: existingMemberError } = await supabaseAdmin
       .from("workspace_members")
       .select("id")
+      .eq("owner_id", invite.owner_id)
       .eq("member_id", userId)
+      .limit(1)
       .maybeSingle();
     if (existingMemberError) throw new Error(existingMemberError.message);
 
