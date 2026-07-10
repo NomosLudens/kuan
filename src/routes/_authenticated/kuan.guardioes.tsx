@@ -166,7 +166,11 @@ function GuardioesPage() {
       })) as { shareLink: string; emailSent: boolean };
       setInviteLink(res.shareLink);
       setEmail("");
-      toast.success(res.emailSent ? "Convite enviado por e-mail." : "Convite criado para copiar.");
+      toast.success(
+        res.emailSent
+          ? "Convite enviado ao Guardião."
+          : "Convite criado. Copie o link e envie manualmente ao Guardião.",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao criar convite.");
     } finally {
@@ -186,8 +190,9 @@ function GuardioesPage() {
               Presenças públicas Kuan-Yin
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-[color:var(--ivory-dim)]">
-              Gerencie os Guardiões vinculados a você, publique ou suspenda páginas públicas e
-              convide novos clientes do admin para configurar a própria Kuan-Yin comercial.
+              Gerencie Guardiões vinculados a você, publique ou suspenda páginas públicas e
+              acompanhe atendimentos recebidos. Convide Guardiões para configurar e operar suas
+              próprias presenças comerciais.
             </p>
             <p className="mt-3 text-xs text-[color:var(--ivory-dim)]">
               {rows.length} Guardião(ões) encontrados · {publishedCount} publicado(s)
@@ -196,14 +201,18 @@ function GuardioesPage() {
           <div className="rounded-2xl border border-[color:var(--border)] bg-background/50 p-3 lg:w-80">
             <div className="mb-2 flex items-center gap-2 text-sm text-[color:var(--ivory)]">
               <Mail className="h-4 w-4 text-[color:var(--gold)]" aria-hidden />
-              Convidar Guardião
+              Convite de Guardião
             </div>
+            <p className="mb-3 text-xs text-[color:var(--ivory-dim)]">
+              Envie este convite para a pessoa que vai configurar e operar o próprio negócio dentro
+              da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta operacional.
+            </p>
             <div className="flex gap-2">
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="cliente@negocio.com"
+                placeholder="guardiao@negocio.com"
               />
               <Button disabled={inviteBusy} onClick={createInvite}>
                 {inviteBusy ? "..." : "Convidar"}
@@ -214,8 +223,14 @@ function GuardioesPage() {
                 type="button"
                 className="mt-2 w-full rounded-xl border border-[color:var(--border)] px-3 py-2 text-left text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)]"
                 onClick={async () => {
-                  await navigator.clipboard.writeText(inviteLink).catch(() => {});
-                  toast.success("Link copiado.");
+                  try {
+                    await navigator.clipboard.writeText(inviteLink);
+                    toast.success("Link de convite copiado.");
+                  } catch {
+                    toast.error(
+                      "Não consegui copiar automaticamente. Selecione e copie o link de convite.",
+                    );
+                  }
                 }}
               >
                 <Copy className="mr-2 inline h-3.5 w-3.5" aria-hidden />
@@ -350,7 +365,12 @@ function GuardioesPage() {
                     )}
                   </div>
                   <p className="mt-2 text-xs text-[color:var(--ivory-dim)]">
-                    Link público: <code className="text-[color:var(--ivory)]">{publicPath}</code>
+                    Link público para clientes:{" "}
+                    <code className="text-[color:var(--ivory)]">{publicPath}</code>
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
+                    Este link é para clientes. Não exige login. Cliente não recebe convite de conta;
+                    cliente recebe link público de atendimento.
                   </p>
                   <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
                     {STATUS_HELP[guardian.status]}
@@ -377,6 +397,23 @@ function GuardioesPage() {
                     <a href={publicUrl} target="_blank" rel="noopener noreferrer">
                       Abrir <ExternalLink className="ml-1.5 h-3.5 w-3.5" aria-hidden />
                     </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(publicUrl);
+                        toast.success("Link público copiado.");
+                      } catch {
+                        toast.error(
+                          "Não consegui copiar automaticamente. Selecione e copie o link exibido.",
+                        );
+                      }
+                    }}
+                  >
+                    <Copy className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                    Copiar link público
                   </Button>
                   {guardian.is_owner ? (
                     <Button asChild variant="ghost" size="sm">
