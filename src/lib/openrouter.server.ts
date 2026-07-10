@@ -60,7 +60,7 @@ export function createOpenRouterProvider() {
         process.env.OPENROUTER_SITE_URL ??
         process.env.APP_PUBLIC_URL ??
         "https://kaline-totalidade.local",
-      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Kaline Totalidade",
+      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Kuan-Yin",
     },
     fetch: withChatFallback(fetch),
   });
