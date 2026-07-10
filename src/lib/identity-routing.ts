@@ -31,15 +31,15 @@ export const ACTIVE_PUBLIC_APP_IDS = [
   "kuan-chat",
   "kuanyin",
   "kuanyin-public-page",
-  "kuan-yin-config",
-  "kuan-yin-clientes",
-  "kuan-yin-guardioes",
-  "kuan-yin-agendamentos",
-  "kuan-yin-pedidos",
-  "kuan-yin-pagamentos",
-  "kuan-yin-onboarding",
+  "kuan-config",
+  "kuan-clientes",
+  "kuan-guardioes",
+  "kuan-showroom",
+  "kuan-agendamentos",
+  "kuan-pedidos",
+  "kuan-pagamentos",
+  "kuan-onboarding",
   "perfil",
-  "revisao",
 ] as const;
 
 export const ARCHIVED_APP_IDS = [
@@ -62,6 +62,7 @@ export const ARCHIVED_APP_IDS = [
   "jardim",
   "registro-vivo",
   "perfis",
+  "revisao",
 ] as const;
 
 const LEGACY_ACCESS_FACETS = ["kaline", "kharis", "kuanyin", "drive", "klio"] as const;
