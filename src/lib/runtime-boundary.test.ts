@@ -23,7 +23,7 @@ describe("resolveRuntimeBoundary", () => {
       blocked: true,
       targetApp: "klio-coder",
       reason: "out_of_scope",
-      message: "Kuan-Yin não escreve código. Esse escopo será atendido em app separado: Klio.",
+      message: "Kuan-Yin não escreve código. Esse escopo deve sair da superfície comercial.",
     });
   });
 

@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/inbox")({
+export const Route = createFileRoute("/_authenticated/kuan/inbox")({
   component: InboxPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
