@@ -667,7 +667,7 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       gateway = createOpenRouterProvider();
     } catch {
       const answer =
-        "A Kuan-Yin deste guardião ainda não está com a IA ativa neste ambiente. Você pode usar os dados da página para solicitar atendimento ou agendamento.";
+        "Não consegui gerar a resposta automática agora. A mensagem foi mantida para atendimento humano.";
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
       return {
         ok: true as const,
@@ -735,7 +735,7 @@ Seja claro, curto e comercialmente cuidadoso.
     } catch (e) {
       console.error("[sendGuardianPublicMessage] AI response failed", e);
       const answer =
-        "Recebi sua mensagem, mas a Kuan-Yin não conseguiu responder automaticamente agora. O Guardião poderá consultar esta conversa e retomar seu atendimento.";
+        "Não consegui gerar a resposta automática agora. A mensagem foi mantida para atendimento humano.";
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
       return { ok: true as const, threadId: thread.id, answer };
     }
