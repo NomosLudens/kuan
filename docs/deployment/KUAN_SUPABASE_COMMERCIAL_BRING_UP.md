@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Ligar Kuan-Yin em Supabase comercial real/staging sem mock.
+Preparar a ligação da Kuan-Yin em Supabase comercial real/staging sem mock; a execução real permanece pendente fora deste ambiente Codex.
 
 ## Regras
 
@@ -132,3 +132,7 @@ Listadas sem valores reais. Não commitar secrets.
 - KALINE_STT_LANGUAGE
 - KALINE_ATTACHMENT_MAX_BYTES
 - KALINE_BRIDGE_SHARED_KEY
+
+## Estado deste PR
+
+Este PR prepara o bring-up, mas não conclui a validação real porque o ambiente Codex não possui Supabase real/staging, secrets nem Supabase CLI. A execução real deve seguir `KUAN_MANUAL_BRING_UP_RUNBOOK.md`.

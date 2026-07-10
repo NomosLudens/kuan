@@ -6,8 +6,8 @@ Validar que o ambiente real/staging responde sem mock.
 
 ## Pré-condições
 
-- Supabase configurado.
-- OpenRouter configurado.
+- Supabase configurado fora do repo e validado em ambiente real/staging.
+- OpenRouter configurado fora do repo e validado em ambiente real/staging.
 - App buildado.
 - Ambiente rodando.
 
@@ -61,3 +61,7 @@ Validar que o ambiente real/staging responde sem mock.
 - Migrations não foram aplicadas para evitar operação destrutiva ou em produção sem ambiente explícito.
 - OpenRouter real não foi validado neste ambiente porque OPENROUTER_API_KEY não está configurada.
 - Smoke test de rotas reais ficou bloqueado por ausência de ambiente real/staging com autenticação e dados reais.
+
+## Estado deste PR
+
+Este PR prepara o bring-up, mas não conclui a validação real porque o ambiente Codex não possui Supabase real/staging, secrets nem Supabase CLI. A execução real deve seguir `KUAN_MANUAL_BRING_UP_RUNBOOK.md`.

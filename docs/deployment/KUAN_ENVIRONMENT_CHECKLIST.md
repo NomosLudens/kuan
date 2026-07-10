@@ -27,6 +27,10 @@
 
 ## Resultado
 
-- [ ] Ambiente pronto.
+- [ ] Ambiente pronto após execução manual real.
 - [ ] Ambiente pronto com ressalvas.
 - [ ] Ambiente bloqueado.
+
+## Estado deste PR
+
+Este PR prepara o bring-up, mas não conclui a validação real porque o ambiente Codex não possui Supabase real/staging, secrets nem Supabase CLI. A execução real deve seguir `KUAN_MANUAL_BRING_UP_RUNBOOK.md`.
