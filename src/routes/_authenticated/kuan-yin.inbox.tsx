@@ -93,7 +93,9 @@ function InboxPage() {
       })
       .catch((e) => {
         if (active) {
-          toast.error(e instanceof Error ? e.message : "Atendimento não encontrado ou indisponível.");
+          toast.error(
+            e instanceof Error ? e.message : "Atendimento não encontrado ou indisponível.",
+          );
           setSelectedId(null);
         }
       })
@@ -208,7 +210,8 @@ function InboxPage() {
                   >
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="font-medium text-sm text-[color:var(--ivory)] truncate">
-                        {t.visitorName || (t.visitorKeyTail ? `Visitante #${t.visitorKeyTail}` : "Anônimo")}
+                        {t.visitorName ||
+                          (t.visitorKeyTail ? `Visitante #${t.visitorKeyTail}` : "Anônimo")}
                       </span>
                       <span className="text-[10px] text-[color:var(--ivory-dim)] shrink-0">
                         {formatDate(t.updatedAt)}
