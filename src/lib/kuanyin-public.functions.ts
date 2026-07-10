@@ -316,6 +316,7 @@ async function resolvePublicChatThread(
       .select("id, guardian_id, user_id, visitor_key")
       .eq("id", input.threadId)
       .eq("guardian_id", ctx.guardianId)
+      .eq("user_id", ctx.user_id)
       .maybeSingle();
     existing = data as unknown as PublicThreadRow | null;
   }
@@ -325,6 +326,7 @@ async function resolvePublicChatThread(
       .from("kuanyin_public_chat_threads")
       .select("id, guardian_id, user_id, visitor_key")
       .eq("guardian_id", ctx.guardianId)
+      .eq("user_id", ctx.user_id)
       .eq("visitor_key", safeVisitorKey)
       .order("updated_at", { ascending: false })
       .limit(1)
@@ -395,6 +397,7 @@ async function loadPublicChatMessages(
     .from("kuanyin_public_chat_messages")
     .select("id, role, content, created_at")
     .eq("guardian_id", ctx.guardianId)
+    .eq("user_id", ctx.user_id)
     .eq("thread_id", threadId)
     .order("created_at", { ascending: false })
     .limit(limit);

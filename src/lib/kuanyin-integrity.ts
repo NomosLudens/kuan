@@ -134,7 +134,7 @@ export async function writeKuanIntegrityLog(input: {
   threadId?: string | null;
 }): Promise<void> {
   try {
-    await input.supabase.from("kuanyin_integrity_logs").insert({
+    const { error } = await input.supabase.from("kuanyin_integrity_logs").insert({
       user_id: input.userId,
       category: input.category,
       severity: input.severity ?? "info",
@@ -142,6 +142,7 @@ export async function writeKuanIntegrityLog(input: {
       excerpt: input.excerpt ?? null,
       thread_id: input.threadId ?? null,
     } as never);
+    if (error) console.warn("[kuanyin_integrity_log_failed]", error.message);
   } catch (error) {
     console.warn("[kuanyin_integrity_log_failed]", error);
   }
