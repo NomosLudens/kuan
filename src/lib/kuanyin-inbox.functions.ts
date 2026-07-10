@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 import { z } from "zod";
 
 export const listGuardianInboxThreads = createServerFn({ method: "POST" })
@@ -116,6 +117,15 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
       .eq("id", thread.id)
       .eq("user_id", userId);
 
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "guardian_manual_reply",
+      note: "guardian sent manual public chat reply",
+      excerpt: `thread_id:${data.threadId}`,
+      threadId: data.threadId,
+    });
+
     return { ok: true };
   });
 
@@ -136,6 +146,15 @@ export const setGuardianThreadStatus = createServerFn({ method: "POST" })
       .single();
 
     if (error || !updated) throw new Error("Não foi possível atualizar o status.");
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "public_thread_status_change",
+      note: `public thread status changed to ${data.status}`,
+      excerpt: `thread_id:${data.threadId}`,
+      threadId: data.threadId,
+    });
 
     return { ok: true, status: updated.status };
   });

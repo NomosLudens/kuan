@@ -121,3 +121,29 @@ export function classifyKuanyinResponse(text: string): IntegritySignal[] {
   }
   return signals;
 }
+
+export type KuanIntegritySeverity = "info" | "warning" | "critical";
+
+export async function writeKuanIntegrityLog(input: {
+  supabase: any;
+  userId: string;
+  category: string;
+  severity?: KuanIntegritySeverity;
+  note: string;
+  excerpt?: string | null;
+  threadId?: string | null;
+}): Promise<void> {
+  try {
+    const { error } = await input.supabase.from("kuanyin_integrity_logs").insert({
+      user_id: input.userId,
+      category: input.category,
+      severity: input.severity ?? "info",
+      note: input.note,
+      excerpt: input.excerpt ?? null,
+      thread_id: input.threadId ?? null,
+    } as never);
+    if (error) console.warn("[kuanyin_integrity_log_failed]", error.message);
+  } catch (error) {
+    console.warn("[kuanyin_integrity_log_failed]", error);
+  }
+}
