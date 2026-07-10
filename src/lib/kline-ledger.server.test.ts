@@ -129,7 +129,10 @@ describe("kline-ledger.server", () => {
     });
 
     const calls = mockInsert.mock.calls;
-    const eventInsert = calls.find((call: [{ event_type?: string; payload: { clipped_text: string } }]) => call[0].event_type === "handoff.candidate");
+    const eventInsert = calls.find(
+      (call: [{ event_type?: string; payload: { clipped_text: string } }]) =>
+        call[0].event_type === "handoff.candidate",
+    );
 
     expect(eventInsert).toBeDefined();
     expect(eventInsert[0].payload.clipped_text.length).toBeLessThanOrEqual(1203);
