@@ -53,6 +53,7 @@ import { Route as ApiBridgeOlharDeKairosRouteImport } from './routes/api/bridge/
 import { Route as ApiBridgeDecifrarSnapshotLocalRouteImport } from './routes/api/bridge/decifrar-snapshot-local'
 import { Route as AuthenticatedTrilhaThreadIdRouteImport } from './routes/_authenticated/trilha.$threadId'
 import { Route as AuthenticatedKuanYinShowroomRouteImport } from './routes/_authenticated/kuan-yin.showroom'
+import { Route as AuthenticatedKuanYinRevisaoRouteImport } from './routes/_authenticated/kuan-yin.revisao'
 import { Route as AuthenticatedKuanYinPedidosRouteImport } from './routes/_authenticated/kuan-yin.pedidos'
 import { Route as AuthenticatedKuanYinPagamentosRouteImport } from './routes/_authenticated/kuan-yin.pagamentos'
 import { Route as AuthenticatedKuanYinOnboardingRouteImport } from './routes/_authenticated/kuan-yin.onboarding'
@@ -298,6 +299,12 @@ const AuthenticatedKuanYinShowroomRoute =
     path: '/showroom',
     getParentRoute: () => AuthenticatedKuanYinRoute,
   } as any)
+const AuthenticatedKuanYinRevisaoRoute =
+  AuthenticatedKuanYinRevisaoRouteImport.update({
+    id: '/revisao',
+    path: '/revisao',
+    getParentRoute: () => AuthenticatedKuanYinRoute,
+  } as any)
 const AuthenticatedKuanYinPedidosRoute =
   AuthenticatedKuanYinPedidosRouteImport.update({
     id: '/pedidos',
@@ -434,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
+  '/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
   '/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
@@ -493,6 +501,7 @@ export interface FileRoutesByTo {
   '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
+  '/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
   '/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
@@ -555,6 +564,7 @@ export interface FileRoutesById {
   '/_authenticated/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/_authenticated/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/_authenticated/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
+  '/_authenticated/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
   '/_authenticated/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
   '/_authenticated/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
@@ -617,6 +627,7 @@ export interface FileRouteTypes {
     | '/kuan-yin/onboarding'
     | '/kuan-yin/pagamentos'
     | '/kuan-yin/pedidos'
+    | '/kuan-yin/revisao'
     | '/kuan-yin/showroom'
     | '/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
@@ -676,6 +687,7 @@ export interface FileRouteTypes {
     | '/kuan-yin/onboarding'
     | '/kuan-yin/pagamentos'
     | '/kuan-yin/pedidos'
+    | '/kuan-yin/revisao'
     | '/kuan-yin/showroom'
     | '/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
@@ -737,6 +749,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kuan-yin/onboarding'
     | '/_authenticated/kuan-yin/pagamentos'
     | '/_authenticated/kuan-yin/pedidos'
+    | '/_authenticated/kuan-yin/revisao'
     | '/_authenticated/kuan-yin/showroom'
     | '/_authenticated/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
@@ -1080,6 +1093,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKuanYinShowroomRouteImport
       parentRoute: typeof AuthenticatedKuanYinRoute
     }
+    '/_authenticated/kuan-yin/revisao': {
+      id: '/_authenticated/kuan-yin/revisao'
+      path: '/revisao'
+      fullPath: '/kuan-yin/revisao'
+      preLoaderRoute: typeof AuthenticatedKuanYinRevisaoRouteImport
+      parentRoute: typeof AuthenticatedKuanYinRoute
+    }
     '/_authenticated/kuan-yin/pedidos': {
       id: '/_authenticated/kuan-yin/pedidos'
       path: '/pedidos'
@@ -1232,6 +1252,7 @@ interface AuthenticatedKuanYinRouteChildren {
   AuthenticatedKuanYinOnboardingRoute: typeof AuthenticatedKuanYinOnboardingRoute
   AuthenticatedKuanYinPagamentosRoute: typeof AuthenticatedKuanYinPagamentosRoute
   AuthenticatedKuanYinPedidosRoute: typeof AuthenticatedKuanYinPedidosRoute
+  AuthenticatedKuanYinRevisaoRoute: typeof AuthenticatedKuanYinRevisaoRoute
   AuthenticatedKuanYinShowroomRoute: typeof AuthenticatedKuanYinShowroomRoute
   AuthenticatedKuanYinIndexRoute: typeof AuthenticatedKuanYinIndexRoute
 }
@@ -1245,6 +1266,7 @@ const AuthenticatedKuanYinRouteChildren: AuthenticatedKuanYinRouteChildren = {
   AuthenticatedKuanYinOnboardingRoute: AuthenticatedKuanYinOnboardingRoute,
   AuthenticatedKuanYinPagamentosRoute: AuthenticatedKuanYinPagamentosRoute,
   AuthenticatedKuanYinPedidosRoute: AuthenticatedKuanYinPedidosRoute,
+  AuthenticatedKuanYinRevisaoRoute: AuthenticatedKuanYinRevisaoRoute,
   AuthenticatedKuanYinShowroomRoute: AuthenticatedKuanYinShowroomRoute,
   AuthenticatedKuanYinIndexRoute: AuthenticatedKuanYinIndexRoute,
 }
@@ -1337,13 +1359,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
