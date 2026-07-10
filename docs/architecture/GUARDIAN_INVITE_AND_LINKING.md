@@ -50,3 +50,62 @@ Assim o salvamento mantém dados reais em `business_contexts`, mantém `kuanyin_
 ## Pendências explícitas
 
 Comprovante e agendamento continuam pendentes de produto. Este PR não inicia Public Client Actions, não implementa upload de comprovante, não cria agenda pública e não mexe em pagamento real. A razão é manter o fluxo menor possível: primeiro corrigir convite, vínculo e configuração real do negócio; depois, em PR separado, desenhar ações públicas com autorização e integridade próprias.
+
+## Trilha do Guardião: três saídas
+
+A Trilha do Guardião não existe apenas para preencher `business_contexts`. Ela deve gerar três saídas reais e revisáveis:
+
+1. **`business_contexts`** — contexto operacional usado pela Kuan pública no atendimento ao cliente.
+2. **`kuanyin_guardians.metadata.guardian_preferences`** — preferências internas do Guardião para venda, atendimento, revisão e publicação.
+3. **`kuanyin_guardians.metadata.public_page_blueprint`** — proposta estruturada e segura da página pública ideal.
+
+Neste PR não há tabela nova. `guardian_preferences` e `public_page_blueprint` ficam em `kuanyin_guardians.metadata` para manter o escopo pequeno e reversível.
+
+Estrutura esperada:
+
+```json
+{
+  "guardian_preferences": {
+    "tone_preference": "string",
+    "formality_level": "formal | casual | mixed",
+    "visual_style": "string",
+    "client_style": "string",
+    "preferred_cta": "Solicitar esse horário",
+    "autonomy_limits": [],
+    "must_review": [],
+    "avoid_terms": ["Confirmar esse horário"],
+    "preferred_jargon": [],
+    "notes": "string"
+  },
+  "public_page_blueprint": {
+    "status": "draft | proposed | approved | published",
+    "theme": {
+      "palette": "string",
+      "mood": "string",
+      "typography": "string"
+    },
+    "journey": [
+      "chegada",
+      "servicos",
+      "referencias",
+      "agenda",
+      "pagamento_pendente",
+      "revisao_humana"
+    ],
+    "sections": [],
+    "suggested_copy": {},
+    "warnings": [
+      "Pedido de agendamento depende de confirmação do Guardião.",
+      "Comprovante recebido não é pagamento confirmado."
+    ]
+  }
+}
+```
+
+A Kuan propõe a página ideal ao Guardião, mas não publica automaticamente. A proposta de HTML é tratada como blueprint estruturado; a página pública futura deve renderizar componentes seguros a partir dos dados aprovados, não HTML arbitrário gerado por IA.
+
+Fluxo esperado:
+
+Admin convida Guardião → Guardião aceita convite → Guardião conversa com Kuan → Kuan conduz a Trilha do Guardião → Kuan extrai preferências internas → Kuan preenche `business_contexts` → Kuan propõe uma página pública ideal → Guardião revisa → Guardião/Admin aprova publicação.
+
+O modelo visual de referência é uma página mobile conversacional com chegada/pergunta inicial, escolha de serviço/estilo, referências/portfólio, solicitação de horário, pagamento pendente/comprovante e aviso de confirmação humana. O CTA correto é **“Solicitar esse horário”** porque o cliente solicita e o Guardião confirma.
