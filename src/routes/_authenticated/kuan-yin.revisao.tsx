@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
+
 import { useServerFn } from "@tanstack/react-start";
 import { getPendingReviews, resolveReviewAction } from "@/lib/kuanyin-review.functions";
 import { useEffect, useState } from "react";
