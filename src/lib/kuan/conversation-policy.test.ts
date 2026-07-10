@@ -38,9 +38,7 @@ describe("Kuan Conversation Policy Deterministic Rules", () => {
   it("8. out-of-scope retorna resposta com redirecionamento para negócio", () => {
     const reply = getPublicClientOutOfScopeReply("Studio Zen");
     expect(reply).toContain("Studio Zen");
-    expect(reply).toContain(
-      "serviços, horários, pedidos, pagamento ou atendimento",
-    );
+    expect(reply).toContain("serviços, horários, pedidos, pagamento ou atendimento");
   });
 
   it("9. nome do cliente não muda permissão (testando isPublicClientIntentAllowed puro)", () => {
