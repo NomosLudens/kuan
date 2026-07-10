@@ -109,7 +109,11 @@ function PerfilPage() {
                 aria-label="Trocar avatar"
                 title="Trocar avatar"
               >
-                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
             </div>
@@ -119,7 +123,10 @@ function PerfilPage() {
           </section>
 
           <section className="space-y-2">
-            <label htmlFor="apelido" className="block text-[10px] tracking-[0.22em] uppercase text-[color:var(--ivory-dim)]">
+            <label
+              htmlFor="apelido"
+              className="block text-[10px] tracking-[0.22em] uppercase text-[color:var(--ivory-dim)]"
+            >
               Nome ou apelido
             </label>
             <input
@@ -133,7 +140,13 @@ function PerfilPage() {
           </section>
 
           <div className="flex flex-col gap-3 border-t border-[color:var(--border)] pt-6 sm:flex-row sm:justify-between">
-            <Button type="button" variant="outline" onClick={sair} disabled={signingOut} className="h-10 px-5">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={sair}
+              disabled={signingOut}
+              className="h-10 px-5"
+            >
               {signingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sair"}
             </Button>
             <Button onClick={salvarPerfil} disabled={saving} className="h-10 px-5">

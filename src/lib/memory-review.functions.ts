@@ -6,12 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type MemoryDomain = "kaline" | "kharis" | "kuanyin" | "drive" | "memory";
 export type MemorySource =
-  | "chat"
-  | "camara-do-eco"
-  | "codice"
-  | "registro-vivo"
-  | "manual"
-  | "system";
+  "chat" | "camara-do-eco" | "codice" | "registro-vivo" | "manual" | "system";
 export type MemorySensitivity = "low" | "medium" | "high";
 export type MemoryCandidateStatus = "pending" | "approved" | "rejected" | "archived";
 

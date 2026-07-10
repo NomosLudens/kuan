@@ -43,8 +43,7 @@ const personalTables = [
 ] as const;
 
 type ExportResult =
-  | { rows: Array<Record<string, unknown>>; status: "exported" }
-  | { rows: []; status: "skipped" };
+  { rows: Array<Record<string, unknown>>; status: "exported" } | { rows: []; status: "skipped" };
 
 const env = (name: string) => {
   const value = process.env[name];

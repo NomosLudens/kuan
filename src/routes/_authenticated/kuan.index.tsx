@@ -26,8 +26,8 @@ function KuanLandingPage() {
               Configure seu negócio antes de atender.
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--ivory-dim)]">
-              Kuan-Yin continua sendo a marca visual, mas a rota principal é /kuan. O primeiro
-              passo real é registrar nome, serviços, tom de voz e regras do Guardião.
+              Kuan-Yin continua sendo a marca visual, mas a rota principal é /kuan. O primeiro passo
+              real é registrar nome, serviços, tom de voz e regras do Guardião.
             </p>
           </div>
         </div>
