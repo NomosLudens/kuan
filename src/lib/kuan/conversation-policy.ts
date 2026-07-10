@@ -10,6 +10,14 @@ export const PUBLIC_CLIENT_ALLOWED_INTENTS = [
   "business_location",
   "business_policies",
   "guardian_support",
+  "ask_prices",
+  "ask_payment_methods",
+  "ask_availability",
+  "request_appointment",
+  "request_order",
+  "send_contact",
+  "send_payment_proof_pending",
+  "ask_existing_request_status",
 ];
 
 export const PUBLIC_CLIENT_BLOCKED_INTENTS = [
