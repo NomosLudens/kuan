@@ -1,5 +1,5 @@
 import { kuanyinApple } from "@/lib/brand-assets";
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -62,13 +62,20 @@ function HeaderBar() {
 
 function AuthedLayout() {
   const isMobile = useIsMobile();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isKuan = path.startsWith("/kuan");
+
+  // No mobile, se for rota Kuan, removemos a sidebar e a HeaderBar global
+  // para deixar a experiência chat-first tela cheia.
+  const hideSidebarMobile = isMobile && isKuan;
+
   return (
-    <SidebarProvider defaultOpen={isMobile}>
+    <SidebarProvider defaultOpen={isMobile && !hideSidebarMobile}>
       <div className="flex h-[100dvh] min-h-[100dvh] w-full">
-        <AppSidebar />
-        <div className="flex-1 flex min-w-0 flex-col">
-          <HeaderBar />
-          <main className="min-h-0 flex-1 min-w-0">
+        {!hideSidebarMobile && <AppSidebar />}
+        <div className="flex flex-1 min-w-0 flex-col">
+          {!hideSidebarMobile && <HeaderBar />}
+          <main className="flex-1 min-w-0 min-h-0">
             <Outlet />
           </main>
         </div>
