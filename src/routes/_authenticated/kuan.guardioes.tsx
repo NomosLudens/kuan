@@ -57,6 +57,15 @@ type GuardianRow = {
   created_at: string;
   updated_at: string;
   business_contexts: { nome: string; tipo: string | null; updated_at: string } | null;
+  metadata?: {
+    guardian_preferences?: {
+      preferred_cta?: string;
+      visual_style?: string;
+      client_style?: string;
+      must_review?: string[];
+    };
+    public_page_blueprint?: { status?: string; journey?: string[] };
+  } | null;
   is_owner?: boolean;
 };
 
@@ -346,6 +355,21 @@ function GuardioesPage() {
                   <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
                     {STATUS_HELP[guardian.status]}
                   </p>
+                  {guardian.metadata?.guardian_preferences && (
+                    <p className="mt-2 text-xs text-[color:var(--ivory-dim)]">
+                      Preferências: CTA “
+                      {guardian.metadata.guardian_preferences.preferred_cta ??
+                        "Solicitar esse horário"}
+                      ” · visual “
+                      {guardian.metadata.guardian_preferences.visual_style || "não informado"}”
+                    </p>
+                  )}
+                  {guardian.metadata?.public_page_blueprint && (
+                    <p className="mt-1 text-xs text-[color:var(--ivory-dim)]">
+                      Proposta pública: {guardian.metadata.public_page_blueprint.status ?? "draft"}.
+                      Nada é publicado automaticamente sem revisão.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2 lg:justify-end">

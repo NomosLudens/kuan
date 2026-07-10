@@ -7,6 +7,8 @@ import { z } from "zod";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+type JsonSerializable = string | number | boolean | null | JsonSerializable[] | { [key: string]: JsonSerializable };
+
 const JsonValue: z.ZodType<unknown> = z.lazy(() =>
   z.union([
     z.string(),
@@ -74,7 +76,7 @@ async function getEditableGuardianForUser(userId: string) {
 
   const { data: owned, error: ownedError } = await supabaseAdmin
     .from("kuanyin_guardians")
-    .select("id, user_id, admin_user_id, business_context_id, public_slug, status")
+    .select("id, user_id, admin_user_id, business_context_id, public_slug, status, metadata")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(1)
@@ -84,7 +86,7 @@ async function getEditableGuardianForUser(userId: string) {
 
   const { data: managed, error: managedError } = await supabaseAdmin
     .from("kuanyin_guardians")
-    .select("id, user_id, admin_user_id, business_context_id, public_slug, status")
+    .select("id, user_id, admin_user_id, business_context_id, public_slug, status, metadata")
     .eq("admin_user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(2);
@@ -105,6 +107,7 @@ type GuardianLinkRow = {
   business_context_id: string;
   public_slug: string;
   status: string;
+  metadata: Record<string, JsonSerializable> | null;
 };
 
 function genGuardianInviteToken(): string {
@@ -114,6 +117,35 @@ function genGuardianInviteToken(): string {
 }
 
 const GuardianStatus = z.enum(["draft", "published", "suspended", "archived"]);
+
+const GuardianPreferencesInput = z.object({
+  tone_preference: z.string().trim().max(500).optional().default(""),
+  formality_level: z.enum(["formal", "casual", "mixed"]).optional().default("mixed"),
+  visual_style: z.string().trim().max(500).optional().default(""),
+  client_style: z.string().trim().max(500).optional().default(""),
+  preferred_cta: z.string().trim().max(200).optional().default("Solicitar esse horário"),
+  autonomy_limits: z.array(z.string().trim().max(200)).optional().default([]),
+  must_review: z.array(z.string().trim().max(200)).optional().default([]),
+  avoid_terms: z.array(z.string().trim().max(120)).optional().default([]),
+  preferred_jargon: z.array(z.string().trim().max(120)).optional().default([]),
+  notes: z.string().trim().max(2000).optional().default(""),
+});
+
+const PublicPageBlueprintInput = z.object({
+  status: z.enum(["draft", "proposed", "approved", "published"]).optional().default("draft"),
+  theme: z
+    .object({
+      palette: z.string().trim().max(200).optional().default(""),
+      mood: z.string().trim().max(200).optional().default(""),
+      typography: z.string().trim().max(200).optional().default(""),
+    })
+    .optional()
+    .default({ palette: "", mood: "", typography: "" }),
+  journey: z.array(z.string().trim().max(80)).optional().default([]),
+  sections: z.array(JsonValue).optional().default([]),
+  suggested_copy: z.record(z.string(), JsonValue).optional().default({}),
+  warnings: z.array(z.string().trim().max(300)).optional().default([]),
+});
 
 const BusinessContextInput = z.object({
   id: z.string().uuid().optional(),
@@ -129,6 +161,8 @@ const BusinessContextInput = z.object({
   regras_escalonamento: z.record(z.string(), JsonValue).optional(),
   observacoes: z.string().trim().max(4000).nullable().optional(),
   public_slug: z.string().trim().min(2).max(80).optional(),
+  guardian_preferences: GuardianPreferencesInput.optional(),
+  public_page_blueprint: PublicPageBlueprintInput.optional(),
 });
 
 export const getBusinessContext = createServerFn({ method: "GET" })
@@ -150,6 +184,7 @@ export const getBusinessContext = createServerFn({ method: "GET" })
       ...(data as Record<string, unknown>),
       public_slug: guardian.public_slug,
       public_status: guardian.status,
+      guardian_metadata: guardian.metadata ?? {},
     };
   });
 
@@ -158,7 +193,12 @@ export const upsertBusinessContext = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => BusinessContextInput.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { public_slug: requestedSlug, ...businessData } = data;
+    const {
+      public_slug: requestedSlug,
+      guardian_preferences: guardianPreferences,
+      public_page_blueprint: publicPageBlueprint,
+      ...businessData
+    } = data;
     const editableGuardian = await getEditableGuardianForUser(userId);
     if (!editableGuardian) {
       throw new Error("Nenhum Guardião vinculado a esta conta. Peça um convite ao admin.");
@@ -191,12 +231,18 @@ export const upsertBusinessContext = createServerFn({ method: "POST" })
     const businessRow = row as unknown as { id: string; nome: string };
     const baseSlug = normalizePublicSlug(requestedSlug ?? businessRow.nome, businessRow.nome);
     await assertGuardianSlugAvailable(baseSlug, businessRow.id);
+    const guardianMetadata = {
+      ...(editableGuardian.metadata ?? {}),
+      ...(guardianPreferences ? { guardian_preferences: guardianPreferences } : {}),
+      ...(publicPageBlueprint ? { public_page_blueprint: publicPageBlueprint } : {}),
+    };
     const { data: guardian, error: guardianError } = await supabaseAdmin
       .from("kuanyin_guardians")
       .update({
         business_context_id: businessRow.id,
         public_slug: baseSlug,
         status: editableGuardian.status || "draft",
+        metadata: guardianMetadata,
       } as never)
       .eq("id", editableGuardian.id)
       .select("id, public_slug, status")
@@ -249,7 +295,7 @@ export const updateKuanYinGuardianStatus = createServerFn({ method: "POST" })
       user_id: string;
       admin_user_id: string | null;
       status: string;
-      metadata: Record<string, unknown> | null;
+      metadata: Record<string, JsonSerializable> | null;
     } | null;
     if (!row || (row.user_id !== userId && row.admin_user_id !== userId)) {
       throw new Error("forbidden");

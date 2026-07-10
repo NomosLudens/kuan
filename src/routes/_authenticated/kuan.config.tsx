@@ -32,6 +32,29 @@ type Form = {
   regras_escalonamento_text: string;
 };
 
+type GuardianMetadata = {
+  guardian_preferences?: {
+    tone_preference?: string;
+    formality_level?: string;
+    visual_style?: string;
+    client_style?: string;
+    preferred_cta?: string;
+    autonomy_limits?: string[];
+    must_review?: string[];
+    avoid_terms?: string[];
+    preferred_jargon?: string[];
+    notes?: string;
+  };
+  public_page_blueprint?: {
+    status?: string;
+    theme?: { palette?: string; mood?: string; typography?: string };
+    journey?: string[];
+    sections?: unknown[];
+    suggested_copy?: Record<string, unknown>;
+    warnings?: string[];
+  };
+};
+
 const EMPTY: Form = {
   nome: "",
   tipo: "",
@@ -91,6 +114,7 @@ function ConfigPage() {
   const get = useServerFn(getBusinessContext);
   const upsert = useServerFn(upsertBusinessContext);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [guardianMetadata, setGuardianMetadata] = useState<GuardianMetadata>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -111,6 +135,7 @@ function ConfigPage() {
           limites_decisao: unknown;
           regras_escalonamento: unknown;
           public_slug?: string;
+          guardian_metadata?: GuardianMetadata;
         } | null;
         if (ctx) {
           setForm({
@@ -128,6 +153,7 @@ function ConfigPage() {
             limites_decisao_text: jsonToText(ctx.limites_decisao),
             regras_escalonamento_text: jsonToText(ctx.regras_escalonamento),
           });
+          setGuardianMetadata(ctx.guardian_metadata ?? {});
         }
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Falha ao carregar contexto.");
@@ -209,6 +235,49 @@ function ConfigPage() {
           </Button>
         )}
       </div>
+
+      {(guardianMetadata.guardian_preferences || guardianMetadata.public_page_blueprint) && (
+        <section className="rounded-2xl border border-[color:var(--border)] bg-card/45 p-4 text-sm text-[color:var(--ivory-dim)]">
+          <h2 className="serif text-[color:var(--ivory)] text-base">
+            Preferências e proposta da Trilha
+          </h2>
+          {guardianMetadata.guardian_preferences && (
+            <div className="mt-3 space-y-1">
+              <p>
+                <span className="text-[color:var(--ivory)]">CTA preferido:</span>{" "}
+                {guardianMetadata.guardian_preferences.preferred_cta ?? "Solicitar esse horário"}
+              </p>
+              <p>
+                <span className="text-[color:var(--ivory)]">Estilo visual:</span>{" "}
+                {guardianMetadata.guardian_preferences.visual_style || "não informado"}
+              </p>
+              <p>
+                <span className="text-[color:var(--ivory)]">Revisão obrigatória:</span>{" "}
+                {(guardianMetadata.guardian_preferences.must_review ?? []).join(", ") ||
+                  "não informado"}
+              </p>
+            </div>
+          )}
+          {guardianMetadata.public_page_blueprint && (
+            <div className="mt-3 space-y-1">
+              <p>
+                <span className="text-[color:var(--ivory)]">Status da proposta:</span>{" "}
+                {guardianMetadata.public_page_blueprint.status ?? "draft"}
+              </p>
+              <p>
+                <span className="text-[color:var(--ivory)]">Jornada sugerida:</span>{" "}
+                {(guardianMetadata.public_page_blueprint.journey ?? []).join(" → ") ||
+                  "não informada"}
+              </p>
+              <p className="text-xs">
+                A proposta é blueprint estruturado para revisão. HTML livre gerado por IA não é
+                publicado automaticamente. Cliente sempre <strong>solicita</strong> horário; o
+                Guardião confirma.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
       {!form.id && (
         <div className="rounded-2xl border border-[color:var(--border)] bg-card/45 p-4 text-sm text-[color:var(--ivory-dim)]">
