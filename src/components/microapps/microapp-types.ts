@@ -45,5 +45,4 @@ export type ValidateMicroappMessageOptions = {
 };
 
 export type ValidateMicroappMessageResult =
-  | { ok: true; event: MicroappEvent }
-  | { ok: false; reason: string };
+  { ok: true; event: MicroappEvent } | { ok: false; reason: string };

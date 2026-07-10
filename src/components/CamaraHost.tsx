@@ -379,12 +379,7 @@ export function CamaraHost() {
                 title: str(payload.title),
                 body: str(payload.body),
                 origem: str(payload.origem, "manual") as
-                  | "decisao"
-                  | "proximo_gesto"
-                  | "sinal"
-                  | "candidato_revisao"
-                  | "tema"
-                  | "manual",
+                  "decisao" | "proximo_gesto" | "sinal" | "candidato_revisao" | "tema" | "manual",
               },
             });
             post(frame, "camara:hipotese-semeada", res);
@@ -401,12 +396,7 @@ export function CamaraHost() {
                 inicio: str(payload.inicio),
                 fim: payload.fim ? str(payload.fim) : undefined,
                 tipo: str(payload.tipo, "compromisso") as
-                  | "compromisso"
-                  | "prazo"
-                  | "reuniao"
-                  | "evento"
-                  | "aula"
-                  | "outro",
+                  "compromisso" | "prazo" | "reuniao" | "evento" | "aula" | "outro",
               },
             });
             post(frame, "camara:kairos-criado", res);
