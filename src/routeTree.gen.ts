@@ -45,23 +45,23 @@ import { Route as AuthenticatedCorporeSanoRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCamaraDoEcoRouteImport } from './routes/_authenticated/camara-do-eco'
 import { Route as AuthenticatedCamaraRouteImport } from './routes/_authenticated/camara'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
-import { Route as AuthenticatedKuanYinIndexRouteImport } from './routes/_authenticated/kuan-yin.index'
+import { Route as AuthenticatedKuanIndexRouteImport } from './routes/_authenticated/kuan.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiBridgeOlharDeKairosRouteImport } from './routes/api/bridge/olhar-de-kairos'
 import { Route as ApiBridgeDecifrarSnapshotLocalRouteImport } from './routes/api/bridge/decifrar-snapshot-local'
 import { Route as AuthenticatedTrilhaThreadIdRouteImport } from './routes/_authenticated/trilha.$threadId'
-import { Route as AuthenticatedKuanYinShowroomRouteImport } from './routes/_authenticated/kuan-yin.showroom'
-import { Route as AuthenticatedKuanYinRevisaoRouteImport } from './routes/_authenticated/kuan-yin.revisao'
-import { Route as AuthenticatedKuanYinPedidosRouteImport } from './routes/_authenticated/kuan-yin.pedidos'
-import { Route as AuthenticatedKuanYinPagamentosRouteImport } from './routes/_authenticated/kuan-yin.pagamentos'
-import { Route as AuthenticatedKuanYinOnboardingRouteImport } from './routes/_authenticated/kuan-yin.onboarding'
-import { Route as AuthenticatedKuanYinInboxRouteImport } from './routes/_authenticated/kuan-yin.inbox'
-import { Route as AuthenticatedKuanYinGuardioesRouteImport } from './routes/_authenticated/kuan-yin.guardioes'
-import { Route as AuthenticatedKuanYinConfigRouteImport } from './routes/_authenticated/kuan-yin.config'
-import { Route as AuthenticatedKuanYinClientesRouteImport } from './routes/_authenticated/kuan-yin.clientes'
-import { Route as AuthenticatedKuanYinAgendamentosRouteImport } from './routes/_authenticated/kuan-yin.agendamentos'
+import { Route as AuthenticatedKuanShowroomRouteImport } from './routes/_authenticated/kuan.showroom'
+import { Route as AuthenticatedKuanRevisaoRouteImport } from './routes/_authenticated/kuan.revisao'
+import { Route as AuthenticatedKuanPedidosRouteImport } from './routes/_authenticated/kuan.pedidos'
+import { Route as AuthenticatedKuanPagamentosRouteImport } from './routes/_authenticated/kuan.pagamentos'
+import { Route as AuthenticatedKuanOnboardingRouteImport } from './routes/_authenticated/kuan.onboarding'
+import { Route as AuthenticatedKuanInboxRouteImport } from './routes/_authenticated/kuan.inbox'
+import { Route as AuthenticatedKuanGuardioesRouteImport } from './routes/_authenticated/kuan.guardioes'
+import { Route as AuthenticatedKuanConfigRouteImport } from './routes/_authenticated/kuan.config'
+import { Route as AuthenticatedKuanClientesRouteImport } from './routes/_authenticated/kuan.clientes'
+import { Route as AuthenticatedKuanAgendamentosRouteImport } from './routes/_authenticated/kuan.agendamentos'
 import { Route as AuthenticatedKlioCodiceRouteImport } from './routes/_authenticated/klio.codice'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 import { Route as AuthenticatedKlioCodiceTelaAcesaRouteImport } from './routes/_authenticated/klio.codice.tela-acesa'
@@ -255,12 +255,11 @@ const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedKuanYinIndexRoute =
-  AuthenticatedKuanYinIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
-  } as any)
+const AuthenticatedKuanIndexRoute = AuthenticatedKuanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedKuanRoute,
+} as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/chat/',
   path: '/chat/',
@@ -293,65 +292,63 @@ const AuthenticatedTrilhaThreadIdRoute =
     path: '/trilha/$threadId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedKuanYinShowroomRoute =
-  AuthenticatedKuanYinShowroomRouteImport.update({
+const AuthenticatedKuanShowroomRoute =
+  AuthenticatedKuanShowroomRouteImport.update({
     id: '/showroom',
     path: '/showroom',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinRevisaoRoute =
-  AuthenticatedKuanYinRevisaoRouteImport.update({
+const AuthenticatedKuanRevisaoRoute =
+  AuthenticatedKuanRevisaoRouteImport.update({
     id: '/revisao',
     path: '/revisao',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinPedidosRoute =
-  AuthenticatedKuanYinPedidosRouteImport.update({
+const AuthenticatedKuanPedidosRoute =
+  AuthenticatedKuanPedidosRouteImport.update({
     id: '/pedidos',
     path: '/pedidos',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinPagamentosRoute =
-  AuthenticatedKuanYinPagamentosRouteImport.update({
+const AuthenticatedKuanPagamentosRoute =
+  AuthenticatedKuanPagamentosRouteImport.update({
     id: '/pagamentos',
     path: '/pagamentos',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinOnboardingRoute =
-  AuthenticatedKuanYinOnboardingRouteImport.update({
+const AuthenticatedKuanOnboardingRoute =
+  AuthenticatedKuanOnboardingRouteImport.update({
     id: '/onboarding',
     path: '/onboarding',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinInboxRoute =
-  AuthenticatedKuanYinInboxRouteImport.update({
-    id: '/inbox',
-    path: '/inbox',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
-  } as any)
-const AuthenticatedKuanYinGuardioesRoute =
-  AuthenticatedKuanYinGuardioesRouteImport.update({
+const AuthenticatedKuanInboxRoute = AuthenticatedKuanInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AuthenticatedKuanRoute,
+} as any)
+const AuthenticatedKuanGuardioesRoute =
+  AuthenticatedKuanGuardioesRouteImport.update({
     id: '/guardioes',
     path: '/guardioes',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinConfigRoute =
-  AuthenticatedKuanYinConfigRouteImport.update({
-    id: '/config',
-    path: '/config',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
-  } as any)
-const AuthenticatedKuanYinClientesRoute =
-  AuthenticatedKuanYinClientesRouteImport.update({
+const AuthenticatedKuanConfigRoute = AuthenticatedKuanConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => AuthenticatedKuanRoute,
+} as any)
+const AuthenticatedKuanClientesRoute =
+  AuthenticatedKuanClientesRouteImport.update({
     id: '/clientes',
     path: '/clientes',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
-const AuthenticatedKuanYinAgendamentosRoute =
-  AuthenticatedKuanYinAgendamentosRouteImport.update({
+const AuthenticatedKuanAgendamentosRoute =
+  AuthenticatedKuanAgendamentosRouteImport.update({
     id: '/agendamentos',
     path: '/agendamentos',
-    getParentRoute: () => AuthenticatedKuanYinRoute,
+    getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
 const AuthenticatedKlioCodiceRoute = AuthenticatedKlioCodiceRouteImport.update({
   id: '/codice',
@@ -414,8 +411,8 @@ export interface FileRoutesByFullPath {
   '/kharis': typeof AuthenticatedKharisRoute
   '/klio': typeof AuthenticatedKlioRouteWithChildren
   '/klio-estudo': typeof AuthenticatedKlioEstudoRoute
-  '/kuan': typeof AuthenticatedKuanRoute
-  '/kuan-yin': typeof AuthenticatedKuanYinRouteWithChildren
+  '/kuan': typeof AuthenticatedKuanRouteWithChildren
+  '/kuan-yin': typeof AuthenticatedKuanYinRoute
   '/legislacao': typeof AuthenticatedLegislacaoRoute
   '/livros': typeof AuthenticatedLivrosRoute
   '/modo-fala': typeof AuthenticatedModoFalaRoute
@@ -433,23 +430,23 @@ export interface FileRoutesByFullPath {
   '/portal/$token': typeof PortalTokenRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/klio/codice': typeof AuthenticatedKlioCodiceRouteWithChildren
-  '/kuan-yin/agendamentos': typeof AuthenticatedKuanYinAgendamentosRoute
-  '/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
-  '/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
-  '/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
-  '/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
-  '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
-  '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
-  '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
-  '/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
-  '/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
+  '/kuan/agendamentos': typeof AuthenticatedKuanAgendamentosRoute
+  '/kuan/clientes': typeof AuthenticatedKuanClientesRoute
+  '/kuan/config': typeof AuthenticatedKuanConfigRoute
+  '/kuan/guardioes': typeof AuthenticatedKuanGuardioesRoute
+  '/kuan/inbox': typeof AuthenticatedKuanInboxRoute
+  '/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
+  '/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
+  '/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
+  '/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
   '/api/bridge/olhar-de-kairos': typeof ApiBridgeOlharDeKairosRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
-  '/kuan-yin/': typeof AuthenticatedKuanYinIndexRoute
+  '/kuan/': typeof AuthenticatedKuanIndexRoute
   '/klio/codice/acervo': typeof AuthenticatedKlioCodiceAcervoRoute
   '/klio/codice/fichamento': typeof AuthenticatedKlioCodiceFichamentoRoute
   '/klio/codice/margem': typeof AuthenticatedKlioCodiceMargemRoute
@@ -475,7 +472,7 @@ export interface FileRoutesByTo {
   '/kharis': typeof AuthenticatedKharisRoute
   '/klio': typeof AuthenticatedKlioRouteWithChildren
   '/klio-estudo': typeof AuthenticatedKlioEstudoRoute
-  '/kuan': typeof AuthenticatedKuanRoute
+  '/kuan-yin': typeof AuthenticatedKuanYinRoute
   '/legislacao': typeof AuthenticatedLegislacaoRoute
   '/livros': typeof AuthenticatedLivrosRoute
   '/modo-fala': typeof AuthenticatedModoFalaRoute
@@ -493,23 +490,23 @@ export interface FileRoutesByTo {
   '/portal/$token': typeof PortalTokenRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/klio/codice': typeof AuthenticatedKlioCodiceRouteWithChildren
-  '/kuan-yin/agendamentos': typeof AuthenticatedKuanYinAgendamentosRoute
-  '/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
-  '/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
-  '/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
-  '/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
-  '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
-  '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
-  '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
-  '/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
-  '/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
+  '/kuan/agendamentos': typeof AuthenticatedKuanAgendamentosRoute
+  '/kuan/clientes': typeof AuthenticatedKuanClientesRoute
+  '/kuan/config': typeof AuthenticatedKuanConfigRoute
+  '/kuan/guardioes': typeof AuthenticatedKuanGuardioesRoute
+  '/kuan/inbox': typeof AuthenticatedKuanInboxRoute
+  '/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
+  '/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
+  '/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
+  '/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
   '/api/bridge/olhar-de-kairos': typeof ApiBridgeOlharDeKairosRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/chat': typeof AuthenticatedChatIndexRoute
-  '/kuan-yin': typeof AuthenticatedKuanYinIndexRoute
+  '/kuan': typeof AuthenticatedKuanIndexRoute
   '/klio/codice/acervo': typeof AuthenticatedKlioCodiceAcervoRoute
   '/klio/codice/fichamento': typeof AuthenticatedKlioCodiceFichamentoRoute
   '/klio/codice/margem': typeof AuthenticatedKlioCodiceMargemRoute
@@ -537,8 +534,8 @@ export interface FileRoutesById {
   '/_authenticated/kharis': typeof AuthenticatedKharisRoute
   '/_authenticated/klio': typeof AuthenticatedKlioRouteWithChildren
   '/_authenticated/klio-estudo': typeof AuthenticatedKlioEstudoRoute
-  '/_authenticated/kuan': typeof AuthenticatedKuanRoute
-  '/_authenticated/kuan-yin': typeof AuthenticatedKuanYinRouteWithChildren
+  '/_authenticated/kuan': typeof AuthenticatedKuanRouteWithChildren
+  '/_authenticated/kuan-yin': typeof AuthenticatedKuanYinRoute
   '/_authenticated/legislacao': typeof AuthenticatedLegislacaoRoute
   '/_authenticated/livros': typeof AuthenticatedLivrosRoute
   '/_authenticated/modo-fala': typeof AuthenticatedModoFalaRoute
@@ -556,23 +553,23 @@ export interface FileRoutesById {
   '/portal/$token': typeof PortalTokenRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/klio/codice': typeof AuthenticatedKlioCodiceRouteWithChildren
-  '/_authenticated/kuan-yin/agendamentos': typeof AuthenticatedKuanYinAgendamentosRoute
-  '/_authenticated/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
-  '/_authenticated/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
-  '/_authenticated/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
-  '/_authenticated/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
-  '/_authenticated/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
-  '/_authenticated/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
-  '/_authenticated/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
-  '/_authenticated/kuan-yin/revisao': typeof AuthenticatedKuanYinRevisaoRoute
-  '/_authenticated/kuan-yin/showroom': typeof AuthenticatedKuanYinShowroomRoute
+  '/_authenticated/kuan/agendamentos': typeof AuthenticatedKuanAgendamentosRoute
+  '/_authenticated/kuan/clientes': typeof AuthenticatedKuanClientesRoute
+  '/_authenticated/kuan/config': typeof AuthenticatedKuanConfigRoute
+  '/_authenticated/kuan/guardioes': typeof AuthenticatedKuanGuardioesRoute
+  '/_authenticated/kuan/inbox': typeof AuthenticatedKuanInboxRoute
+  '/_authenticated/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
+  '/_authenticated/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
+  '/_authenticated/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/_authenticated/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
+  '/_authenticated/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/_authenticated/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
   '/api/bridge/decifrar-snapshot-local': typeof ApiBridgeDecifrarSnapshotLocalRoute
   '/api/bridge/olhar-de-kairos': typeof ApiBridgeOlharDeKairosRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
-  '/_authenticated/kuan-yin/': typeof AuthenticatedKuanYinIndexRoute
+  '/_authenticated/kuan/': typeof AuthenticatedKuanIndexRoute
   '/_authenticated/klio/codice/acervo': typeof AuthenticatedKlioCodiceAcervoRoute
   '/_authenticated/klio/codice/fichamento': typeof AuthenticatedKlioCodiceFichamentoRoute
   '/_authenticated/klio/codice/margem': typeof AuthenticatedKlioCodiceMargemRoute
@@ -619,23 +616,23 @@ export interface FileRouteTypes {
     | '/portal/$token'
     | '/chat/$threadId'
     | '/klio/codice'
-    | '/kuan-yin/agendamentos'
-    | '/kuan-yin/clientes'
-    | '/kuan-yin/config'
-    | '/kuan-yin/guardioes'
-    | '/kuan-yin/inbox'
-    | '/kuan-yin/onboarding'
-    | '/kuan-yin/pagamentos'
-    | '/kuan-yin/pedidos'
-    | '/kuan-yin/revisao'
-    | '/kuan-yin/showroom'
+    | '/kuan/agendamentos'
+    | '/kuan/clientes'
+    | '/kuan/config'
+    | '/kuan/guardioes'
+    | '/kuan/inbox'
+    | '/kuan/onboarding'
+    | '/kuan/pagamentos'
+    | '/kuan/pedidos'
+    | '/kuan/revisao'
+    | '/kuan/showroom'
     | '/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
     | '/api/bridge/olhar-de-kairos'
     | '/api/public/health'
     | '/api/public/ready'
     | '/chat/'
-    | '/kuan-yin/'
+    | '/kuan/'
     | '/klio/codice/acervo'
     | '/klio/codice/fichamento'
     | '/klio/codice/margem'
@@ -661,7 +658,7 @@ export interface FileRouteTypes {
     | '/kharis'
     | '/klio'
     | '/klio-estudo'
-    | '/kuan'
+    | '/kuan-yin'
     | '/legislacao'
     | '/livros'
     | '/modo-fala'
@@ -679,23 +676,23 @@ export interface FileRouteTypes {
     | '/portal/$token'
     | '/chat/$threadId'
     | '/klio/codice'
-    | '/kuan-yin/agendamentos'
-    | '/kuan-yin/clientes'
-    | '/kuan-yin/config'
-    | '/kuan-yin/guardioes'
-    | '/kuan-yin/inbox'
-    | '/kuan-yin/onboarding'
-    | '/kuan-yin/pagamentos'
-    | '/kuan-yin/pedidos'
-    | '/kuan-yin/revisao'
-    | '/kuan-yin/showroom'
+    | '/kuan/agendamentos'
+    | '/kuan/clientes'
+    | '/kuan/config'
+    | '/kuan/guardioes'
+    | '/kuan/inbox'
+    | '/kuan/onboarding'
+    | '/kuan/pagamentos'
+    | '/kuan/pedidos'
+    | '/kuan/revisao'
+    | '/kuan/showroom'
     | '/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
     | '/api/bridge/olhar-de-kairos'
     | '/api/public/health'
     | '/api/public/ready'
     | '/chat'
-    | '/kuan-yin'
+    | '/kuan'
     | '/klio/codice/acervo'
     | '/klio/codice/fichamento'
     | '/klio/codice/margem'
@@ -741,23 +738,23 @@ export interface FileRouteTypes {
     | '/portal/$token'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/klio/codice'
-    | '/_authenticated/kuan-yin/agendamentos'
-    | '/_authenticated/kuan-yin/clientes'
-    | '/_authenticated/kuan-yin/config'
-    | '/_authenticated/kuan-yin/guardioes'
-    | '/_authenticated/kuan-yin/inbox'
-    | '/_authenticated/kuan-yin/onboarding'
-    | '/_authenticated/kuan-yin/pagamentos'
-    | '/_authenticated/kuan-yin/pedidos'
-    | '/_authenticated/kuan-yin/revisao'
-    | '/_authenticated/kuan-yin/showroom'
+    | '/_authenticated/kuan/agendamentos'
+    | '/_authenticated/kuan/clientes'
+    | '/_authenticated/kuan/config'
+    | '/_authenticated/kuan/guardioes'
+    | '/_authenticated/kuan/inbox'
+    | '/_authenticated/kuan/onboarding'
+    | '/_authenticated/kuan/pagamentos'
+    | '/_authenticated/kuan/pedidos'
+    | '/_authenticated/kuan/revisao'
+    | '/_authenticated/kuan/showroom'
     | '/_authenticated/trilha/$threadId'
     | '/api/bridge/decifrar-snapshot-local'
     | '/api/bridge/olhar-de-kairos'
     | '/api/public/health'
     | '/api/public/ready'
     | '/_authenticated/chat/'
-    | '/_authenticated/kuan-yin/'
+    | '/_authenticated/kuan/'
     | '/_authenticated/klio/codice/acervo'
     | '/_authenticated/klio/codice/fichamento'
     | '/_authenticated/klio/codice/margem'
@@ -1037,12 +1034,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgendaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/kuan-yin/': {
-      id: '/_authenticated/kuan-yin/'
+    '/_authenticated/kuan/': {
+      id: '/_authenticated/kuan/'
       path: '/'
-      fullPath: '/kuan-yin/'
-      preLoaderRoute: typeof AuthenticatedKuanYinIndexRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/'
+      preLoaderRoute: typeof AuthenticatedKuanIndexRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
@@ -1086,75 +1083,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrilhaThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/kuan-yin/showroom': {
-      id: '/_authenticated/kuan-yin/showroom'
+    '/_authenticated/kuan/showroom': {
+      id: '/_authenticated/kuan/showroom'
       path: '/showroom'
-      fullPath: '/kuan-yin/showroom'
-      preLoaderRoute: typeof AuthenticatedKuanYinShowroomRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/showroom'
+      preLoaderRoute: typeof AuthenticatedKuanShowroomRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/revisao': {
-      id: '/_authenticated/kuan-yin/revisao'
+    '/_authenticated/kuan/revisao': {
+      id: '/_authenticated/kuan/revisao'
       path: '/revisao'
-      fullPath: '/kuan-yin/revisao'
-      preLoaderRoute: typeof AuthenticatedKuanYinRevisaoRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/revisao'
+      preLoaderRoute: typeof AuthenticatedKuanRevisaoRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/pedidos': {
-      id: '/_authenticated/kuan-yin/pedidos'
+    '/_authenticated/kuan/pedidos': {
+      id: '/_authenticated/kuan/pedidos'
       path: '/pedidos'
-      fullPath: '/kuan-yin/pedidos'
-      preLoaderRoute: typeof AuthenticatedKuanYinPedidosRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/pedidos'
+      preLoaderRoute: typeof AuthenticatedKuanPedidosRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/pagamentos': {
-      id: '/_authenticated/kuan-yin/pagamentos'
+    '/_authenticated/kuan/pagamentos': {
+      id: '/_authenticated/kuan/pagamentos'
       path: '/pagamentos'
-      fullPath: '/kuan-yin/pagamentos'
-      preLoaderRoute: typeof AuthenticatedKuanYinPagamentosRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/pagamentos'
+      preLoaderRoute: typeof AuthenticatedKuanPagamentosRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/onboarding': {
-      id: '/_authenticated/kuan-yin/onboarding'
+    '/_authenticated/kuan/onboarding': {
+      id: '/_authenticated/kuan/onboarding'
       path: '/onboarding'
-      fullPath: '/kuan-yin/onboarding'
-      preLoaderRoute: typeof AuthenticatedKuanYinOnboardingRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/onboarding'
+      preLoaderRoute: typeof AuthenticatedKuanOnboardingRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/inbox': {
-      id: '/_authenticated/kuan-yin/inbox'
+    '/_authenticated/kuan/inbox': {
+      id: '/_authenticated/kuan/inbox'
       path: '/inbox'
-      fullPath: '/kuan-yin/inbox'
-      preLoaderRoute: typeof AuthenticatedKuanYinInboxRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/inbox'
+      preLoaderRoute: typeof AuthenticatedKuanInboxRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/guardioes': {
-      id: '/_authenticated/kuan-yin/guardioes'
+    '/_authenticated/kuan/guardioes': {
+      id: '/_authenticated/kuan/guardioes'
       path: '/guardioes'
-      fullPath: '/kuan-yin/guardioes'
-      preLoaderRoute: typeof AuthenticatedKuanYinGuardioesRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/guardioes'
+      preLoaderRoute: typeof AuthenticatedKuanGuardioesRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/config': {
-      id: '/_authenticated/kuan-yin/config'
+    '/_authenticated/kuan/config': {
+      id: '/_authenticated/kuan/config'
       path: '/config'
-      fullPath: '/kuan-yin/config'
-      preLoaderRoute: typeof AuthenticatedKuanYinConfigRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/config'
+      preLoaderRoute: typeof AuthenticatedKuanConfigRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/clientes': {
-      id: '/_authenticated/kuan-yin/clientes'
+    '/_authenticated/kuan/clientes': {
+      id: '/_authenticated/kuan/clientes'
       path: '/clientes'
-      fullPath: '/kuan-yin/clientes'
-      preLoaderRoute: typeof AuthenticatedKuanYinClientesRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/clientes'
+      preLoaderRoute: typeof AuthenticatedKuanClientesRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
-    '/_authenticated/kuan-yin/agendamentos': {
-      id: '/_authenticated/kuan-yin/agendamentos'
+    '/_authenticated/kuan/agendamentos': {
+      id: '/_authenticated/kuan/agendamentos'
       path: '/agendamentos'
-      fullPath: '/kuan-yin/agendamentos'
-      preLoaderRoute: typeof AuthenticatedKuanYinAgendamentosRouteImport
-      parentRoute: typeof AuthenticatedKuanYinRoute
+      fullPath: '/kuan/agendamentos'
+      preLoaderRoute: typeof AuthenticatedKuanAgendamentosRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
     }
     '/_authenticated/klio/codice': {
       id: '/_authenticated/klio/codice'
@@ -1243,36 +1240,36 @@ const AuthenticatedKlioRouteChildren: AuthenticatedKlioRouteChildren = {
 const AuthenticatedKlioRouteWithChildren =
   AuthenticatedKlioRoute._addFileChildren(AuthenticatedKlioRouteChildren)
 
-interface AuthenticatedKuanYinRouteChildren {
-  AuthenticatedKuanYinAgendamentosRoute: typeof AuthenticatedKuanYinAgendamentosRoute
-  AuthenticatedKuanYinClientesRoute: typeof AuthenticatedKuanYinClientesRoute
-  AuthenticatedKuanYinConfigRoute: typeof AuthenticatedKuanYinConfigRoute
-  AuthenticatedKuanYinGuardioesRoute: typeof AuthenticatedKuanYinGuardioesRoute
-  AuthenticatedKuanYinInboxRoute: typeof AuthenticatedKuanYinInboxRoute
-  AuthenticatedKuanYinOnboardingRoute: typeof AuthenticatedKuanYinOnboardingRoute
-  AuthenticatedKuanYinPagamentosRoute: typeof AuthenticatedKuanYinPagamentosRoute
-  AuthenticatedKuanYinPedidosRoute: typeof AuthenticatedKuanYinPedidosRoute
-  AuthenticatedKuanYinRevisaoRoute: typeof AuthenticatedKuanYinRevisaoRoute
-  AuthenticatedKuanYinShowroomRoute: typeof AuthenticatedKuanYinShowroomRoute
-  AuthenticatedKuanYinIndexRoute: typeof AuthenticatedKuanYinIndexRoute
+interface AuthenticatedKuanRouteChildren {
+  AuthenticatedKuanAgendamentosRoute: typeof AuthenticatedKuanAgendamentosRoute
+  AuthenticatedKuanClientesRoute: typeof AuthenticatedKuanClientesRoute
+  AuthenticatedKuanConfigRoute: typeof AuthenticatedKuanConfigRoute
+  AuthenticatedKuanGuardioesRoute: typeof AuthenticatedKuanGuardioesRoute
+  AuthenticatedKuanInboxRoute: typeof AuthenticatedKuanInboxRoute
+  AuthenticatedKuanOnboardingRoute: typeof AuthenticatedKuanOnboardingRoute
+  AuthenticatedKuanPagamentosRoute: typeof AuthenticatedKuanPagamentosRoute
+  AuthenticatedKuanPedidosRoute: typeof AuthenticatedKuanPedidosRoute
+  AuthenticatedKuanRevisaoRoute: typeof AuthenticatedKuanRevisaoRoute
+  AuthenticatedKuanShowroomRoute: typeof AuthenticatedKuanShowroomRoute
+  AuthenticatedKuanIndexRoute: typeof AuthenticatedKuanIndexRoute
 }
 
-const AuthenticatedKuanYinRouteChildren: AuthenticatedKuanYinRouteChildren = {
-  AuthenticatedKuanYinAgendamentosRoute: AuthenticatedKuanYinAgendamentosRoute,
-  AuthenticatedKuanYinClientesRoute: AuthenticatedKuanYinClientesRoute,
-  AuthenticatedKuanYinConfigRoute: AuthenticatedKuanYinConfigRoute,
-  AuthenticatedKuanYinGuardioesRoute: AuthenticatedKuanYinGuardioesRoute,
-  AuthenticatedKuanYinInboxRoute: AuthenticatedKuanYinInboxRoute,
-  AuthenticatedKuanYinOnboardingRoute: AuthenticatedKuanYinOnboardingRoute,
-  AuthenticatedKuanYinPagamentosRoute: AuthenticatedKuanYinPagamentosRoute,
-  AuthenticatedKuanYinPedidosRoute: AuthenticatedKuanYinPedidosRoute,
-  AuthenticatedKuanYinRevisaoRoute: AuthenticatedKuanYinRevisaoRoute,
-  AuthenticatedKuanYinShowroomRoute: AuthenticatedKuanYinShowroomRoute,
-  AuthenticatedKuanYinIndexRoute: AuthenticatedKuanYinIndexRoute,
+const AuthenticatedKuanRouteChildren: AuthenticatedKuanRouteChildren = {
+  AuthenticatedKuanAgendamentosRoute: AuthenticatedKuanAgendamentosRoute,
+  AuthenticatedKuanClientesRoute: AuthenticatedKuanClientesRoute,
+  AuthenticatedKuanConfigRoute: AuthenticatedKuanConfigRoute,
+  AuthenticatedKuanGuardioesRoute: AuthenticatedKuanGuardioesRoute,
+  AuthenticatedKuanInboxRoute: AuthenticatedKuanInboxRoute,
+  AuthenticatedKuanOnboardingRoute: AuthenticatedKuanOnboardingRoute,
+  AuthenticatedKuanPagamentosRoute: AuthenticatedKuanPagamentosRoute,
+  AuthenticatedKuanPedidosRoute: AuthenticatedKuanPedidosRoute,
+  AuthenticatedKuanRevisaoRoute: AuthenticatedKuanRevisaoRoute,
+  AuthenticatedKuanShowroomRoute: AuthenticatedKuanShowroomRoute,
+  AuthenticatedKuanIndexRoute: AuthenticatedKuanIndexRoute,
 }
 
-const AuthenticatedKuanYinRouteWithChildren =
-  AuthenticatedKuanYinRoute._addFileChildren(AuthenticatedKuanYinRouteChildren)
+const AuthenticatedKuanRouteWithChildren =
+  AuthenticatedKuanRoute._addFileChildren(AuthenticatedKuanRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
@@ -1290,8 +1287,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKharisRoute: typeof AuthenticatedKharisRoute
   AuthenticatedKlioRoute: typeof AuthenticatedKlioRouteWithChildren
   AuthenticatedKlioEstudoRoute: typeof AuthenticatedKlioEstudoRoute
-  AuthenticatedKuanRoute: typeof AuthenticatedKuanRoute
-  AuthenticatedKuanYinRoute: typeof AuthenticatedKuanYinRouteWithChildren
+  AuthenticatedKuanRoute: typeof AuthenticatedKuanRouteWithChildren
+  AuthenticatedKuanYinRoute: typeof AuthenticatedKuanYinRoute
   AuthenticatedLegislacaoRoute: typeof AuthenticatedLegislacaoRoute
   AuthenticatedLivrosRoute: typeof AuthenticatedLivrosRoute
   AuthenticatedModoFalaRoute: typeof AuthenticatedModoFalaRoute
@@ -1321,8 +1318,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKharisRoute: AuthenticatedKharisRoute,
   AuthenticatedKlioRoute: AuthenticatedKlioRouteWithChildren,
   AuthenticatedKlioEstudoRoute: AuthenticatedKlioEstudoRoute,
-  AuthenticatedKuanRoute: AuthenticatedKuanRoute,
-  AuthenticatedKuanYinRoute: AuthenticatedKuanYinRouteWithChildren,
+  AuthenticatedKuanRoute: AuthenticatedKuanRouteWithChildren,
+  AuthenticatedKuanYinRoute: AuthenticatedKuanYinRoute,
   AuthenticatedLegislacaoRoute: AuthenticatedLegislacaoRoute,
   AuthenticatedLivrosRoute: AuthenticatedLivrosRoute,
   AuthenticatedModoFalaRoute: AuthenticatedModoFalaRoute,
@@ -1359,3 +1356,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

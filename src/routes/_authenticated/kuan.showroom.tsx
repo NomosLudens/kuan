@@ -5,7 +5,7 @@ import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-
 
 const SHOWROOM_URL = "https://showroom.nomosludens.ia.br";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/showroom")({
+export const Route = createFileRoute("/_authenticated/kuan/showroom")({
   component: ShowroomPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,

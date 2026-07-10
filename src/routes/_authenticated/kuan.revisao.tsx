@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, X, ShieldAlert } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/revisao")({
+export const Route = createFileRoute("/_authenticated/kuan/revisao")({
   component: KuanYinRevisaoPage,
 });
 

@@ -15,7 +15,7 @@ import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-
 import { Copy, ExternalLink, Mail, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/guardioes")({
+export const Route = createFileRoute("/_authenticated/kuan/guardioes")({
   component: GuardioesPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
@@ -356,7 +356,7 @@ function GuardioesPage() {
                   </Button>
                   {guardian.is_owner ? (
                     <Button asChild variant="ghost" size="sm">
-                      <Link to="/kuan-yin/config">Editar negócio</Link>
+                      <Link to="/kuan/config">Editar negócio</Link>
                     </Button>
                   ) : (
                     <Badge variant="secondary">Gerenciado pelo admin</Badge>
