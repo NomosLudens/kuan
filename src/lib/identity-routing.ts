@@ -40,7 +40,6 @@ export const ACTIVE_PUBLIC_APP_IDS = [
   "kuan-pagamentos",
   "kuan-onboarding",
   "perfil",
-  "revisao",
 ] as const;
 
 export const ARCHIVED_APP_IDS = [
@@ -63,6 +62,7 @@ export const ARCHIVED_APP_IDS = [
   "jardim",
   "registro-vivo",
   "perfis",
+  "revisao",
 ] as const;
 
 const LEGACY_ACCESS_FACETS = ["kaline", "kharis", "kuanyin", "drive", "klio"] as const;
