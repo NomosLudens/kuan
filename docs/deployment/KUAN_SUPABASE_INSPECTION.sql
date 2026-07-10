@@ -9,11 +9,14 @@ where table_schema = 'public'
 order by table_name;
 
 -- constraints Kuan
-select conname, conrelid::regclass as table_name, pg_get_constraintdef(oid) as definition
+select
+  conname,
+  conrelid::regclass as relation_name,
+  pg_get_constraintdef(oid) as definition
 from pg_constraint
 where conrelid::regclass::text like 'public.kuanyin_%'
    or conrelid::regclass::text = 'public.business_contexts'
-order by table_name::text, conname;
+order by conrelid::regclass::text, conname;
 
 -- indexes Kuan
 select schemaname, tablename, indexname, indexdef
