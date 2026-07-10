@@ -22,45 +22,78 @@ function KuanChatPage() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
       {/* Header com CTAs secundários */}
-      <header className="flex-none border-b border-[color:var(--border)] bg-card/40 p-3 sm:p-4">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
+      <header className="flex-none border-b border-[color:var(--border)] bg-card/40 p-2 sm:p-4 h-14 sm:h-auto flex flex-col justify-center">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
               src={kuanyinApple.url}
               alt=""
-              className="h-10 w-10 shrink-0 apple-glow"
+              className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 apple-glow"
               style={{ filter: "drop-shadow(0 0 10px rgba(236, 72, 153, 0.45))" }}
             />
             <div className="min-w-0">
-              <h1 className="serif text-xl sm:text-2xl text-[color:oklch(0.86_0.06_350)] truncate">
-                Conversa com Kuan
+              <h1 className="serif text-lg sm:text-2xl text-[color:oklch(0.86_0.06_350)] truncate uppercase tracking-widest sm:tracking-normal sm:normal-case">
+                <span className="sm:hidden">Kuan</span>
+                <span className="hidden sm:inline">Conversa com Kuan</span>
               </h1>
-              <p className="text-xs text-[color:var(--ivory-dim)] truncate">
+              <p className="hidden sm:block text-xs text-[color:var(--ivory-dim)] truncate">
                 Superfície principal do Guardião
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+          <div className="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar -mr-2 pr-2 sm:mr-0 sm:pr-0">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-3 text-[10px] sm:text-xs shrink-0 bg-background/50"
+            >
               <Link to="/kuan/onboarding">
-                <Settings className="mr-1.5 h-3.5 w-3.5" /> Configurar
+                <Settings className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Configurar
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-3 text-[10px] sm:text-xs shrink-0 bg-background/50"
+            >
               <Link to="/kuan/inbox">
-                <MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Atendimentos
+                <MessageCircle className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Atendimentos
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-3 text-[10px] sm:text-xs shrink-0 bg-background/50"
+            >
               <Link to="/kuan/guardioes">
-                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" /> Guardiões
+                <ShieldCheck className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Guardiões
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-8 rounded-xl px-3 text-xs">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-3 text-[10px] sm:text-xs shrink-0 bg-background/50"
+            >
               <Link to="/kuan/showroom">
-                <Store className="mr-1.5 h-3.5 w-3.5" /> Showroom
+                <Store className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Showroom
               </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 sm:hidden rounded-full px-3 text-[10px] shrink-0 text-red-400"
+              onClick={async () => {
+                const { supabase } = await import("@/integrations/supabase/client");
+                await supabase.auth.signOut();
+                window.location.href = "/auth";
+              }}
+            >
+              Sair
             </Button>
           </div>
         </div>
