@@ -300,14 +300,23 @@ function InboxPage() {
             <div className="border-t border-[color:var(--border)] p-4 bg-background">
               <div className="flex flex-col gap-2">
                 <Textarea
-                  placeholder="Responder como Guardião..."
-                  value={replyText}
+                  placeholder={
+                    detail.thread.status === "closed"
+                      ? "Reabra o atendimento para responder."
+                      : "Responder como Guardião..."
+                  }
+                  value={detail.thread.status === "closed" ? "" : replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   className="resize-none"
                   rows={3}
+                  maxLength={3000}
+                  disabled={detail.thread.status === "closed" || sending}
                 />
                 <div className="flex justify-end">
-                  <Button onClick={handleSend} disabled={sending || !replyText.trim()}>
+                  <Button
+                    onClick={handleSend}
+                    disabled={sending || !replyText.trim() || detail.thread.status === "closed"}
+                  >
                     {sending ? "Enviando..." : "Enviar resposta"}
                   </Button>
                 </div>
