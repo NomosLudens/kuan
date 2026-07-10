@@ -1,5 +1,5 @@
 -- ============================================================================
--- Kaline Totalidade — Baseline única e idempotente para deploy novo
+-- Kuan — Baseline única e idempotente para deploy novo
 -- ============================================================================
 -- Consolida as 39 migrations incrementais anteriores (agora em
 -- diretório legado de migrations) num único arquivo, para provisionar um
