@@ -89,3 +89,7 @@ Consultar ou documentar ausência de consulta real:
 - [ ] Schema pronto com ressalvas.
 - [ ] Schema precisa PR 11.
 - [ ] Schema bloqueado.
+
+## Estado deste PR
+
+Este PR prepara o bring-up, mas não conclui a validação real porque o ambiente Codex não possui Supabase real/staging, secrets nem Supabase CLI. A execução real deve seguir `KUAN_MANUAL_BRING_UP_RUNBOOK.md`.
