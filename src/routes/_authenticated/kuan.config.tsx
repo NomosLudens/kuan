@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/config")({
+export const Route = createFileRoute("/_authenticated/kuan/config")({
   component: ConfigPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
@@ -191,7 +191,7 @@ function ConfigPage() {
           </h1>
           <p className="text-xs text-[color:var(--ivory-dim)] mt-1">
             Manual vivo que a Kuan-Yin usa para atender. Tudo aqui entra no system prompt quando
-            você conversa em <code>/kuan-yin</code> e alimenta sua página pública de atendimento.
+            você conversa em <code>/kuan</code> e alimenta sua página pública de atendimento.
           </p>
           {form.id && (
             <p className="mt-2 text-xs text-[color:var(--ivory-dim)]">

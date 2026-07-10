@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-export const Route = createFileRoute("/_authenticated/kuan-yin/pagamentos")({
+export const Route = createFileRoute("/_authenticated/kuan/pagamentos")({
   component: PagamentosPage,
   errorComponent: RouteErrorBoundary,
   notFoundComponent: () => <RouteNotFoundBoundary />,
