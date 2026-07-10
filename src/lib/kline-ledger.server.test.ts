@@ -1,12 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { createBoundaryHandoffCandidate } from "./kline-ledger.server";
 
 describe("kline-ledger.server", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mockSupabase: any;
-  let mockInsert: any;
-  let mockSelect: any;
-  let mockSingle: any;
+  let mockSupabase: { from: Mock; [key: string]: unknown };
+  let mockInsert: Mock;
+  let mockSelect: Mock;
+  let mockSingle: Mock;
 
   beforeEach(() => {
     mockSingle = vi.fn().mockResolvedValue({ data: { id: "test-event-id" }, error: null });
@@ -130,7 +129,7 @@ describe("kline-ledger.server", () => {
     });
 
     const calls = mockInsert.mock.calls;
-    const eventInsert = calls.find((call: any[]) => call[0].event_type === "handoff.candidate");
+    const eventInsert = calls.find((call: [{ event_type?: string; payload: { clipped_text: string } }]) => call[0].event_type === "handoff.candidate");
 
     expect(eventInsert).toBeDefined();
     expect(eventInsert[0].payload.clipped_text.length).toBeLessThanOrEqual(1203);
