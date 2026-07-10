@@ -56,6 +56,7 @@ import { Route as AuthenticatedKuanYinShowroomRouteImport } from './routes/_auth
 import { Route as AuthenticatedKuanYinPedidosRouteImport } from './routes/_authenticated/kuan-yin.pedidos'
 import { Route as AuthenticatedKuanYinPagamentosRouteImport } from './routes/_authenticated/kuan-yin.pagamentos'
 import { Route as AuthenticatedKuanYinOnboardingRouteImport } from './routes/_authenticated/kuan-yin.onboarding'
+import { Route as AuthenticatedKuanYinInboxRouteImport } from './routes/_authenticated/kuan-yin.inbox'
 import { Route as AuthenticatedKuanYinGuardioesRouteImport } from './routes/_authenticated/kuan-yin.guardioes'
 import { Route as AuthenticatedKuanYinConfigRouteImport } from './routes/_authenticated/kuan-yin.config'
 import { Route as AuthenticatedKuanYinClientesRouteImport } from './routes/_authenticated/kuan-yin.clientes'
@@ -315,6 +316,12 @@ const AuthenticatedKuanYinOnboardingRoute =
     path: '/onboarding',
     getParentRoute: () => AuthenticatedKuanYinRoute,
   } as any)
+const AuthenticatedKuanYinInboxRoute =
+  AuthenticatedKuanYinInboxRouteImport.update({
+    id: '/inbox',
+    path: '/inbox',
+    getParentRoute: () => AuthenticatedKuanYinRoute,
+  } as any)
 const AuthenticatedKuanYinGuardioesRoute =
   AuthenticatedKuanYinGuardioesRouteImport.update({
     id: '/guardioes',
@@ -423,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
   '/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
   '/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
+  '/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
   '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
@@ -481,6 +489,7 @@ export interface FileRoutesByTo {
   '/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
   '/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
   '/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
+  '/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
   '/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
@@ -542,6 +551,7 @@ export interface FileRoutesById {
   '/_authenticated/kuan-yin/clientes': typeof AuthenticatedKuanYinClientesRoute
   '/_authenticated/kuan-yin/config': typeof AuthenticatedKuanYinConfigRoute
   '/_authenticated/kuan-yin/guardioes': typeof AuthenticatedKuanYinGuardioesRoute
+  '/_authenticated/kuan-yin/inbox': typeof AuthenticatedKuanYinInboxRoute
   '/_authenticated/kuan-yin/onboarding': typeof AuthenticatedKuanYinOnboardingRoute
   '/_authenticated/kuan-yin/pagamentos': typeof AuthenticatedKuanYinPagamentosRoute
   '/_authenticated/kuan-yin/pedidos': typeof AuthenticatedKuanYinPedidosRoute
@@ -603,6 +613,7 @@ export interface FileRouteTypes {
     | '/kuan-yin/clientes'
     | '/kuan-yin/config'
     | '/kuan-yin/guardioes'
+    | '/kuan-yin/inbox'
     | '/kuan-yin/onboarding'
     | '/kuan-yin/pagamentos'
     | '/kuan-yin/pedidos'
@@ -661,6 +672,7 @@ export interface FileRouteTypes {
     | '/kuan-yin/clientes'
     | '/kuan-yin/config'
     | '/kuan-yin/guardioes'
+    | '/kuan-yin/inbox'
     | '/kuan-yin/onboarding'
     | '/kuan-yin/pagamentos'
     | '/kuan-yin/pedidos'
@@ -721,6 +733,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kuan-yin/clientes'
     | '/_authenticated/kuan-yin/config'
     | '/_authenticated/kuan-yin/guardioes'
+    | '/_authenticated/kuan-yin/inbox'
     | '/_authenticated/kuan-yin/onboarding'
     | '/_authenticated/kuan-yin/pagamentos'
     | '/_authenticated/kuan-yin/pedidos'
@@ -1088,6 +1101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKuanYinOnboardingRouteImport
       parentRoute: typeof AuthenticatedKuanYinRoute
     }
+    '/_authenticated/kuan-yin/inbox': {
+      id: '/_authenticated/kuan-yin/inbox'
+      path: '/inbox'
+      fullPath: '/kuan-yin/inbox'
+      preLoaderRoute: typeof AuthenticatedKuanYinInboxRouteImport
+      parentRoute: typeof AuthenticatedKuanYinRoute
+    }
     '/_authenticated/kuan-yin/guardioes': {
       id: '/_authenticated/kuan-yin/guardioes'
       path: '/guardioes'
@@ -1208,6 +1228,7 @@ interface AuthenticatedKuanYinRouteChildren {
   AuthenticatedKuanYinClientesRoute: typeof AuthenticatedKuanYinClientesRoute
   AuthenticatedKuanYinConfigRoute: typeof AuthenticatedKuanYinConfigRoute
   AuthenticatedKuanYinGuardioesRoute: typeof AuthenticatedKuanYinGuardioesRoute
+  AuthenticatedKuanYinInboxRoute: typeof AuthenticatedKuanYinInboxRoute
   AuthenticatedKuanYinOnboardingRoute: typeof AuthenticatedKuanYinOnboardingRoute
   AuthenticatedKuanYinPagamentosRoute: typeof AuthenticatedKuanYinPagamentosRoute
   AuthenticatedKuanYinPedidosRoute: typeof AuthenticatedKuanYinPedidosRoute
@@ -1220,6 +1241,7 @@ const AuthenticatedKuanYinRouteChildren: AuthenticatedKuanYinRouteChildren = {
   AuthenticatedKuanYinClientesRoute: AuthenticatedKuanYinClientesRoute,
   AuthenticatedKuanYinConfigRoute: AuthenticatedKuanYinConfigRoute,
   AuthenticatedKuanYinGuardioesRoute: AuthenticatedKuanYinGuardioesRoute,
+  AuthenticatedKuanYinInboxRoute: AuthenticatedKuanYinInboxRoute,
   AuthenticatedKuanYinOnboardingRoute: AuthenticatedKuanYinOnboardingRoute,
   AuthenticatedKuanYinPagamentosRoute: AuthenticatedKuanYinPagamentosRoute,
   AuthenticatedKuanYinPedidosRoute: AuthenticatedKuanYinPedidosRoute,
