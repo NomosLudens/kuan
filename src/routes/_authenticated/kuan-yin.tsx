@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/kuan-yin")({
 });
 
 const ADMIN_SCREENS = [
+  { to: "/kuan-yin/revisao", label: "Revisão", icon: ShieldCheck },
   { to: "/kuan-yin/inbox", label: "Atendimentos", icon: Users },
   { to: "/kuan-yin/clientes", label: "Clientes", icon: Users },
   { to: "/kuan-yin/guardioes", label: "Guardiões", icon: ShieldCheck },
