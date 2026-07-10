@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 import { z } from "zod";
 
 export type ReviewItemType =
@@ -126,7 +127,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
-    const newStatus = data.action === "confirm" ? "confirmed" : "rejected";
+    const defaultNewStatus = data.action === "confirm" ? "confirmed" : "rejected";
 
     let updated: { id: string; status: string } | null = null;
     let error: any = null;
@@ -135,7 +136,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
       case "kuanyin.client.review": {
         const res = await supabase
           .from("kuanyin_clients")
-          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .update({ status: defaultNewStatus, updated_at: new Date().toISOString() })
           .eq("user_id", userId)
           .eq("id", data.id)
           .select("id, status")
@@ -147,7 +148,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
       case "kuanyin.appointment.review": {
         const res = await supabase
           .from("kuanyin_appointments")
-          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .update({ status: defaultNewStatus, updated_at: new Date().toISOString() })
           .eq("user_id", userId)
           .eq("id", data.id)
           .select("id, status")
@@ -159,7 +160,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
       case "kuanyin.order.review": {
         const res = await supabase
           .from("kuanyin_orders")
-          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .update({ status: defaultNewStatus, updated_at: new Date().toISOString() })
           .eq("user_id", userId)
           .eq("id", data.id)
           .select("id, status")
@@ -169,11 +170,13 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         break;
       }
       case "kuanyin.payment.review": {
+        const paymentNewStatus = data.action === "confirm" ? "verified" : "rejected";
         const res = await supabase
           .from("kuanyin_payments")
-          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .update({ status: paymentNewStatus, updated_at: new Date().toISOString() })
           .eq("user_id", userId)
           .eq("id", data.id)
+          .in("status", ["received_proof", "pending_review"])
           .select("id, status")
           .single();
         updated = res.data;
@@ -189,6 +192,14 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         "Não foi possível resolver o item. Ele pode não existir ou já ter sido alterado.",
       );
     }
+
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "review_action_resolved",
+      note: `${data.type} ${data.action}`,
+      excerpt: `entity_id:${data.id}`,
+    });
 
     return { ok: true, status: updated.status };
   });
