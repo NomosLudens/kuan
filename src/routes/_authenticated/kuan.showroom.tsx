@@ -3,7 +3,7 @@ import { ExternalLink, MonitorPlay } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
-const SHOWROOM_URL = "https://showroom.nomosludens.ia.br";
+const SHOWROOM_URL = "/showroom";
 
 export const Route = createFileRoute("/_authenticated/kuan/showroom")({
   component: ShowroomPage,
