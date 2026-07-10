@@ -4,7 +4,9 @@ import { z } from "zod";
 
 export const listGuardianInboxThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => z.object({ status: z.enum(["open", "closed", "all"]).optional() }).parse(input))
+  .validator((input: unknown) =>
+    z.object({ status: z.enum(["open", "closed", "all"]).optional() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
     let query = supabase
@@ -73,10 +75,12 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
 export const sendGuardianManualReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
-    z.object({
-      threadId: z.string().uuid(),
-      message: z.string().trim().min(1, "Mensagem vazia.").max(3000, "Mensagem muito longa."),
-    }).parse(input)
+    z
+      .object({
+        threadId: z.string().uuid(),
+        message: z.string().trim().min(1, "Mensagem vazia.").max(3000, "Mensagem muito longa."),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
@@ -118,7 +122,7 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
 export const setGuardianThreadStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
-    z.object({ threadId: z.string().uuid(), status: z.enum(["open", "closed"]) }).parse(input)
+    z.object({ threadId: z.string().uuid(), status: z.enum(["open", "closed"]) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
