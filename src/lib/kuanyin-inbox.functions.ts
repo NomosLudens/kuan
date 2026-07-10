@@ -5,11 +5,11 @@ export const listGuardianInboxThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { status?: "open" | "closed" | "all" }) => d)
   .handler(async ({ data, context }) => {
-    const { user, supabase } = context;
+    const { userId, supabase } = context;
     let query = supabase
       .from("kuanyin_public_chat_threads")
       .select("id, visitor_name, visitor_key, status, updated_at")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("updated_at", { ascending: false });
 
     if (data.status && data.status !== "all") {
@@ -32,12 +32,12 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { threadId: string }) => d)
   .handler(async ({ data, context }) => {
-    const { user, supabase } = context;
+    const { userId, supabase } = context;
 
     const { data: thread, error: threadError } = await supabase
       .from("kuanyin_public_chat_threads")
       .select("id, visitor_name, visitor_key, status, updated_at")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("id", data.threadId)
       .single();
 
@@ -46,7 +46,7 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
     const { data: messages, error: messagesError } = await supabase
       .from("kuanyin_public_chat_messages")
       .select("id, role, content, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("thread_id", data.threadId)
       .order("created_at", { ascending: true });
 
@@ -76,13 +76,13 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data, context }) => {
-    const { user, supabase } = context;
+    const { userId, supabase } = context;
 
     // Verify ownership
     const { data: thread, error: threadError } = await supabase
       .from("kuanyin_public_chat_threads")
       .select("id, guardian_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("id", data.threadId)
       .single();
 
@@ -94,7 +94,7 @@ export const sendGuardianManualReply = createServerFn({ method: "POST" })
     const { error: insertError } = await supabaseAdmin.from("kuanyin_public_chat_messages").insert({
       thread_id: thread.id,
       guardian_id: thread.guardian_id,
-      user_id: user.id,
+      user_id: userId,
       role: "kuanyin",
       content: data.message.trim(),
     } as never);
@@ -114,12 +114,12 @@ export const setGuardianThreadStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { threadId: string; status: "open" | "closed" }) => d)
   .handler(async ({ data, context }) => {
-    const { user, supabase } = context;
+    const { userId, supabase } = context;
 
     const { error } = await supabase
       .from("kuanyin_public_chat_threads")
       .update({ status: data.status, updated_at: new Date().toISOString() } as never)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("id", data.threadId);
 
     if (error) throw new Error("Não foi possível atualizar o status.");
