@@ -122,7 +122,13 @@ export function classifyKuanyinResponse(text: string): IntegritySignal[] {
   return signals;
 }
 
-export type KuanIntegritySeverity = "info" | "warning" | "critical";
+export type KuanIntegritySeverity = "info" | "warn" | "block" | "warning" | "critical";
+
+function normalizeIntegritySeverity(severity: KuanIntegritySeverity): "info" | "warn" | "block" {
+  if (severity === "warning") return "warn";
+  if (severity === "critical") return "block";
+  return severity;
+}
 
 export async function writeKuanIntegrityLog(input: {
   supabase: any;
@@ -137,7 +143,7 @@ export async function writeKuanIntegrityLog(input: {
     const { error } = await input.supabase.from("kuanyin_integrity_logs").insert({
       user_id: input.userId,
       category: input.category,
-      severity: input.severity ?? "info",
+      severity: normalizeIntegritySeverity(input.severity ?? "info"),
       note: input.note,
       excerpt: input.excerpt ?? null,
       thread_id: input.threadId ?? null,
