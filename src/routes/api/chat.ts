@@ -360,14 +360,17 @@ export const Route = createFileRoute("/api/chat")({
         let kuanGovernanceBlock = "";
         try {
           const { resolveRuntimeAudienceContext } = await import("@/lib/kuan/conversation-context");
-          const { buildKuanConversationSafetyRules } = await import("@/lib/kuan/conversation-policy");
+          const { buildKuanConversationSafetyRules } =
+            await import("@/lib/kuan/conversation-policy");
           const audienceCtx = await resolveRuntimeAudienceContext(supabaseAsUser, { userId });
-          
+
           let audienceRule = "";
           if (audienceCtx.audience === "platform_admin") {
-            audienceRule = "Você está falando com o Admin da plataforma Kuan-Yin. O Admin gerencia Guardiões, convites, publicações e suporte operacional. Ele não é automaticamente Guardião operacional.";
+            audienceRule =
+              "Você está falando com o Admin da plataforma Kuan-Yin. O Admin gerencia Guardiões, convites, publicações e suporte operacional. Ele não é automaticamente Guardião operacional.";
           } else if (audienceCtx.audience === "guardian_private") {
-            audienceRule = "Você está falando com um Guardião. Atue como assistente operacional e coach comercial do negócio. Faça uma pergunta por vez. Sugira próximos passos pequenos. Não registre decisão sem confirmação.";
+            audienceRule =
+              "Você está falando com um Guardião. Atue como assistente operacional e coach comercial do negócio. Faça uma pergunta por vez. Sugira próximos passos pequenos. Não registre decisão sem confirmação.";
           }
 
           kuanGovernanceBlock = `

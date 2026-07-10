@@ -12,9 +12,12 @@ import { renderBusinessContextBlock } from "@/lib/kuanyin-prompt";
 import { verifyChatResponseStructure } from "@/lib/chat-response-structure";
 import { createTraceId } from "@/lib/observability/trace";
 import { makeObservabilityEvent } from "@/lib/observability/logger";
-import { detectPublicClientBlockedIntent, getPublicClientOutOfScopeReply, buildKuanConversationSafetyRules } from "@/lib/kuan/conversation-policy";
+import {
+  detectPublicClientBlockedIntent,
+  getPublicClientOutOfScopeReply,
+  buildKuanConversationSafetyRules,
+} from "@/lib/kuan/conversation-policy";
 import { resolveRuntimeAudienceContext } from "@/lib/kuan/conversation-context";
-
 
 const GuardianInput = z.object({ guardianId: z.string().trim().min(2).max(120) });
 
@@ -715,7 +718,8 @@ Seja claro, curto e comercialmente cuidadoso.
         clientDisplayName: data.visitorName,
       });
 
-      const audienceRule = "Você está falando com um cliente público sem login da página do Guardião. A conversa é exclusivamente comercial sobre este negócio. Não responda assuntos fora do negócio. Não faça conversa sexual, íntima, flerte ou roleplay. Não confirme pagamento, agenda ou pedido. Registre/encaminhe como pendente quando existir ação.";
+      const audienceRule =
+        "Você está falando com um cliente público sem login da página do Guardião. A conversa é exclusivamente comercial sobre este negócio. Não responda assuntos fora do negócio. Não faça conversa sexual, íntima, flerte ou roleplay. Não confirme pagamento, agenda ou pedido. Registre/encaminhe como pendente quando existir ação.";
 
       kuanGovernanceBlock = `
 === KUAN CONVERSATION GOVERNANCE ===
