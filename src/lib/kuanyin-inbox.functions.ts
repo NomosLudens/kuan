@@ -14,7 +14,8 @@ export const listGuardianInboxThreads = createServerFn({ method: "POST" })
       .from("kuanyin_public_chat_threads")
       .select("id, visitor_name, visitor_key, status, updated_at")
       .eq("user_id", userId)
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(100);
 
     if (data.status && data.status !== "all") {
       query = query.eq("status", data.status);
@@ -52,7 +53,8 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
       .select("id, role, content, created_at")
       .eq("user_id", userId)
       .eq("thread_id", data.threadId)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .limit(200);
 
     if (messagesError) throw new Error(messagesError.message);
 
@@ -64,7 +66,7 @@ export const getGuardianInboxThread = createServerFn({ method: "POST" })
         status: thread.status,
         updatedAt: thread.updated_at,
       },
-      messages: messages.map((m) => ({
+      messages: messages.reverse().map((m) => ({
         id: m.id,
         role: m.role,
         text: m.content,
