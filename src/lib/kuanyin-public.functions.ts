@@ -337,7 +337,9 @@ async function resolvePublicChatThread(
       await supabaseAdmin
         .from("kuanyin_public_chat_threads")
         .update({ visitor_name: input.visitorName.slice(0, 120) } as never)
-        .eq("id", existing.id);
+        .eq("id", existing.id)
+        .eq("guardian_id", ctx.guardianId)
+        .eq("user_id", ctx.user_id);
     }
     return existing;
   }
@@ -377,7 +379,9 @@ async function appendPublicChatMessage(
   const { error: threadError } = await supabaseAdmin
     .from("kuanyin_public_chat_threads")
     .update({ updated_at: new Date().toISOString() } as never)
-    .eq("id", threadId);
+    .eq("id", threadId)
+    .eq("guardian_id", ctx.guardianId)
+    .eq("user_id", ctx.user_id);
   if (threadError) throw new Error(threadError.message);
 }
 
