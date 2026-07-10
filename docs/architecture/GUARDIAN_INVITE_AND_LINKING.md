@@ -109,3 +109,26 @@ Fluxo esperado:
 Admin convida Guardião → Guardião aceita convite → Guardião conversa com Kuan → Kuan conduz a Trilha do Guardião → Kuan extrai preferências internas → Kuan preenche `business_contexts` → Kuan propõe uma página pública ideal → Guardião revisa → Guardião/Admin aprova publicação.
 
 O modelo visual de referência é uma página mobile conversacional com chegada/pergunta inicial, escolha de serviço/estilo, referências/portfólio, solicitação de horário, pagamento pendente/comprovante e aviso de confirmação humana. O CTA correto é **“Solicitar esse horário”** porque o cliente solicita e o Guardião confirma.
+
+## Convite de Guardião vs link público de Cliente
+
+**Convite de Guardião**:
+
+- é criado em `/kuan/guardioes` pelo Admin da plataforma;
+- é destinado a uma pessoa que terá conta operacional;
+- passa por `/convite`;
+- cria ou atualiza o vínculo `admin_user_id ↔ user_id`;
+- gera ou vincula `kuanyin_guardians`;
+- deixa o Guardião inicial como `draft` até revisão/publicação.
+
+**Link público de Cliente**:
+
+- é gerado a partir de `kuanyin_guardians.public_slug`;
+- aponta para `/g/:guardianSlug`;
+- não cria conta;
+- não exige login;
+- serve para atendimento público;
+- permite ao Cliente perguntar, informar dados e solicitar;
+- não permite que o Cliente confirme agendamento ou pagamento.
+
+Frase canônica: **Guardião é convidado. Cliente é atendido.**
