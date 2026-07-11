@@ -331,7 +331,7 @@ function GuardianPublicPage() {
         setAppointmentNotes("");
 
         setSuccessMessage(
-          "Solicitação de agendamento enviada! Ela está pendente de aprovação pelo Guardião.",
+          "Solicitação de horário recebida. O Guardião precisa confirmar antes de o horário estar reservado.",
         );
 
         // Refresh conversation
@@ -393,7 +393,7 @@ function GuardianPublicPage() {
         setOrderBudget("");
         setOrderNotes("");
 
-        setSuccessMessage("Solicitação de orçamento registrada! Ela está pendente de revisão.");
+        setSuccessMessage("Pedido registrado. A aceitação depende do Guardião.");
 
         // Refresh conversation
         if (threadId) {
@@ -463,9 +463,7 @@ function GuardianPublicPage() {
         setProofRef("");
         setProofPayerNote("");
 
-        setSuccessMessage(
-          "Recebi as informações do comprovante e deixei registrado para conferência do Guardião. Isso ainda não confirma o pagamento.",
-        );
+        setSuccessMessage("Comprovante recebido. O pagamento ainda depende de verificação.");
 
         // Refresh conversation
         if (threadId) {
