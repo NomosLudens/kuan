@@ -283,6 +283,7 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
         setFriendlyError("unsupported-recorder");
         return;
       }
+      const startTime = Date.now();
       const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
@@ -292,7 +293,8 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
         stream.getTracks().forEach((track) => track.stop());
         if (abortRecordingRef.current) return;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
-        if (blob.size < MIN_AUDIO_BYTES) {
+        const duration = Date.now() - startTime;
+        if (duration < 1000 || blob.size < 4000) {
           setFriendlyError("short-recording");
           return;
         }

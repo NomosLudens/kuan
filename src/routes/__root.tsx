@@ -15,6 +15,7 @@ import { reportClientError } from "../lib/client-error-reporting";
 import { KalineLoadingShell } from "../components/KalineLoadingShell";
 import { Toaster } from "../components/ui/sonner";
 import { isAuthSessionError, handleAuthSessionExpiry } from "../lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function getPublicConfigScript() {
   const env = typeof process !== "undefined" ? process.env : {};
@@ -288,6 +289,21 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Listen to auth changes and invalidate caches immediately
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any) => {
+      if (["TOKEN_REFRESHED", "SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) {
+        console.log(`[Auth] State changed: ${event}. Invalidating caches...`);
+        queryClient.invalidateQueries();
+        router.invalidate();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient, router]);
+
   // App montou com sucesso → libera o guard de recuperação de chunk, para que
   // um erro de chunk após um deploy futuro (numa sessão de PWA longa) ainda
   // consiga se auto-recuperar uma vez em vez de emperrar na tela de atualizar.
@@ -302,7 +318,11 @@ function RootComponent() {
     import("sonner").then(({ toast }) => {
       const originalError = toast.error;
       toast.error = (message, data) => {
-        if (isAuthSessionError(message)) {
+        let cleanMessage = typeof message === "string" ? message : String(message || "");
+        if (cleanMessage.includes("eyJh") || cleanMessage.includes("eyJj")) {
+          cleanMessage = "Ocorreu um erro de autenticação. Por favor, faça login novamente.";
+        }
+        if (isAuthSessionError(cleanMessage)) {
           const friendlyMessage = "Sua sessão expirou. Entre novamente para continuar.";
           const lastAlert = (window as any).__last_auth_alert_time__ || 0;
           if (Date.now() - lastAlert > 2000) {
@@ -312,7 +332,7 @@ function RootComponent() {
           }
           return "";
         }
-        return originalError(message, data);
+        return originalError(cleanMessage, data);
       };
     });
   }, []);

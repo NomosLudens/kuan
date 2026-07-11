@@ -752,6 +752,7 @@ export function ChatView({ threadId }: ChatViewProps) {
         return;
       }
 
+      const startTime = Date.now();
       const rec = new MediaRecorder(stream, { mimeType });
       recChunksRef.current = [];
       rec.ondataavailable = (e) => {
@@ -760,10 +761,11 @@ export function ChatView({ threadId }: ChatViewProps) {
       rec.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         const blob = new Blob(recChunksRef.current, { type: rec.mimeType });
-        if (blob.size < 1024) {
+        const duration = Date.now() - startTime;
+        if (duration < 1000 || blob.size < 4000) {
           setMicState("idle");
           setKittPulse("voice", null);
-          toast.error("Gravação muito curta — tente de novo.");
+          toast.error("Não ouvi áudio suficiente para transcrever.");
           return;
         }
 
@@ -799,10 +801,13 @@ export function ChatView({ threadId }: ChatViewProps) {
           const text = (parsed.text ?? "").trim();
           setMicState("idle");
           if (text) {
-            // Envia direto: combina o que já estava digitado com a transcrição.
             const digitado = (composerRef.current?.value ?? "").trim();
-            const combinado = quickReview(digitado ? `${digitado} ${text}` : text);
-            enviar(combinado, attachmentsRef.current);
+            const combinado = digitado ? `${digitado} ${text}` : text;
+            if (composerRef.current) {
+              composerRef.current.value = combinado;
+              composerRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+              composerRef.current.focus();
+            }
           }
         } catch (error) {
           toast.error(error instanceof Error ? error.message : "Falha na transcrição.");
