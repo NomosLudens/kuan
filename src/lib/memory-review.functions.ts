@@ -41,6 +41,7 @@ const CandidateInput = z.object({
 const ListInput = z.object({
   status: StatusSchema.optional().default("pending"),
   limit: z.number().int().min(1).max(200).optional().default(100),
+  domain: DomainSchema.optional(),
 });
 
 const ReviewInput = z.object({
@@ -131,9 +132,14 @@ export const listMemoryCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => ListInput.parse(data ?? {}))
   .handler(async ({ data, context }) => {
-    const { data: rows, error } = await table(context.supabase)
+    let query = table(context.supabase)
       .select("*")
       .eq("status", data.status)
+      .eq("user_id", context.userId);
+    if (data.domain) {
+      query = query.eq("domain", data.domain);
+    }
+    const { data: rows, error } = await query
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (error) throw new Error(error.message);

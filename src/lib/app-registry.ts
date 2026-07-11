@@ -644,6 +644,7 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     "/kuan/pedidos",
     "/kuan/agendamentos",
     "/kuan/pagamentos",
+    "/kuan/revisao",
   ].map((path) => ({
     id: path.slice(1).replaceAll("/", "-"),
     label: path.split("/").at(-1) ?? path,

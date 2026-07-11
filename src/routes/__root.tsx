@@ -291,7 +291,9 @@ function RootComponent() {
 
   // Listen to auth changes and invalidate caches immediately
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event: any) => {
       if (["TOKEN_REFRESHED", "SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) {
         console.log(`[Auth] State changed: ${event}. Invalidating caches...`);
         queryClient.invalidateQueries();
