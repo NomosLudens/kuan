@@ -1,5 +1,58 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { getSafeRedirectUrl } from "@/routes/auth";
+
+// Define mock variables at top level
+const mockFrom = vi.fn();
+const mockGetRequest = vi.fn();
+const mockGetClaims = vi.fn();
+
+// Mock @tanstack/react-start preserving other original exports
+vi.mock("@tanstack/react-start", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const builder = {
+    middleware: () => builder,
+    inputValidator: () => builder,
+    handler: (h: any) => {
+      const callable = (args: any) => {
+        return h({
+          data: args?.data,
+          context: args?.context || {
+            userId: "dummy-user-id",
+            claims: { email: "invitedemail@domain.com" },
+          },
+        });
+      };
+      return callable;
+    },
+  };
+  return {
+    ...actual,
+    createServerFn: () => builder,
+  };
+});
+
+// Configure other vitest mock registrations
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    from: (table: string) => mockFrom(table),
+  },
+}));
+
+vi.mock("@tanstack/react-start/server", () => ({
+  getRequest: () => mockGetRequest(),
+}));
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: vi.fn(() => ({
+    auth: {
+      getClaims: (token: string) => mockGetClaims(token),
+    },
+  })),
+}));
+
+// Set dummy env variables to avoid runtime errors during testing
+process.env.SUPABASE_URL = "https://dummy-url.supabase.co";
+process.env.SUPABASE_ANON_KEY = "dummy-key";
 
 // Direct implementation of maskEmail to test its correctness
 function maskEmail(email: string): string {
@@ -70,12 +123,41 @@ describe("3. Email Normalization", () => {
   });
 });
 
-describe("4. Pure read-only checkGuardianInvitation", () => {
-  it("guarantees checkGuardianInvitation does not make any mutating database calls", async () => {
-    // We mock the database client's methods
-    const mockSelect = vi.fn().mockReturnThis();
-    const mockEq = vi.fn().mockReturnThis();
-    const mockLimit = vi.fn().mockReturnThis();
+describe("4. Absence of legacy acceptInvite", () => {
+  it("ensures legacy acceptInvite is no longer exported to prevent bypasses", async () => {
+    const exports = await import("./perfis.functions");
+    expect((exports as Record<string, unknown>).acceptInvite).toBeUndefined();
+  });
+});
+
+describe("5. Email Normalization Helper (normalizeEmail)", () => {
+  it("correctly normalizes valid emails by trimming and converting to lowercase", async () => {
+    const { normalizeEmail } = await import("./perfis.functions");
+    expect(normalizeEmail("  Tonyus-dev@Domain.com  ")).toBe("tonyus-dev@domain.com");
+    expect(normalizeEmail("GUARDian@kuan.AI ")).toBe("guardian@kuan.ai");
+  });
+
+  it("returns null for empty, null, or undefined values", async () => {
+    const { normalizeEmail } = await import("./perfis.functions");
+    expect(normalizeEmail(null)).toBeNull();
+    expect(normalizeEmail(undefined)).toBeNull();
+    expect(normalizeEmail("")).toBeNull();
+    expect(normalizeEmail("   ")).toBeNull();
+  });
+});
+
+describe("6. checkGuardianInvitation Privacy Layers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns status: auth_required and does not leak workspace details when user is not logged in", async () => {
+    mockGetRequest.mockReturnValue({
+      headers: {
+        get: () => null, // No Authorization header
+      },
+    });
+
     const mockMaybeSingle = vi.fn().mockResolvedValue({
       data: {
         id: "inv-123",
@@ -88,41 +170,299 @@ describe("4. Pure read-only checkGuardianInvitation", () => {
       error: null,
     });
 
-    const mockInsert = vi.fn();
-    const mockUpdate = vi.fn();
-    const mockDelete = vi.fn();
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: mockMaybeSingle,
+    });
 
-    const mockSupabaseAdmin = {
-      from: vi.fn().mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        limit: mockLimit,
+    const { checkGuardianInvitation } = await import("./perfis.functions");
+    const result = await checkGuardianInvitation({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+    });
+
+    expect(result).toEqual({ status: "auth_required" });
+    expect((result as any).businessName).toBeUndefined();
+    expect((result as any).modules).toBeUndefined();
+  });
+
+  it("returns status: wrong_email and does not leak workspace details when logged in with the wrong email", async () => {
+    // Session is connectedEmail@domain.com
+    mockGetRequest.mockReturnValue({
+      headers: {
+        get: () => "Bearer header.payload.signature",
+      },
+    });
+
+    mockGetClaims.mockResolvedValue({
+      data: {
+        claims: {
+          sub: "user-123",
+          email: "connectedEmail@domain.com",
+        },
+      },
+    });
+
+    // Invitation is for invitedEmail@domain.com
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "inv-123",
+        owner_id: "owner-456",
+        email: "invitedEmail@domain.com",
+        modules: ["kuanyin"],
+        status: "pending",
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    });
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const { checkGuardianInvitation } = await import("./perfis.functions");
+    const result = await checkGuardianInvitation({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+    });
+
+    expect(result).toEqual({
+      status: "wrong_email",
+      userEmail: "connectedemail@domain.com",
+      invitedEmailMasked: "i***l@domain.com",
+    });
+    expect((result as any).businessName).toBeUndefined();
+    expect((result as any).modules).toBeUndefined();
+  });
+
+  it("returns full details when session matches invitation email", async () => {
+    // Session matches invitedEmail@domain.com
+    mockGetRequest.mockReturnValue({
+      headers: {
+        get: () => "Bearer header.payload.signature",
+      },
+    });
+
+    mockGetClaims.mockResolvedValue({
+      data: {
+        claims: {
+          sub: "user-123",
+          email: "invitedEmail@domain.com",
+        },
+      },
+    });
+
+    // Invitation details
+    const mockMaybeSingle = vi.fn().mockImplementation(function (this: any) {
+      // Simulate separate queries for workspace_invitations and business_contexts
+      const selectStr = this.selectStr || "";
+      if (selectStr.includes("owner_id")) {
+        return Promise.resolve({
+          data: {
+            id: "inv-123",
+            owner_id: "owner-456",
+            email: "invitedEmail@domain.com",
+            modules: ["kuanyin"],
+            status: "pending",
+            expires_at: new Date(Date.now() + 86400000).toISOString(),
+            accepted_by: null,
+            accepted_at: null,
+          },
+          error: null,
+        });
+      } else {
+        return Promise.resolve({
+          data: {
+            nome: "Sabor de Kuan",
+          },
+          error: null,
+        });
+      }
+    });
+
+    mockFrom.mockImplementation(function (this: any, table: string) {
+      const mockQueryObj = {
+        selectStr: "",
+        select: function (s: string) {
+          this.selectStr = s;
+          return this;
+        },
+        eq: function () {
+          return this;
+        },
+        limit: function () {
+          return this;
+        },
         maybeSingle: mockMaybeSingle,
-        insert: mockInsert,
-        update: mockUpdate,
-        delete: mockDelete,
-      }),
-    };
+      };
+      return mockQueryObj;
+    });
 
-    // Verify select call
-    const res = await mockSupabaseAdmin
-      .from("workspace_invitations")
-      .select("*")
-      .eq("token", "dummy-token")
-      .maybeSingle();
-    expect(res.data?.id).toBe("inv-123");
+    const { checkGuardianInvitation } = await import("./perfis.functions");
+    const result = await checkGuardianInvitation({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+    });
 
-    // Since checkGuardianInvitation is pure/read-only, ensure mutating mock methods are NEVER called.
-    expect(mockInsert).not.toHaveBeenCalled();
-    expect(mockUpdate).not.toHaveBeenCalled();
-    expect(mockDelete).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      status: "success",
+      invite: {
+        id: "inv-123",
+        email: "invitedEmail@domain.com",
+        status: "pending",
+        expires_at: expect.any(String),
+        accepted_by: null,
+        modules: ["kuanyin"],
+      },
+      businessName: "Sabor de Kuan",
+    });
   });
 });
 
-describe("5. Legacy acceptInvite Delegation", () => {
-  it("exists and is a wrapper server function delegating securely", async () => {
-    const { acceptInvite } = await import("./perfis.functions");
-    expect(typeof acceptInvite).toBe("function");
-    expect(acceptInvite.name).toBeDefined();
+describe("7. acceptGuardianInvitation Boundary Validations", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns auth_required when no email claim exists in session", async () => {
+    const { acceptGuardianInvitation } = await import("./perfis.functions");
+    const result = await (acceptGuardianInvitation as any)({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+      context: {
+        userId: "user-123",
+        claims: {}, // No email claim
+      },
+    });
+    expect(result).toEqual({ error: "auth_required" });
+  });
+
+  it("returns wrong_email when session email does not match invitation email", async () => {
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "inv-123",
+        owner_id: "owner-456",
+        email: "invitedEmail@domain.com",
+        modules: ["kuanyin"],
+        status: "pending",
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    });
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const { acceptGuardianInvitation } = await import("./perfis.functions");
+    const result = await (acceptGuardianInvitation as any)({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+      context: {
+        userId: "user-123",
+        claims: {
+          email: "wrongEmail@domain.com",
+        },
+      },
+    });
+    expect(result).toEqual({ error: "wrong_email", invitedEmail: "invitedEmail@domain.com" });
+  });
+
+  it("returns expired when invitation is expired", async () => {
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "inv-123",
+        owner_id: "owner-456",
+        email: "invitedEmail@domain.com",
+        modules: ["kuanyin"],
+        status: "pending",
+        expires_at: new Date(Date.now() - 86400000).toISOString(), // Expired
+      },
+      error: null,
+    });
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const { acceptGuardianInvitation } = await import("./perfis.functions");
+    const result = await (acceptGuardianInvitation as any)({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+      context: {
+        userId: "user-123",
+        claims: {
+          email: "invitedEmail@domain.com",
+        },
+      },
+    });
+    expect(result).toEqual({ error: "expired" });
+  });
+
+  it("returns revoked when invitation status is revoked", async () => {
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "inv-123",
+        owner_id: "owner-456",
+        email: "invitedEmail@domain.com",
+        modules: ["kuanyin"],
+        status: "revoked",
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    });
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const { acceptGuardianInvitation } = await import("./perfis.functions");
+    const result = await (acceptGuardianInvitation as any)({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+      context: {
+        userId: "user-123",
+        claims: {
+          email: "invitedEmail@domain.com",
+        },
+      },
+    });
+    expect(result).toEqual({ error: "revoked" });
+  });
+
+  it("returns success: true and matches modules when invitation is already accepted by me (replay safety)", async () => {
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "inv-123",
+        owner_id: "owner-456",
+        email: "invitedEmail@domain.com",
+        modules: ["kuanyin"],
+        status: "accepted",
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        accepted_by: "user-123", // Matches my user id
+      },
+      error: null,
+    });
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const { acceptGuardianInvitation } = await import("./perfis.functions");
+    const result = await (acceptGuardianInvitation as any)({
+      data: { token: "token-with-length-greater-than-twenty-characters-long" },
+      context: {
+        userId: "user-123",
+        claims: {
+          email: "invitedEmail@domain.com",
+        },
+      },
+    });
+    expect(result).toEqual({ success: true, owner_id: "owner-456", modules: ["kuanyin"] });
   });
 });
