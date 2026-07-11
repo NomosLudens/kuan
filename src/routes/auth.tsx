@@ -9,6 +9,23 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
+export function getSafeRedirectUrl(url: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  // Permit apenas rotas internas (começando com '/' mas não '//' nem '/\')
+  if (
+    trimmed.startsWith("/") &&
+    !trimmed.startsWith("//") &&
+    !trimmed.startsWith("/\\") &&
+    !trimmed.toLowerCase().includes("javascript:") &&
+    !trimmed.toLowerCase().includes("http://") &&
+    !trimmed.toLowerCase().includes("https://")
+  ) {
+    return trimmed;
+  }
+  return null;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -17,13 +34,23 @@ function AuthPage() {
   const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
-    // Navega para "/" (não /chat): a rota raiz decide o destino certo por
-    // faceta/initial_surface, em vez de hardcode aqui.
+    function handleRedirect() {
+      const stored = sessionStorage.getItem("authRedirectTo");
+      sessionStorage.removeItem("authRedirectTo"); // Consome imediatamente
+      const safe = getSafeRedirectUrl(stored);
+      if (safe) {
+        // Usa window.location.assign ou navigate. No TanStack router, navigate({ to: safe }) funciona perfeitamente para caminhos relativos
+        navigate({ to: safe });
+      } else {
+        navigate({ to: "/" });
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+      if (data.session) handleRedirect();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/" });
+      if (session) handleRedirect();
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -45,7 +72,7 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) {
       toast.error(error.message || "Erro Apple");

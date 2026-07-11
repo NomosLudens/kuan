@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MODULE_KEYS, type ModuleKey } from "@/lib/perfis";
+import { makeObservabilityEvent } from "@/lib/observability/logger";
 
 const moduleEnum = z.enum(MODULE_KEYS);
 
@@ -22,6 +23,12 @@ const inviteSchema = z.object({
   modules: z.array(moduleEnum).min(1).max(MODULE_KEYS.length),
   origin: z.string().url().max(300),
 });
+
+export function normalizeEmail(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim().toLowerCase();
+  return trimmed || null;
+}
 
 function slugifyGuardianSeed(value: string): string {
   const slug = value
@@ -129,7 +136,7 @@ export const createInvite = createServerFn({ method: "POST" })
       .from("workspace_invitations")
       .insert({
         owner_id: userId,
-        email: data.email,
+        email: normalizeEmail(data.email) || data.email,
         modules: data.modules,
         token,
         status: "pending",
@@ -180,95 +187,6 @@ export const revokeInvite = createServerFn({ method: "POST" })
       .eq("owner_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
-  });
-
-export const acceptInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-    const userEmail = (claims.email as string | undefined)?.toLowerCase();
-
-    // Lê o convite usando service role (token só é válido se a pessoa o conhece)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invite, error } = await supabaseAdmin
-      .from("workspace_invitations")
-      .select("id, owner_id, email, modules, status, expires_at")
-      .eq("token", data.token)
-      .maybeSingle();
-    if (error || !invite) throw new Error("Convite inválido.");
-    if (invite.status !== "pending") throw new Error("Convite já usado ou cancelado.");
-    if (new Date(invite.expires_at).getTime() < Date.now()) {
-      await supabaseAdmin
-        .from("workspace_invitations")
-        .update({ status: "expired" })
-        .eq("id", invite.id);
-      throw new Error("Convite expirado.");
-    }
-    if (userEmail && invite.email.toLowerCase() !== userEmail) {
-      throw new Error(
-        "Este convite foi enviado para outro e-mail. Faça login com a conta correta.",
-      );
-    }
-    if (invite.owner_id === userId) {
-      throw new Error("Você é o próprio admin deste workspace — convide outra pessoa.");
-    }
-
-    // Cria/atualiza vínculo sem depender de UNIQUE(member_id) no schema.
-    const { data: existingMember, error: existingMemberError } = await supabaseAdmin
-      .from("workspace_members")
-      .select("id")
-      .eq("owner_id", invite.owner_id)
-      .eq("member_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (existingMemberError) throw new Error(existingMemberError.message);
-
-    const memberPayload = {
-      owner_id: invite.owner_id,
-      member_id: userId,
-      modules: invite.modules,
-    } as never;
-    const { error: linkErr } = existingMember
-      ? await supabaseAdmin
-          .from("workspace_members")
-          .update(memberPayload)
-          .eq("id", (existingMember as { id: string }).id)
-      : await supabaseAdmin.from("workspace_members").insert(memberPayload);
-    if (linkErr) throw new Error(linkErr.message);
-
-    // Marca convite como aceito + rebaixa user para member
-    await supabaseAdmin
-      .from("workspace_invitations")
-      .update({ status: "accepted", accepted_by: userId, accepted_at: new Date().toISOString() })
-      .eq("id", invite.id);
-
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "member" }, { onConflict: "user_id,role" });
-
-    // Seta assigned_facet no profile baseado nos módulos do convite
-    const modules = invite.modules as string[];
-    let assignedFacet: string | null = null;
-    if (modules.includes("kuanyin")) assignedFacet = "kuanyin";
-    else if (modules.includes("kharis")) assignedFacet = "kharis";
-    else assignedFacet = "kaline";
-
-    await supabaseAdmin
-      .from("profiles")
-      .update({ role: "user", assigned_facet: assignedFacet })
-      .eq("id", userId);
-
-    if (modules.includes("kuanyin")) {
-      await createKuanYinGuardianLink({
-        adminUserId: invite.owner_id,
-        guardianUserId: userId,
-        email: invite.email,
-      });
-    }
-
-    return { owner_id: invite.owner_id, modules: invite.modules };
   });
 
 export const updateMemberModules = createServerFn({ method: "POST" })
@@ -462,4 +380,431 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
       withoutContext,
       profilesByFacet: facetCount,
     } satisfies AdminMetrics;
+  });
+
+// Helper to mask emails for wrong session state to prevent direct leakage (Tarea 3)
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return "***@***";
+  if (local.length <= 2) {
+    return `${local[0]}***@${domain}`;
+  }
+  return `${local[0]}***${local[local.length - 1]}@${domain}`;
+}
+
+// Observability logging helper (Tarea 8)
+function logInviteEvent(params: {
+  action:
+    | "invite_viewed"
+    | "invite_accept_blocked_no_session"
+    | "invite_accept_blocked_wrong_email"
+    | "invite_accept_blocked_expired"
+    | "invite_accept_blocked_already_accepted"
+    | "invite_accepted";
+  level: "info" | "warn" | "error";
+  message: string;
+  userId?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const event = makeObservabilityEvent({
+    traceId: crypto.randomUUID(),
+    level: params.level,
+    area: "auth",
+    action: params.action,
+    message: params.message,
+    userId: params.userId,
+    metadata: params.metadata,
+  });
+  const consoleMethod =
+    event.level === "error" ? console.error : event.level === "warn" ? console.warn : console.info;
+  consoleMethod("[observability]", event);
+}
+
+export const checkGuardianInvitation = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
+  .handler(async ({ data }) => {
+    let userEmail: string | null = null;
+    let userId: string | null = null;
+
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const request = getRequest();
+      const authHeader = request?.headers?.get("authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.replace("Bearer ", "");
+        if (token && token.split(".").length === 3) {
+          const { createClient } = await import("@supabase/supabase-js");
+          const SUPABASE_URL = process.env.SUPABASE_URL!;
+          const SUPABASE_PUBLISHABLE_KEY =
+            process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY!;
+          const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+          const { data: claimsData } = await supabase.auth.getClaims(token);
+          if (claimsData?.claims) {
+            userEmail = normalizeEmail(claimsData.claims.email as string | undefined);
+            userId = claimsData.claims.sub ?? null;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[checkGuardianInvitation] Failed to extract auth from request headers:", e);
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: invite, error } = await supabaseAdmin
+      .from("workspace_invitations")
+      .select("id, owner_id, email, modules, status, expires_at, accepted_by, accepted_at")
+      .eq("token", data.token)
+      .maybeSingle();
+
+    const invitationHash = data.token.slice(0, 10) + "...";
+
+    if (error || !invite) {
+      logInviteEvent({
+        action: "invite_accept_blocked_expired",
+        level: "warn",
+        message: "Attempted to view invalid invitation token.",
+        userId: userId ?? undefined,
+        metadata: { token_hash: invitationHash, result: "invalid_token" },
+      });
+      return { status: "invalid", message: "Convite inválido ou não encontrado." };
+    }
+
+    // Logging invite view
+    logInviteEvent({
+      action: "invite_viewed",
+      level: "info",
+      message: `Invitation ${invite.id} viewed.`,
+      userId: userId ?? undefined,
+      metadata: {
+        invitation_id: invite.id,
+        actor_user_id: userId ?? null,
+        actor_email: userEmail ?? null,
+        invited_email: invite.email,
+        result: "viewed",
+      },
+    });
+
+    // 1. Without session (Estado 1): Do not leak anything!
+    if (!userId || !userEmail) {
+      logInviteEvent({
+        action: "invite_accept_blocked_no_session",
+        level: "info",
+        message: `Blocked view of invitation details for ${invite.id} due to missing session.`,
+        metadata: {
+          invitation_id: invite.id,
+          invited_email: invite.email,
+          result: "blocked_no_session",
+        },
+      });
+      return { status: "auth_required" };
+    }
+
+    const invitedEmailNormalized = normalizeEmail(invite.email);
+
+    // 2. Already accepted (Estado 4 & 5)
+    if (invite.status === "accepted") {
+      if (invite.accepted_by === userId) {
+        // Correct business info can be shown
+        const { data: business } = await supabaseAdmin
+          .from("business_contexts")
+          .select("nome")
+          .eq("user_id", invite.owner_id)
+          .limit(1)
+          .maybeSingle();
+        const businessName = business?.nome || "Kuan-Yin";
+
+        return {
+          status: "success",
+          alreadyAcceptedByMe: true,
+          invite: {
+            id: invite.id,
+            email: invite.email,
+            status: invite.status,
+            expires_at: invite.expires_at,
+            accepted_by: invite.accepted_by,
+            modules: invite.modules,
+          },
+          businessName,
+        };
+      } else {
+        logInviteEvent({
+          action: "invite_accept_blocked_already_accepted",
+          level: "warn",
+          message: `Blocked view of invitation ${invite.id} already accepted by another user.`,
+          userId,
+          metadata: {
+            invitation_id: invite.id,
+            actor_user_id: userId,
+            actor_email: userEmail,
+            invited_email: invite.email,
+            result: "blocked_already_accepted",
+          },
+        });
+        return { status: "already_accepted_by_another_user" };
+      }
+    }
+
+    // 3. Expired or Revoked
+    if (invite.status === "expired" || new Date(invite.expires_at).getTime() < Date.now()) {
+      return { status: "expired" };
+    }
+    if (invite.status === "revoked" || invite.status === "canceled") {
+      return { status: "revoked" };
+    }
+
+    // 4. Session with wrong email (Estado 2): Return masked email, do not leak business/context info!
+    if (userEmail !== invitedEmailNormalized) {
+      logInviteEvent({
+        action: "invite_accept_blocked_wrong_email",
+        level: "warn",
+        message: `Blocked view of invitation ${invite.id} due to email mismatch.`,
+        userId,
+        metadata: {
+          invitation_id: invite.id,
+          actor_user_id: userId,
+          actor_email: userEmail,
+          invited_email: invite.email,
+          result: "blocked_wrong_email",
+        },
+      });
+      return {
+        status: "wrong_email",
+        userEmail,
+        invitedEmailMasked: maskEmail(invite.email),
+      };
+    }
+
+    // 5. Correct session (Estado 3): Return full details
+    const { data: business } = await supabaseAdmin
+      .from("business_contexts")
+      .select("nome")
+      .eq("user_id", invite.owner_id)
+      .limit(1)
+      .maybeSingle();
+    const businessName = business?.nome || "Kuan-Yin";
+
+    return {
+      status: "success",
+      invite: {
+        id: invite.id,
+        email: invite.email,
+        status: invite.status,
+        expires_at: invite.expires_at,
+        accepted_by: invite.accepted_by,
+        modules: invite.modules,
+      },
+      businessName,
+    };
+  });
+
+export const acceptGuardianInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { userId, claims } = context;
+    const userEmail = normalizeEmail(claims.email as string | undefined);
+
+    if (!userEmail) {
+      logInviteEvent({
+        action: "invite_accept_blocked_no_session",
+        level: "error",
+        message: "Blocked accept attempt: authenticated user has no email claim.",
+        userId,
+        metadata: { result: "blocked_no_email_claim" },
+      });
+      return { error: "auth_required" };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: invite, error } = await supabaseAdmin
+      .from("workspace_invitations")
+      .select("id, owner_id, email, modules, status, expires_at, accepted_by, accepted_at")
+      .eq("token", data.token)
+      .maybeSingle();
+
+    if (error || !invite) {
+      return { error: "invalid" };
+    }
+
+    const invitedEmailNormalized = normalizeEmail(invite.email);
+
+    // Check if expired
+    if (invite.status === "expired" || new Date(invite.expires_at).getTime() < Date.now()) {
+      if (invite.status !== "expired") {
+        await supabaseAdmin
+          .from("workspace_invitations")
+          .update({ status: "expired" })
+          .eq("id", invite.id);
+      }
+      logInviteEvent({
+        action: "invite_accept_blocked_expired",
+        level: "warn",
+        message: `Blocked accept of invitation ${invite.id} because it has expired.`,
+        userId,
+        metadata: {
+          invitation_id: invite.id,
+          actor_user_id: userId,
+          actor_email: userEmail,
+          invited_email: invite.email,
+          result: "blocked_expired",
+        },
+      });
+      return { error: "expired" };
+    }
+
+    // Check if revoked/canceled
+    if (invite.status === "revoked" || invite.status === "canceled") {
+      logInviteEvent({
+        action: "invite_accept_blocked_expired",
+        level: "warn",
+        message: `Blocked accept of invitation ${invite.id} because it was revoked/canceled.`,
+        userId,
+        metadata: {
+          invitation_id: invite.id,
+          actor_user_id: userId,
+          actor_email: userEmail,
+          invited_email: invite.email,
+          result: "blocked_revoked",
+        },
+      });
+      return { error: "revoked" };
+    }
+
+    // Check if already accepted
+    if (invite.status === "accepted") {
+      if (invite.accepted_by === userId) {
+        return { success: true, owner_id: invite.owner_id, modules: invite.modules };
+      } else {
+        logInviteEvent({
+          action: "invite_accept_blocked_already_accepted",
+          level: "warn",
+          message: `Blocked accept of invitation ${invite.id} because it was already accepted by another user.`,
+          userId,
+          metadata: {
+            invitation_id: invite.id,
+            actor_user_id: userId,
+            actor_email: userEmail,
+            invited_email: invite.email,
+            result: "blocked_already_accepted",
+          },
+        });
+        return { error: "already_accepted_by_another_user" };
+      }
+    }
+
+    // Email matching validation
+    if (userEmail !== invitedEmailNormalized) {
+      logInviteEvent({
+        action: "invite_accept_blocked_wrong_email",
+        level: "warn",
+        message: `Blocked accept of invitation ${invite.id} due to email mismatch.`,
+        userId,
+        metadata: {
+          invitation_id: invite.id,
+          actor_user_id: userId,
+          actor_email: userEmail,
+          invited_email: invite.email,
+          result: "blocked_wrong_email",
+        },
+      });
+      return { error: "wrong_email", invitedEmail: invite.email };
+    }
+
+    if (invite.owner_id === userId) {
+      return { error: "owner_cannot_accept" };
+    }
+
+    try {
+      // 1. Create/update workspace_members link
+      const { data: existingMember, error: existingMemberError } = await supabaseAdmin
+        .from("workspace_members")
+        .select("id")
+        .eq("owner_id", invite.owner_id)
+        .eq("member_id", userId)
+        .limit(1)
+        .maybeSingle();
+      if (existingMemberError) throw new Error(existingMemberError.message);
+
+      const memberPayload = {
+        owner_id: invite.owner_id,
+        member_id: userId,
+        modules: invite.modules,
+      } as never;
+
+      const { error: linkErr } = existingMember
+        ? await supabaseAdmin
+            .from("workspace_members")
+            .update(memberPayload)
+            .eq("id", (existingMember as { id: string }).id)
+        : await supabaseAdmin.from("workspace_members").insert(memberPayload);
+      if (linkErr) throw new Error(linkErr.message);
+
+      // 2. Reset admin roles to member
+      const { error: roleDelErr } = await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+      if (roleDelErr) throw new Error(roleDelErr.message);
+
+      const { error: roleUpsertErr } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: userId, role: "member" }, { onConflict: "user_id,role" });
+      if (roleUpsertErr) throw new Error(roleUpsertErr.message);
+
+      // 3. Set assigned_facet in profile
+      const modules = invite.modules as string[];
+      let assignedFacet: string | null = null;
+      if (modules.includes("kuanyin")) assignedFacet = "kuanyin";
+      else if (modules.includes("kharis")) assignedFacet = "kharis";
+      else assignedFacet = "kaline";
+
+      const { error: profileErr } = await supabaseAdmin
+        .from("profiles")
+        .update({ role: "user", assigned_facet: assignedFacet })
+        .eq("id", userId);
+      if (profileErr) throw new Error(profileErr.message);
+
+      // 4. Create guardian link if kuanyin
+      if (modules.includes("kuanyin")) {
+        await createKuanYinGuardianLink({
+          adminUserId: invite.owner_id,
+          guardianUserId: userId,
+          email: invite.email,
+        });
+      }
+
+      // 5. Mark invitation as accepted (VERY LAST STEP!)
+      const { error: inviteUpdateErr } = await supabaseAdmin
+        .from("workspace_invitations")
+        .update({
+          status: "accepted",
+          accepted_by: userId,
+          accepted_at: new Date().toISOString(),
+        })
+        .eq("id", invite.id);
+      if (inviteUpdateErr) throw new Error(inviteUpdateErr.message);
+    } catch (dbErr) {
+      console.error("[acceptGuardianInvitation] Atomic sequential transaction failed:", dbErr);
+      return {
+        error: "accept_failed",
+        message: dbErr instanceof Error ? dbErr.message : "Erro ao aceitar convite.",
+      };
+    }
+
+    logInviteEvent({
+      action: "invite_accepted",
+      level: "info",
+      message: `Invitation ${invite.id} successfully accepted.`,
+      userId,
+      metadata: {
+        invitation_id: invite.id,
+        actor_user_id: userId,
+        actor_email: userEmail,
+        invited_email: invite.email,
+        result: "accepted",
+      },
+    });
+
+    return { success: true, owner_id: invite.owner_id, modules: invite.modules };
   });
