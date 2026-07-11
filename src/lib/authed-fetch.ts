@@ -16,7 +16,7 @@ async function getOrRefreshSessionToken(): Promise<string | null> {
       if (!session) return null;
 
       const expiresAt = session.expires_at;
-      if (expiresAt && (expiresAt - Date.now() / 1000 < 10)) {
+      if (expiresAt && expiresAt - Date.now() / 1000 < 10) {
         console.log("[authedFetch] Token close to expiry, refreshing...");
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
         if (refreshError) throw refreshError;
@@ -42,7 +42,10 @@ async function getOrRefreshSessionToken(): Promise<string | null> {
   return activeRefreshPromise;
 }
 
-export async function authedFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+export async function authedFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
   let token = await getOrRefreshSessionToken();
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -52,7 +55,7 @@ export async function authedFetch(input: RequestInfo | URL, init: RequestInit = 
   // Retry at most once only if the response is unauthorized/expired JWT
   if (res.status === 401) {
     console.warn("[authedFetch] Received 401, attempting token refresh and retry...");
-    
+
     if (!activeRefreshPromise) {
       activeRefreshPromise = (async () => {
         try {
@@ -68,7 +71,7 @@ export async function authedFetch(input: RequestInfo | URL, init: RequestInit = 
         }
       })();
     }
-    
+
     token = await activeRefreshPromise;
     if (token) {
       const retryHeaders = new Headers(init.headers);
@@ -79,4 +82,3 @@ export async function authedFetch(input: RequestInfo | URL, init: RequestInit = 
 
   return res;
 }
-

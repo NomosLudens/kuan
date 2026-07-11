@@ -726,3 +726,39 @@ Se as 5 hipóteses contradizem entre si ou não convergem, marque descartar:true
 
     return { promovido: 1, novoId: novo?.id };
   });
+
+// ─── Listar sedimentos pendentes de revisão (Central de Revisão Kuan) ───
+export const listPendingSedimentos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        limit: z.number().int().min(1).max(200).optional().default(100),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: rows, error } = await supabase
+      .from("sedimentos")
+      .select(
+        "id, thread_id, nivel, hipotese, resumo, confianca, created_at, chat_threads!inner(facet)",
+      )
+      .eq("user_id", userId)
+      .eq("status", "em_revisao")
+      .eq("chat_threads.facet", "kuanyin")
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+
+    if (error) throw new Error(error.message);
+
+    return (rows ?? []).map((row: any) => ({
+      id: row.id,
+      threadId: row.thread_id,
+      nivel: row.nivel,
+      hipotese: row.hipotese,
+      resumo: row.resumo,
+      confianca: row.confianca,
+      createdAt: row.created_at,
+    }));
+  });

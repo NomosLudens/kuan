@@ -59,7 +59,7 @@ const ERROR_MESSAGES: Record<VoiceErrorKind, string> = {
   "microphone-blocked":
     "Nao consegui usar o microfone. Toque no cadeado do navegador e permita o microfone.",
   "unsupported-recorder": "Este navegador nao conseguiu gravar audio aqui.",
-  "short-recording": "Não ouvi áudio suficiente para transcrever.",
+  "short-recording": "Gravação muito curta. Por favor, fale por mais tempo.",
   "empty-transcript": "Não ouvi áudio suficiente para transcrever.",
   "transcription-failed": "Nao consegui transcrever agora.",
   "chat-failed": "Nao consegui responder agora.",
