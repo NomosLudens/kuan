@@ -67,7 +67,9 @@ function PedidosPage() {
       </h1>
       {loading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando…</p>}
       {!loading && rows.length === 0 && (
-        <p className="text-sm text-[color:var(--ivory-dim)]">Nenhum pedido ainda.</p>
+        <p className="text-sm text-[color:var(--ivory-dim)]">
+          Nenhum pedido ou orçamento registrado ainda.
+        </p>
       )}
       <div className="space-y-2">
         {rows.map((r) => (
