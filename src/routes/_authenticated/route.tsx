@@ -44,8 +44,8 @@ function HeaderBar() {
 
   return (
     <header
-      className="sticky top-0 z-30 flex min-h-14 items-end gap-2 border-b border-[color:var(--border)] bg-background/70 px-2 backdrop-blur"
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      className="sticky top-0 z-30 flex min-h-14 items-end gap-2 border-b border-[color:var(--border)] bg-background/70 px-2 pb-2 backdrop-blur"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
     >
       <button
         type="button"
@@ -78,7 +78,10 @@ function KuanMobileSubHeader() {
   else if (path.includes("/onboarding")) title = "Configuração";
 
   return (
-    <header className="flex h-12 flex-none items-center justify-between border-b border-[color:var(--border)] bg-card/40 px-3 backdrop-blur sm:hidden">
+    <header
+      className="flex min-h-12 flex-none items-center justify-between border-b border-[color:var(--border)] bg-card/40 px-3 pb-2 backdrop-blur sm:hidden"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
+    >
       <Link
         to="/kuan"
         className="flex items-center gap-1.5 text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] active:scale-95 transition-transform"
@@ -145,7 +148,7 @@ function AuthedLayout() {
           {!hideSidebarMobile && <HeaderBar />}
           <main className="flex-1 min-w-0 min-h-0 flex flex-col">
             {hideSidebarMobile && path !== "/kuan" && path !== "/kuan/" && <KuanMobileSubHeader />}
-            <div className="flex-1 min-h-0 min-w-0">
+            <div className="flex-1 min-h-0 min-w-0 flex flex-col">
               <Outlet />
             </div>
           </main>
