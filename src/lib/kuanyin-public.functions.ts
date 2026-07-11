@@ -764,7 +764,7 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
           ctx,
           data.threadId,
           "kuanyin",
-          "Sua solicitação de agendamento foi registrada e enviada para o meu Guardião. Ela está pendente de aprovação e você será avisado assim que houver uma resposta!",
+          "Solicitação de horário recebida. O Guardião precisa confirmar antes de o horário estar reservado.",
         );
       } catch (err) {
         console.error("Failed to append public chat message for appointment request:", err);
@@ -848,7 +848,7 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
           ctx,
           data.threadId,
           "kuanyin",
-          "Registrei a sua solicitação de orçamento/pedido. Meu Guardião analisará a descrição e os detalhes informados em breve.",
+          "Pedido registrado. A aceitação depende do Guardião.",
         );
       } catch (err) {
         console.error("Failed to append public chat message for order request:", err);
@@ -936,7 +936,7 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
           ctx,
           data.threadId,
           "kuanyin",
-          `Recebi o comprovante de ${formattedAmount}. Ele já foi encaminhado para a conferência e conciliação do meu Guardião.`,
+          "Comprovante recebido. O pagamento ainda depende de verificação.",
         );
       } catch (err) {
         console.error("Failed to append public chat message for proof submission:", err);

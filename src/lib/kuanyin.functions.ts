@@ -691,13 +691,143 @@ export const completeAppointment = createServerFn({ method: "POST" })
     return row;
   });
 
+export const createManualAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        client_name: z.string().trim().min(1).max(200),
+        client_phone: z.string().trim().max(40).nullable().optional(),
+        client_email: z
+          .string()
+          .trim()
+          .email()
+          .max(200)
+          .nullable()
+          .optional()
+          .or(z.literal("").transform(() => null)),
+        service_name: z.string().trim().min(1).max(200),
+        starts_at: z.string().min(1),
+        notes: z.string().trim().max(4000).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    // 1. Find or create client
+    let clientId: string | null = null;
+
+    if (data.client_email) {
+      const { data: foundByEmail } = await supabase
+        .from("kuanyin_clients")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("email", data.client_email)
+        .limit(1)
+        .maybeSingle();
+      if (foundByEmail) clientId = foundByEmail.id;
+    }
+
+    if (!clientId && data.client_phone) {
+      const { data: foundByPhone } = await supabase
+        .from("kuanyin_clients")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("telefone", data.client_phone)
+        .limit(1)
+        .maybeSingle();
+      if (foundByPhone) clientId = foundByPhone.id;
+    }
+
+    if (!clientId) {
+      const { data: newClient, error: clientError } = await supabase
+        .from("kuanyin_clients")
+        .insert({
+          user_id: userId,
+          nome: data.client_name,
+          email: data.client_email ?? null,
+          telefone: data.client_phone || null,
+          status: "confirmed",
+          metadata: { source: "manual_scheduling" },
+        } as never)
+        .select("id")
+        .single();
+      if (clientError) throw new Error(`Falha ao criar cliente: ${clientError.message}`);
+      clientId = newClient.id;
+    }
+
+    // 2. Insert appointment directly as confirmed (pre-confirmed)
+    const { data: appt, error: apptError } = await supabase
+      .from("kuanyin_appointments")
+      .insert({
+        user_id: userId,
+        client_id: clientId,
+        service_name: data.service_name,
+        starts_at: data.starts_at,
+        status: "confirmed",
+        notes: data.notes || null,
+        metadata: {
+          source: "manual_scheduling",
+          scheduled_at: new Date().toISOString(),
+        },
+      } as never)
+      .select("*")
+      .single();
+
+    if (apptError) throw new Error(`Falha ao criar agendamento: ${apptError.message}`);
+
+    // 3. Write integrity log
+    await writeKuanIntegrityLog({
+      supabase,
+      userId,
+      category: "commercial_status_change",
+      note: "manual appointment created as confirmed",
+      excerpt: `appointment_id:${appt.id}`,
+    });
+
+    // 4. Mirror in eventos (Kaline calendar) — best-effort
+    try {
+      const a = appt as unknown as {
+        id: string;
+        service_name: string;
+        starts_at: string;
+        ends_at: string | null;
+        notes: string | null;
+      };
+      const { data: ev } = await supabase
+        .from("eventos")
+        .insert({
+          user_id: userId,
+          titulo: `Kuan-Yin · ${a.service_name}`,
+          descricao: a.notes ?? null,
+          tipo: "compromisso",
+          inicio: a.starts_at,
+          fim: a.ends_at ?? a.starts_at,
+        } as never)
+        .select("id")
+        .single();
+      if (ev) {
+        await supabase
+          .from("kuanyin_appointments")
+          .update({ evento_id: (ev as { id: string }).id } as never)
+          .eq("id", a.id)
+          .eq("user_id", userId);
+      }
+    } catch {
+      // ignore
+    }
+
+    return appt;
+  });
+
 export const listAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("kuanyin_appointments")
-      .select("*, kuanyin_clients(nome)")
+      .select("*, kuanyin_clients(nome, telefone, email)")
       .eq("user_id", userId)
       .order("starts_at", { ascending: true })
       .limit(500);
