@@ -105,4 +105,20 @@ describe("PR #24 - Public Client Requests MVP State Invariants and Parser Tests"
     const msg = "Recebi seu contato e deixei registrado nesta conversa para o Guardião revisar.";
     expect(msg).toContain("registrado nesta conversa para o Guardião revisar");
   });
+
+  // Flow tests (PR #30 Blockers Update)
+  it("19. 'Como funciona o pagamento?' deve retornar null no parser determinístico", () => {
+    const intent = parseDeterministicPublicIntent("Como funciona o pagamento?");
+    expect(intent).toBeNull();
+  });
+
+  it("20. 'Posso pedir uma informação?' deve retornar null no parser determinístico", () => {
+    const intent = parseDeterministicPublicIntent("Posso pedir uma informação?");
+    expect(intent).toBeNull();
+  });
+
+  it("21. 'Esse bolo é gostoso?' não deve ser considerado blocked_sensitive pelo detectPublicClientBlockedIntent", () => {
+    const blockCheck = detectPublicClientBlockedIntent("Esse bolo é gostoso?");
+    expect(blockCheck.blocked).toBe(false);
+  });
 });

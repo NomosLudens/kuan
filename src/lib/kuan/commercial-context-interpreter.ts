@@ -1,3 +1,5 @@
+import { detectPublicClientBlockedIntent } from "./conversation-policy";
+
 export type CommercialAudience =
   | "platform_admin"
   | "guardian_private"
@@ -107,18 +109,9 @@ export function interpretCommercialContext(
       "update_business_context",
     ];
 
-    // Check for blocked/sensitive content first (excluding "programa")
-    const isSexual =
-      norm.includes("sexo") ||
-      norm.includes("sensual") ||
-      norm.includes("final feliz") ||
-      norm.includes("gostosa") ||
-      norm.includes("gostoso") ||
-      norm.includes("nude") ||
-      norm.includes("nudez") ||
-      norm.includes("foto intima") ||
-      norm.includes("fetiche") ||
-      norm.includes("massagem sensual");
+    // Check for blocked/sensitive content first, reusing conversation-policy
+    const policyCheck = detectPublicClientBlockedIntent(input.message);
+    const isSexual = policyCheck.blocked && policyCheck.sexual;
 
     if (isSexual) {
       result.intent = "public_blocked_sensitive";
@@ -133,13 +126,7 @@ export function interpretCommercialContext(
       norm.includes("outro assunto") ||
       norm.includes("outros assuntos") ||
       norm.includes("falar de outra coisa") ||
-      norm.includes("outro tema") ||
-      norm.includes("pizza") ||
-      norm.includes("calabresa") ||
-      norm.includes("fisica") ||
-      norm.includes("quantica") ||
-      norm.includes("futebol") ||
-      norm.includes("politica")
+      norm.includes("outro tema")
     ) {
       result.intent = "public_out_of_scope";
       result.boundary = "block_and_redirect";
@@ -401,7 +388,9 @@ export function interpretCommercialContext(
       norm.includes("servico") ||
       norm.includes("massagem") ||
       norm.includes("drenagem") ||
-      norm.includes("ofereco");
+      norm.includes("ofereco") ||
+      norm.includes("oferecer") ||
+      norm.includes("trabalho com");
 
     if (isServices) {
       result.intent = "guardian_services_update";
@@ -409,16 +398,49 @@ export function interpretCommercialContext(
       result.summary = "Atualização de serviços oferecidos.";
 
       const extractedServices: string[] = [];
-      if (norm.includes("massagem")) extractedServices.push("massagem relaxante");
-      if (norm.includes("drenagem")) extractedServices.push("drenagem");
+      const match = input.message.match(
+        /(?:faço|faco|ofereço|ofereco|trabalho com|serviço de|servico de|oferecer)\s+([a-zA-ZÀ-ÿ\s,e]+)(?:\.|,|\n|$)/i,
+      );
 
-      result.candidateUpdate = {
-        target: "business_context",
-        patch: {
-          servicos: extractedServices.length > 0 ? extractedServices : ["Serviço atualizado"],
-        },
-        requiresConfirmation: true,
-      };
+      if (match) {
+        const rawService = match[1].trim();
+        const parts = rawService.split(/\s+e\s+|,\s*/i);
+        for (const p of parts) {
+          const cleanP = p.trim().toLowerCase();
+          if (cleanP.length > 3 && cleanP !== "e" && !cleanP.includes("meus clientes")) {
+            extractedServices.push(cleanP);
+          }
+        }
+      } else {
+        // Fallback: search for words like massagem, drenagem, etc. but try to find the full phrase
+        const massagemMatch = input.message.match(/(?:massagem\s+[a-zA-ZÀ-ÿ]+|massagem)/i);
+        if (massagemMatch) {
+          extractedServices.push(massagemMatch[0].trim().toLowerCase());
+        } else if (norm.includes("drenagem")) {
+          extractedServices.push("drenagem");
+        }
+      }
+
+      if (extractedServices.length === 0) {
+        result.candidateUpdate = {
+          target: "business_context",
+          patch: {
+            servicos: [],
+            needs_clarification: true,
+          },
+          requiresConfirmation: true,
+        };
+        result.safeReplyHint =
+          "Você poderia me informar o nome exato dos serviços que deseja cadastrar?";
+      } else {
+        result.candidateUpdate = {
+          target: "business_context",
+          patch: {
+            servicos: extractedServices,
+          },
+          requiresConfirmation: true,
+        };
+      }
       return result;
     }
 

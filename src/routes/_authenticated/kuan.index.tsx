@@ -23,8 +23,8 @@ function KuanChatPage() {
     <div className="flex h-full min-h-0 flex-col bg-background">
       {/* Header com CTAs secundários */}
       <header
-        className="flex-none border-b border-[color:var(--border)] bg-card/40 px-3 py-2.5 sm:p-4 min-h-14 sm:h-auto flex flex-col justify-center"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        className="flex-none border-b border-[color:var(--border)] bg-card/40 px-3 pb-2.5 sm:pb-4 sm:px-4 min-h-14 sm:h-auto flex flex-col justify-center [--header-pt:0.625rem] sm:[--header-pt:1rem]"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + var(--header-pt))" }}
       >
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">

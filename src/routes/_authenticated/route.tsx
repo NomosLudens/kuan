@@ -44,8 +44,8 @@ function HeaderBar() {
 
   return (
     <header
-      className="sticky top-0 z-30 flex min-h-14 items-end gap-2 border-b border-[color:var(--border)] bg-background/70 px-2 backdrop-blur"
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      className="sticky top-0 z-30 flex min-h-14 items-end gap-2 border-b border-[color:var(--border)] bg-background/70 px-2 pb-2 backdrop-blur"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
     >
       <button
         type="button"
@@ -79,8 +79,8 @@ function KuanMobileSubHeader() {
 
   return (
     <header
-      className="flex min-h-12 flex-none items-center justify-between border-b border-[color:var(--border)] bg-card/40 px-3 backdrop-blur sm:hidden"
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      className="flex min-h-12 flex-none items-center justify-between border-b border-[color:var(--border)] bg-card/40 px-3 pb-2 backdrop-blur sm:hidden"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
     >
       <Link
         to="/kuan"

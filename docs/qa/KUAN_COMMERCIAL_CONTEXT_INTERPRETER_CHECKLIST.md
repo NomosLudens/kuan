@@ -81,3 +81,16 @@ Os cenários abaixo devem ser testados no link público do Guardião em `/g/:gua
 - **Comportamento Esperado da Kuan:**
   - Deve chamar o LLM público injetando apenas os metadados de interpretação comercial (sem qualquer `candidateUpdate`).
   - A resposta gerada deve descrever os serviços baseada puramente no contexto público do negócio.
+
+---
+
+## 4. Otimização de Interface e Layout Mobile (Requisitos PWA/Standalone)
+
+- [ ] **Larguras Mobile:** Toda a interface deve estar contida horizontalmente em telas estreitas (mínimo de 320px), sem scrollbar lateral indesejada e sem cortes de texto nos cabeçalhos e botões.
+- [ ] **PWA Standalone (Safe Area Insets):** Testar a aplicação em modo autônomo (Standalone/Adicionado à Tela de Início). O padding superior do header e o inferior do rodapé devem respeitar as variáveis do dispositivo:
+  - Header: `calc(env(safe-area-inset-top) + padding base)`
+  - Sidebar / Conteúdo de rolagem: Respectivas áreas seguras aplicadas.
+- [ ] **Comportamento com Teclado Aberto:** Ao focar na caixa de entrada do chat no celular, a abertura do teclado virtual do sistema operacional (iOS/Android) não deve empurrar ou cortar elementos críticos do header ou sobrepor botões principais.
+- [ ] **Rolagem dos CTAs Secundários:** Em telas pequenas, a lista de botões de ações rápidas no topo ou rodapé deve permitir rolagem horizontal suave (`overflow-x-auto` com scrollbar oculta ou estilizada) sem quebrar o grid.
+- [ ] **Acessibilidade do Botão "Sair":** O botão de logout ou ação de encerramento de sessão deve estar sempre visível, com área de toque mínima de `44px x 44px` e contraste adequado.
+
