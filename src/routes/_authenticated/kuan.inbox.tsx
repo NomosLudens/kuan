@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
+import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/kuan/inbox")({
   component: InboxPage,
@@ -154,7 +155,9 @@ function InboxPage() {
   return (
     <div className="flex h-full min-h-0 flex-col lg:flex-row">
       {/* Sidebar List */}
-      <div className="flex w-full shrink-0 flex-col border-r border-[color:var(--border)] lg:w-80">
+      <div
+        className={`flex w-full shrink-0 flex-col border-r border-[color:var(--border)] lg:w-80 ${selectedId ? "hidden lg:flex" : ""}`}
+      >
         <div className="border-b border-[color:var(--border)] p-4">
           <h1 className="text-lg text-[color:var(--ivory)] uppercase tracking-wider serif mb-1">
             Atendimentos
@@ -229,7 +232,9 @@ function InboxPage() {
       </div>
 
       {/* Main Detail */}
-      <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div
+        className={`flex min-h-0 flex-1 flex-col bg-background ${!selectedId ? "hidden lg:flex" : ""}`}
+      >
         {!selectedId ? (
           <div className="flex h-full items-center justify-center p-8 text-sm text-[color:var(--ivory-dim)]">
             Selecione uma conversa na lista para visualizar e responder.
@@ -242,15 +247,25 @@ function InboxPage() {
           <>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[color:var(--border)] p-4">
-              <div>
-                <h2 className="text-base text-[color:var(--ivory)]">
-                  {detail.thread.visitorName ||
-                    (detail.thread.visitorKeyTail
-                      ? `Visitante #${detail.thread.visitorKeyTail}`
-                      : "Anônimo")}
-                </h2>
-                <div className="text-xs text-[color:var(--ivory-dim)]">
-                  {detail.thread.status === "open" ? "Status: Aberto" : "Status: Resolvido"}
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedId(null)}
+                  className="lg:hidden h-8 w-8 -ml-1 text-[color:var(--ivory-dim)]"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h2 className="text-base text-[color:var(--ivory)]">
+                    {detail.thread.visitorName ||
+                      (detail.thread.visitorKeyTail
+                        ? `Visitante #${detail.thread.visitorKeyTail}`
+                        : "Anônimo")}
+                  </h2>
+                  <div className="text-xs text-[color:var(--ivory-dim)]">
+                    {detail.thread.status === "open" ? "Status: Aberto" : "Status: Resolvido"}
+                  </div>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleStatusToggle}>
