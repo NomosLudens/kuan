@@ -463,9 +463,7 @@ function GuardianPublicPage() {
         setProofRef("");
         setProofPayerNote("");
 
-        setSuccessMessage(
-          "Comprovante recebido. O pagamento ainda depende de verificação.",
-        );
+        setSuccessMessage("Comprovante recebido. O pagamento ainda depende de verificação.");
 
         // Refresh conversation
         if (threadId) {
