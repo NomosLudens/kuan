@@ -69,6 +69,47 @@ type Row = {
   } | null;
 };
 
+function getLocalDateInTimeZone(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const findPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || "0", 10);
+
+  return {
+    year: findPart("year"),
+    month: findPart("month"),
+    day: findPart("day"),
+    hour: findPart("hour"),
+    minute: findPart("minute"),
+    second: findPart("second"),
+  };
+}
+
+function getStartOfTodayInTimeZone(timeZone: string, baseDate = new Date()): Date {
+  const parts = getLocalDateInTimeZone(baseDate, timeZone);
+  let utcEstimate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0));
+  for (let i = 0; i < 3; i++) {
+    const checkParts = getLocalDateInTimeZone(utcEstimate, timeZone);
+    const diffHours =
+      (parts.year - checkParts.year) * 8760 +
+      (parts.month - checkParts.month) * 730 +
+      (parts.day - checkParts.day) * 24 +
+      (0 - checkParts.hour);
+    if (diffHours === 0) break;
+    utcEstimate = new Date(utcEstimate.getTime() + diffHours * 60 * 60 * 1000);
+  }
+  return utcEstimate;
+}
+
 type ActiveFilter = "hoje" | "7dias" | "proposed" | "confirmed" | "all";
 
 function AgendaPage() {
@@ -258,6 +299,7 @@ function AgendaPage() {
     const dateStr = new Date(appt.starts_at).toLocaleString("pt-BR", {
       dateStyle: "short",
       timeStyle: "short",
+      timeZone,
     });
     const clientName = appt.kuanyin_clients?.nome ?? "Não informado";
     const clientPhone = appt.kuanyin_clients?.telefone ?? "Não informado";
@@ -277,10 +319,12 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   }
 
   // --- Filter and Group Logic ---
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const next7DaysEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 8);
+  const rules = context ? normalizeAvailabilityRules(context.regras_agenda) : null;
+  const timeZone = rules?.timezone || "America/Sao_Paulo";
+
+  const todayStart = getStartOfTodayInTimeZone(timeZone);
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  const next7DaysEnd = new Date(todayStart.getTime() + 8 * 24 * 60 * 60 * 1000);
 
   // Counters
   const countPending = rows.filter((r) => r.status === "proposed").length;
@@ -318,7 +362,10 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   // Grouping by Date String (YYYY-MM-DD)
   const groupedByDate: { [key: string]: Row[] } = {};
   filteredRows.forEach((r) => {
-    const dateStr = r.starts_at.slice(0, 10);
+    const d = new Date(r.starts_at);
+    const parts = getLocalDateInTimeZone(d, timeZone);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const dateStr = `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
     if (!groupedByDate[dateStr]) {
       groupedByDate[dateStr] = [];
     }
@@ -328,11 +375,16 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   // Sorted date keys
   const sortedDates = Object.keys(groupedByDate).sort();
 
-  const getDayLabel = (dateStr: string) => {
-    const itemDate = new Date(dateStr + "T12:00:00");
-    const todayStr = todayStart.toISOString().slice(0, 10);
-    const tomorrowStr = new Date(todayStart.getTime() + 86400000).toISOString().slice(0, 10);
+  const todayParts = getLocalDateInTimeZone(todayStart, timeZone);
+  const tomorrowParts = getLocalDateInTimeZone(
+    new Date(todayStart.getTime() + 24 * 60 * 60 * 1000),
+    timeZone,
+  );
+  const padStr = (n: number) => String(n).padStart(2, "0");
+  const todayStr = `${todayParts.year}-${padStr(todayParts.month)}-${padStr(todayParts.day)}`;
+  const tomorrowStr = `${tomorrowParts.year}-${padStr(tomorrowParts.month)}-${padStr(tomorrowParts.day)}`;
 
+  const getDayLabel = (dateStr: string) => {
     if (dateStr === todayStr) {
       return "Hoje";
     }
@@ -340,10 +392,14 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
       return "Amanhã";
     }
 
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const itemDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+
     return itemDate.toLocaleDateString("pt-BR", {
       weekday: "long",
       day: "2-digit",
       month: "2-digit",
+      timeZone,
     });
   };
 
@@ -658,6 +714,7 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
                                 {new Date(appt.starts_at).toLocaleTimeString("pt-BR", {
                                   hour: "2-digit",
                                   minute: "2-digit",
+                                  timeZone,
                                 })}
                               </span>
                             </div>
