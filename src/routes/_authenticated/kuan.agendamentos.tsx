@@ -70,7 +70,7 @@ function AgendaPage() {
       {loading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando…</p>}
       {!loading && rows.length === 0 && (
         <p className="text-sm text-[color:var(--ivory-dim)]">
-          Nenhum agendamento ainda. Proponha um na conversa com a Kuan-Yin.
+          Nenhum agendamento registrado ainda.
         </p>
       )}
       <div className="space-y-2">

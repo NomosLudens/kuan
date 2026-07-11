@@ -22,18 +22,18 @@ export function KalineLoadingShell() {
             height: 2,
             margin: "0 auto 24px",
             borderRadius: 999,
-            background: "#C98A65",
-            boxShadow: "0 0 28px rgba(201, 138, 101, 0.45)",
+            background: "#EC4899",
+            boxShadow: "0 0 28px rgba(236, 72, 153, 0.6)",
           }}
         />
         <h1 style={{ margin: 0, fontSize: 34, fontWeight: 600, letterSpacing: "0.04em" }}>
-          Kaline
+          Kuan-Yin
         </h1>
         <p style={{ margin: "10px 0 0", color: "rgba(247, 239, 228, 0.72)", fontSize: 16 }}>
-          Presença que acolhe
+          presença comercial do Guardião
         </p>
         <p style={{ margin: "28px 0 0", color: "rgba(247, 239, 228, 0.56)", fontSize: 14 }}>
-          Abrindo seu espaço...
+          Carregando…
         </p>
       </section>
     </main>

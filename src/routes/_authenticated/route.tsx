@@ -1,10 +1,13 @@
+import { useEffect } from "react";
 import { kuanyinApple } from "@/lib/brand-assets";
-import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { canAccessPath, getAuthz, getDefaultPathForUser, resolveLegacyPath } from "@/lib/use-authz";
+import { isAuthSessionError, handleAuthSessionExpiry } from "@/lib/utils";
+import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -60,10 +63,75 @@ function HeaderBar() {
   );
 }
 
+function KuanMobileSubHeader() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+
+  let title = "Voltar";
+  if (path.includes("/agendamentos")) title = "Agenda";
+  else if (path.includes("/clientes")) title = "Clientes";
+  else if (path.includes("/pedidos")) title = "Pedidos";
+  else if (path.includes("/pagamentos")) title = "Pagamentos";
+  else if (path.includes("/guardioes")) title = "Guardiões";
+  else if (path.includes("/inbox")) title = "Atendimentos";
+  else if (path.includes("/showroom")) title = "Showroom";
+  else if (path.includes("/revisao")) title = "Revisão";
+  else if (path.includes("/onboarding")) title = "Configuração";
+
+  return (
+    <header className="flex h-12 flex-none items-center justify-between border-b border-[color:var(--border)] bg-card/40 px-3 backdrop-blur sm:hidden">
+      <Link
+        to="/kuan"
+        className="flex items-center gap-1.5 text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] active:scale-95 transition-transform"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        <span>Conversa</span>
+      </Link>
+      <span className="serif text-xs uppercase tracking-[0.2em] text-[color:var(--gold)]">
+        {title}
+      </span>
+      <div className="w-12" /> {/* spacer to balance */}
+    </header>
+  );
+}
+
 function AuthedLayout() {
   const isMobile = useIsMobile();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isKuan = path.startsWith("/kuan");
+
+  // Monitor window focus/visibility changes to keep session verified and fresh
+  useEffect(() => {
+    let lastChecked = 0;
+    const CHECK_COOLDOWN_MS = 10_000; // Throttle to at most once every 10s
+
+    const verifySessionOnFocus = async () => {
+      const now = Date.now();
+      if (now - lastChecked < CHECK_COOLDOWN_MS) return;
+      lastChecked = now;
+
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session?.user) {
+          await handleAuthSessionExpiry();
+        }
+      } catch (err) {
+        await handleAuthSessionExpiry();
+      }
+    };
+
+    window.addEventListener("focus", verifySessionOnFocus);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        verifySessionOnFocus();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", verifySessionOnFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // No mobile, se for rota Kuan, removemos a sidebar e a HeaderBar global
   // para deixar a experiência chat-first tela cheia.
@@ -75,8 +143,11 @@ function AuthedLayout() {
         {!hideSidebarMobile && <AppSidebar />}
         <div className="flex flex-1 min-w-0 flex-col">
           {!hideSidebarMobile && <HeaderBar />}
-          <main className="flex-1 min-w-0 min-h-0">
-            <Outlet />
+          <main className="flex-1 min-w-0 min-h-0 flex flex-col">
+            {hideSidebarMobile && path !== "/kuan" && path !== "/kuan/" && <KuanMobileSubHeader />}
+            <div className="flex-1 min-h-0 min-w-0">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>
