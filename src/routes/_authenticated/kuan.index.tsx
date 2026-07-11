@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MessageCircle, Settings, ShieldCheck, Store } from "lucide-react";
+import { LogOut, MessageCircle, Settings, ShieldCheck, Store } from "lucide-react";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Button } from "@/components/ui/button";
 import { ensureThread } from "@/lib/ensure-thread";
@@ -45,58 +45,64 @@ function KuanChatPage() {
             </div>
           </div>
 
-          <div className="flex flex-1 min-w-0 flex-nowrap sm:flex-wrap items-center justify-end gap-1.5 overflow-x-auto pb-0.5 sm:pb-0 hide-scrollbar -mr-2 pr-2 sm:mr-0 sm:pr-0">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
-            >
-              <Link to="/kuan/onboarding">
-                <Settings className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Configurar
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
-            >
-              <Link to="/kuan/inbox">
-                <MessageCircle className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Atendimentos
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
-            >
-              <Link to="/kuan/guardioes">
-                <ShieldCheck className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Guardiões
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
-            >
-              <Link to="/kuan/showroom">
-                <Store className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Showroom
-              </Link>
-            </Button>
+          <div className="flex flex-1 min-w-0 items-center justify-end gap-2">
+            {/* CTAs secundários roláveis */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0 hide-scrollbar -mr-1 pr-1 sm:mr-0 sm:pr-0 flex-nowrap sm:flex-wrap min-w-0 justify-end flex-1">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
+              >
+                <Link to="/kuan/onboarding">
+                  <Settings className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Configurar
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
+              >
+                <Link to="/kuan/inbox">
+                  <MessageCircle className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Atendimentos
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
+              >
+                <Link to="/kuan/guardioes">
+                  <ShieldCheck className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Guardiões
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
+              >
+                <Link to="/kuan/showroom">
+                  <Store className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Showroom
+                </Link>
+              </Button>
+            </div>
+
+            {/* Botão Sair - Mapeado fora da área rolável */}
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 sm:hidden rounded-full px-2.5 text-[10px] shrink-0 text-red-400 bg-red-950/10 border border-red-500/10 hover:bg-red-950/25 hover:text-red-300 active:scale-95 transition-all duration-200"
+              size="icon"
+              aria-label="Sair"
+              className="h-11 w-11 rounded-full shrink-0 text-red-400 bg-red-950/10 border border-red-500/10 hover:bg-red-950/25 hover:text-red-300 active:scale-95 transition-all duration-200 flex items-center justify-center"
               onClick={async () => {
                 const { supabase } = await import("@/integrations/supabase/client");
                 await supabase.auth.signOut();
                 window.location.href = "/auth";
               }}
             >
-              Sair
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </div>

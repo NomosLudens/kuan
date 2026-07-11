@@ -5,7 +5,7 @@ Este checklist guia a validação manual e automatizada da camada pura de interp
 ## 1. Verificações Automatizadas
 
 - [ ] **Testes Unitários:** Executar `bun run test` ou `bun test src/lib/kuan/commercial-context-interpreter.test.ts`
-  - Deve passar em todos os 12 testes unitários.
+  - Deve passar em todos os testes unitários da suíte de testes comerciais.
 - [ ] **Pureza do Módulo (Sem Dependências Externas):** Confirmar que o arquivo `src/lib/kuan/commercial-context-interpreter.ts` não importa Supabase, fetch, OpenRouter ou bibliotecas de LLM.
 - [ ] **Compilação e Tipagem:** Executar `bun x tsc --noEmit` para verificar se não há erros de TypeScript nos arquivos modificados.
 - [ ] **Linting:** Executar `bun run lint` (se disponível) para garantir conformidade de estilos.
@@ -65,7 +65,7 @@ Os cenários abaixo devem ser testados no link público do Guardião em `/g/:gua
   - **Invariante:** Bypass do LLM.
 
 ### Cenário 3.3: Mensagem Fora de Escopo Comercial (Bypass LLM)
-- **Entrada:** *"Você prefere pizza de calabresa ou portuguesa?"* ou *"Me fale sobre física quântica."*
+- **Entrada:** *"Vamos falar de outra coisa"* ou *"Quero falar de outro assunto"* ou *"Mudar de assunto."*
 - **Resposta Esperada (Determinística):**
   - `"Eu só consigo ajudar com assuntos de [Nome do Negócio]: serviços, horários, pedidos, pagamento ou atendimento."`
   - **Invariante:** Bypass do LLM.
