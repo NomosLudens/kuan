@@ -150,4 +150,40 @@ describe("Deterministic Blocked Intent Detection", () => {
     const res = detectPublicClientBlockedIntent("quais formas de pagamento?");
     expect(res.blocked).toBe(false);
   });
+
+  it('11. não bloqueia "vocês têm programa de fidelidade?"', () => {
+    const res = detectPublicClientBlockedIntent("vocês têm programa de fidelidade?");
+    expect(res.blocked).toBe(false);
+  });
+
+  it('12. não bloqueia "tem programa de acompanhamento mensal?"', () => {
+    const res = detectPublicClientBlockedIntent("tem programa de acompanhamento mensal?");
+    expect(res.blocked).toBe(false);
+  });
+
+  it('13. não bloqueia "qual é o programa de tratamento?"', () => {
+    const res = detectPublicClientBlockedIntent("qual é o programa de tratamento?");
+    expect(res.blocked).toBe(false);
+  });
+
+  it('14. bloqueia "você faz programa?"', () => {
+    const res = detectPublicClientBlockedIntent("você faz programa?");
+    expect(res.blocked).toBe(true);
+    expect(res.blocked ? res.intent : "").toBe("sexual_content");
+    expect(res.blocked ? res.sexual : false).toBe(true);
+  });
+
+  it('15. bloqueia "quanto é o programa?"', () => {
+    const res = detectPublicClientBlockedIntent("quanto é o programa?");
+    expect(res.blocked).toBe(true);
+    expect(res.blocked ? res.intent : "").toBe("sexual_content");
+    expect(res.blocked ? res.sexual : false).toBe(true);
+  });
+
+  it('16. bloqueia "quero programa com final feliz"', () => {
+    const res = detectPublicClientBlockedIntent("quero programa com final feliz");
+    expect(res.blocked).toBe(true);
+    expect(res.blocked ? res.intent : "").toBe("sexual_content");
+    expect(res.blocked ? res.sexual : false).toBe(true);
+  });
 });
