@@ -211,3 +211,50 @@ export function isAppointmentWithinAvailabilityRules(
 
   return true;
 }
+
+/**
+ * Retorna os componentes de data/hora local para um determinado Date e timezone.
+ */
+export function getLocalDateInTimeZone(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const findPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || "0", 10);
+
+  return {
+    year: findPart("year"),
+    month: findPart("month"),
+    day: findPart("day"),
+    hour: findPart("hour"),
+    minute: findPart("minute"),
+    second: findPart("second"),
+  };
+}
+
+/**
+ * Calcula o Date que representa o início do dia de hoje (00:00:00) local do timezone especificado.
+ */
+export function getStartOfTodayInTimeZone(timeZone: string, baseDate = new Date()): Date {
+  const parts = getLocalDateInTimeZone(baseDate, timeZone);
+  let utcEstimate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0));
+  for (let i = 0; i < 3; i++) {
+    const checkParts = getLocalDateInTimeZone(utcEstimate, timeZone);
+    const diffHours =
+      (parts.year - checkParts.year) * 8760 +
+      (parts.month - checkParts.month) * 730 +
+      (parts.day - checkParts.day) * 24 +
+      (0 - checkParts.hour);
+    if (diffHours === 0) break;
+    utcEstimate = new Date(utcEstimate.getTime() + diffHours * 60 * 60 * 1000);
+  }
+  return utcEstimate;
+}
