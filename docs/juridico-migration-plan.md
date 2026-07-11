@@ -11,11 +11,11 @@ O registry cataloga 3 entradas sob o domínio jurídico — `juridico` (`/juridi
 
 ## 2. Arquitetura de dados atual
 
-| | Feature A (`juridico`) | Feature B (`legislacao`/`jurisprudencia`) |
-|---|---|---|
-| Busca | `searchLegal` — server function, `requireSupabaseAuth`, já correto | `pesquisarJuridico` — server function, chama OpenRouter, já correto |
+|                                   | Feature A (`juridico`)                                                                                                                   | Feature B (`legislacao`/`jurisprudencia`)                                                                        |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Busca                             | `searchLegal` — server function, `requireSupabaseAuth`, já correto                                                                       | `pesquisarJuridico` — server function, chama OpenRouter, já correto                                              |
 | Leitura/escrita de dados próprios | `listLegalDocuments`/`upsertLegalDocument`/`addLegalChunks`/`listLegalChunks` — server functions, admin gated via `has_role` no servidor | **Direto do cliente**: `supabase.from("jurisprudencia"/"legislacao").select/insert/delete` — sem server function |
-| Checagem de admin | `supabase.rpc("has_role", ...)` chamado do cliente em `juridico.tsx`, redundante (as próprias mutações já revalidam no servidor) | N/A |
+| Checagem de admin                 | `supabase.rpc("has_role", ...)` chamado do cliente em `juridico.tsx`, redundante (as próprias mutações já revalidam no servidor)         | N/A                                                                                                              |
 
 O CRUD do acervo pessoal (Feature B) é o mesmo padrão de dívida técnica corrigido no Corpore Sano: RLS protege dados de outros usuários (`jurisprudencia`/`legislacao` têm política "own rows"), então não há vazamento, mas a lógica de mutação mora inteira no bundle do cliente, sem validação de input.
 
@@ -54,11 +54,11 @@ Apesar do domínio `kaline`, o React antigo (`juridico.tsx`) usava tons cobre/â
 
 ## 4. Riscos
 
-| Risco | Mitigação |
-|-------|-----------|
-| `legislacao`/`jurisprudencia` compartilham HTML — erro de `modo` pode misturar dados das duas tabelas | Testar os dois modos isoladamente antes de trocar as rotas reais |
-| Painel admin é sensível (grava corpus curado) | Manter validação de input (zod) idêntica ao `legal.functions.ts` atual; `isAdmin` chega do Host, não é decidido no HTML |
-| Prompt de IA já tem lógica frágil de "SEM_FONTE" | Não alterar o prompt nesta migração — fora de escopo |
+| Risco                                                                                                 | Mitigação                                                                                                               |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `legislacao`/`jurisprudencia` compartilham HTML — erro de `modo` pode misturar dados das duas tabelas | Testar os dois modos isoladamente antes de trocar as rotas reais                                                        |
+| Painel admin é sensível (grava corpus curado)                                                         | Manter validação de input (zod) idêntica ao `legal.functions.ts` atual; `isAdmin` chega do Host, não é decidido no HTML |
+| Prompt de IA já tem lógica frágil de "SEM_FONTE"                                                      | Não alterar o prompt nesta migração — fora de escopo                                                                    |
 
 ## 5. Status
 

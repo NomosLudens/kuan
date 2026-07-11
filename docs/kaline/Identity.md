@@ -5,6 +5,7 @@ Este arquivo deixou de ser espelho para evitar duplicação e divergência manua
 Toda revisão de doutrina deve ser feita em `docs/canon/Identity.md`.
 
 Princípios canônicos que permanecem nesta pasta:
+
 - docs/kaline/LIBERTY.md
 - docs/kaline/PRESENTE.md
 - docs/kaline/Context.md

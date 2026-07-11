@@ -81,16 +81,16 @@ Inbox:
 
 ## Tables used by each flow
 
-| Flow | Tables |
-|---|---|
-| Login/session | Supabase Auth, `profiles`, `user_roles` where required by the authenticated shell/authorization helpers |
-| Business config | `business_contexts`, `kuanyin_guardians` |
-| Public Guardian page | `kuanyin_guardians`, `business_contexts` |
-| Public chat | `kuanyin_guardians`, `business_contexts`, `kuanyin_public_chat_threads`, `kuanyin_public_chat_messages` |
-| Inbox/manual reply | `kuanyin_guardians`, `kuanyin_public_chat_threads`, `kuanyin_public_chat_messages`, `kuanyin_integrity_logs` |
-| Appointment request | `kuanyin_clients`, `kuanyin_appointments` |
-| Order request | `kuanyin_clients`, `kuanyin_orders` |
-| Payment proof | `kuanyin_clients`, `kuanyin_payments` |
+| Flow                 | Tables                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Login/session        | Supabase Auth, `profiles`, `user_roles` where required by the authenticated shell/authorization helpers      |
+| Business config      | `business_contexts`, `kuanyin_guardians`                                                                     |
+| Public Guardian page | `kuanyin_guardians`, `business_contexts`                                                                     |
+| Public chat          | `kuanyin_guardians`, `business_contexts`, `kuanyin_public_chat_threads`, `kuanyin_public_chat_messages`      |
+| Inbox/manual reply   | `kuanyin_guardians`, `kuanyin_public_chat_threads`, `kuanyin_public_chat_messages`, `kuanyin_integrity_logs` |
+| Appointment request  | `kuanyin_clients`, `kuanyin_appointments`                                                                    |
+| Order request        | `kuanyin_clients`, `kuanyin_orders`                                                                          |
+| Payment proof        | `kuanyin_clients`, `kuanyin_payments`                                                                        |
 
 ## Schema/status compatibility
 
@@ -192,13 +192,13 @@ The previous PR18 automated checks passed, but the real manual proof is still bl
 
 ### How the app determines admin/Guardian
 
-| Mechanism | Source | Current meaning in this repo | PR18 impact |
-|---|---|---|---|
-| `profiles.role` | `profiles.role` text column (`admin`/`user`) | Client-side authorization/menu state reads this field and treats `admin` as full app access. New signups are not automatically admin except the first profile created by the hardened bootstrap. | The account used for manual validation must have `profiles.role = 'admin'` if it is expected to see all admin surfaces. |
-| `user_roles` | `user_roles.user_id`, `user_roles.role` with enum `app_role` (`admin`/`member`) | Server-side/admin checks and `has_role()` rely on this table. | The same validation account must have `user_roles.role = 'admin'`; setting only `profiles.role` is not sufficient for server-side/admin paths. |
-| `has_role()` | SQL function `public.has_role(_user_id uuid, _role public.app_role)` | Security-definer helper that returns whether a row exists in `user_roles`. It is granted to authenticated/service_role and used by RLS/admin policies outside the public Kuan-Yin chat path. | Do not remove this check and do not bypass it. Promotion must insert the explicit `user_roles` row. |
-| `kuanyin_guardians.user_id` | Owner column on `kuanyin_guardians` | The owning Guardian account. Config save/upsert creates or maintains a Guardian row with `user_id` equal to the authenticated user. Public threads/messages are scoped to this Guardian. | The account validating `/kuan/config`, `/g/:slug` and `/kuan/inbox` must own the Guardian row or be the admin user for it. |
-| `kuanyin_guardians.admin_user_id` | Optional admin/manager column on `kuanyin_guardians` | Allows a separate admin account to manage/read a Guardian. Kuan-Yin functions and RLS commonly accept `user_id = auth.uid()` OR `admin_user_id = auth.uid()`. | Use this only when validating an admin managing another Guardian. For the simplest PR18 proof, make the same account the owner (`user_id`) and leave `admin_user_id` null unless the scenario requires delegation. |
+| Mechanism                         | Source                                                                          | Current meaning in this repo                                                                                                                                                                     | PR18 impact                                                                                                                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `profiles.role`                   | `profiles.role` text column (`admin`/`user`)                                    | Client-side authorization/menu state reads this field and treats `admin` as full app access. New signups are not automatically admin except the first profile created by the hardened bootstrap. | The account used for manual validation must have `profiles.role = 'admin'` if it is expected to see all admin surfaces.                                                                                            |
+| `user_roles`                      | `user_roles.user_id`, `user_roles.role` with enum `app_role` (`admin`/`member`) | Server-side/admin checks and `has_role()` rely on this table.                                                                                                                                    | The same validation account must have `user_roles.role = 'admin'`; setting only `profiles.role` is not sufficient for server-side/admin paths.                                                                     |
+| `has_role()`                      | SQL function `public.has_role(_user_id uuid, _role public.app_role)`            | Security-definer helper that returns whether a row exists in `user_roles`. It is granted to authenticated/service_role and used by RLS/admin policies outside the public Kuan-Yin chat path.     | Do not remove this check and do not bypass it. Promotion must insert the explicit `user_roles` row.                                                                                                                |
+| `kuanyin_guardians.user_id`       | Owner column on `kuanyin_guardians`                                             | The owning Guardian account. Config save/upsert creates or maintains a Guardian row with `user_id` equal to the authenticated user. Public threads/messages are scoped to this Guardian.         | The account validating `/kuan/config`, `/g/:slug` and `/kuan/inbox` must own the Guardian row or be the admin user for it.                                                                                         |
+| `kuanyin_guardians.admin_user_id` | Optional admin/manager column on `kuanyin_guardians`                            | Allows a separate admin account to manage/read a Guardian. Kuan-Yin functions and RLS commonly accept `user_id = auth.uid()` OR `admin_user_id = auth.uid()`.                                    | Use this only when validating an admin managing another Guardian. For the simplest PR18 proof, make the same account the owner (`user_id`) and leave `admin_user_id` null unless the scenario requires delegation. |
 
 ### Safe manual promotion SQL for the real test environment
 
@@ -282,18 +282,18 @@ Safety checks before approving PR18:
 
 PR18 must not be approved until this table is completed against the real Supabase project.
 
-| Step | Result | Evidence / Notes |
-|---|---|---|
-| Test account promoted explicitly | PASS/FAIL | `profiles.role`, `assigned_facet`, `user_roles.role` checked for the exact email. |
-| Login | PASS/FAIL | Browser session established with promoted test account. |
-| `/kuan` opens | PASS/FAIL | Authenticated route opens without role/profile error. |
-| `/kuan/config` opens | PASS/FAIL | Config surface loads current/empty real `business_contexts` state. |
-| `/kuan/config` saves real data | PASS/FAIL | Real `business_contexts` row exists for auth user with required business fields. |
-| Guardian publish/slug | PASS/FAIL | `kuanyin_guardians.user_id` or `admin_user_id` matches test account; `public_slug` is unique; `status = 'published'`. |
-| `/g/:slug` anonymous opens | PASS/FAIL | Opened in private/incognito session without login. |
-| Public message saved | PASS/FAIL | Real row in `kuanyin_public_chat_messages` with role `visitor`, correct `guardian_id`, correct thread. |
-| Public fallback/AI response saved | PASS/FAIL | Real row in `kuanyin_public_chat_messages` with role `kuanyin`; if OpenRouter failed, canonical fallback text was saved. |
-| `/kuan/inbox` shows thread | PASS/FAIL | Thread appears only for owning/delegated Guardian account. |
-| Manual reply saved | PASS/FAIL | Real `kuanyin_public_chat_messages` row with role `kuanyin` under same thread/guardian. |
-| Logout/login preserves session behavior | PASS/FAIL | Logout clears session; login restores access for the same account. |
-| Cross-Guardian isolation | PASS/FAIL/NOT TESTED | Attempted another Guardian slug/account if available; no data crossed Guardian boundaries. |
+| Step                                    | Result               | Evidence / Notes                                                                                                         |
+| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Test account promoted explicitly        | PASS/FAIL            | `profiles.role`, `assigned_facet`, `user_roles.role` checked for the exact email.                                        |
+| Login                                   | PASS/FAIL            | Browser session established with promoted test account.                                                                  |
+| `/kuan` opens                           | PASS/FAIL            | Authenticated route opens without role/profile error.                                                                    |
+| `/kuan/config` opens                    | PASS/FAIL            | Config surface loads current/empty real `business_contexts` state.                                                       |
+| `/kuan/config` saves real data          | PASS/FAIL            | Real `business_contexts` row exists for auth user with required business fields.                                         |
+| Guardian publish/slug                   | PASS/FAIL            | `kuanyin_guardians.user_id` or `admin_user_id` matches test account; `public_slug` is unique; `status = 'published'`.    |
+| `/g/:slug` anonymous opens              | PASS/FAIL            | Opened in private/incognito session without login.                                                                       |
+| Public message saved                    | PASS/FAIL            | Real row in `kuanyin_public_chat_messages` with role `visitor`, correct `guardian_id`, correct thread.                   |
+| Public fallback/AI response saved       | PASS/FAIL            | Real row in `kuanyin_public_chat_messages` with role `kuanyin`; if OpenRouter failed, canonical fallback text was saved. |
+| `/kuan/inbox` shows thread              | PASS/FAIL            | Thread appears only for owning/delegated Guardian account.                                                               |
+| Manual reply saved                      | PASS/FAIL            | Real `kuanyin_public_chat_messages` row with role `kuanyin` under same thread/guardian.                                  |
+| Logout/login preserves session behavior | PASS/FAIL            | Logout clears session; login restores access for the same account.                                                       |
+| Cross-Guardian isolation                | PASS/FAIL/NOT TESTED | Attempted another Guardian slug/account if available; no data crossed Guardian boundaries.                               |

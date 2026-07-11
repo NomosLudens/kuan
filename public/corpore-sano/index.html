@@ -34,7 +34,11 @@
       body {
         background: var(--bg);
         color: var(--text);
-        font-family: Inter, system-ui, -apple-system, sans-serif;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          sans-serif;
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
         padding-bottom: 90px;
@@ -459,18 +463,37 @@
       <section id="view-hoje" class="view">
         <div class="row" style="margin-bottom: 14px">
           <span id="sem-dot" class="semaphore-dot"></span>
-          <p class="small dim" style="flex: 1"><span id="sem-label" style="color: var(--text)"></span></p>
+          <p class="small dim" style="flex: 1">
+            <span id="sem-label" style="color: var(--text)"></span>
+          </p>
           <button id="btn-ajustar" class="btn ghost">ajustar</button>
         </div>
         <div class="card" id="workout-import-card">
-          <p class="small faint" style="text-transform:uppercase;letter-spacing:0.2em;font-size:0.62rem;margin-bottom:6px">
+          <p
+            class="small faint"
+            style="
+              text-transform: uppercase;
+              letter-spacing: 0.2em;
+              font-size: 0.62rem;
+              margin-bottom: 6px;
+            "
+          >
             Importar treino por texto
           </p>
-          <p class="small dim" style="margin-bottom:10px">Cole seu treino mesmo bagunçado. A Kaline organiza e preenche para você revisar.</p>
-          <textarea id="workout-import-text" maxlength="6000" rows="4" placeholder="segunda peito e triceps supino 3 de 10 com 40kg..."></textarea>
-          <div class="row-between" style="margin-top:10px;align-items:center">
+          <p class="small dim" style="margin-bottom: 10px">
+            Cole seu treino mesmo bagunçado. A Kaline organiza e preenche para você revisar.
+          </p>
+          <textarea
+            id="workout-import-text"
+            maxlength="6000"
+            rows="4"
+            placeholder="segunda peito e triceps supino 3 de 10 com 40kg..."
+          ></textarea>
+          <div class="row-between" style="margin-top: 10px; align-items: center">
             <p id="workout-import-status" class="small faint" aria-live="polite"></p>
-            <button id="btn-import-workout-text" class="btn outline" style="white-space:nowrap">Organizar e preencher</button>
+            <button id="btn-import-workout-text" class="btn outline" style="white-space: nowrap">
+              Organizar e preencher
+            </button>
           </div>
         </div>
         <div id="today-card" class="card"></div>
@@ -482,7 +505,10 @@
           <div class="row" style="margin-bottom: 10px">
             <span id="plano-sem-dot" class="semaphore-dot"></span>
             <div style="flex: 1">
-              <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem">
+              <p
+                class="small faint"
+                style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem"
+              >
                 Semáforo físico
               </p>
               <p id="plano-sem-label" style="font-family: Georgia, serif"></p>
@@ -495,11 +521,17 @@
         </div>
         <div class="card">
           <div class="row" style="margin-bottom: 8px">
-            <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem">
+            <p
+              class="small faint"
+              style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem"
+            >
               Sinais do corpo
             </p>
           </div>
-          <textarea id="signals-notes" placeholder="Como o corpo está hoje? (dor, sono, tensão, humor)"></textarea>
+          <textarea
+            id="signals-notes"
+            placeholder="Como o corpo está hoje? (dor, sono, tensão, humor)"
+          ></textarea>
           <p class="small faint italic" style="margin-top: 8px">
             Se houver dor forte, tontura, falta de ar ou sintoma preocupante, interrompa e procure
             orientação profissional.
@@ -508,7 +540,10 @@
 
         <div class="eyebrow">Modelos</div>
         <div class="card">
-          <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem">
+          <p
+            class="small faint"
+            style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem"
+          >
             Meus modelos de treino
           </p>
           <p class="small dim" style="margin: 4px 0 10px">
@@ -525,23 +560,55 @@
 
       <section id="view-historico" class="view hide">
         <div id="prs-wrap" class="card hide">
-          <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem; margin-bottom: 8px">
+          <p
+            class="small faint"
+            style="
+              text-transform: uppercase;
+              letter-spacing: 0.2em;
+              font-size: 0.62rem;
+              margin-bottom: 8px;
+            "
+          >
             Recordes
           </p>
           <div id="prs-list"></div>
         </div>
         <div class="card">
-          <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem; margin-bottom: 8px">
+          <p
+            class="small faint"
+            style="
+              text-transform: uppercase;
+              letter-spacing: 0.2em;
+              font-size: 0.62rem;
+              margin-bottom: 8px;
+            "
+          >
             Sessões
           </p>
           <div id="history-list"></div>
         </div>
         <div class="card">
-          <p class="small faint" style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.62rem; margin-bottom: 8px">
+          <p
+            class="small faint"
+            style="
+              text-transform: uppercase;
+              letter-spacing: 0.2em;
+              font-size: 0.62rem;
+              margin-bottom: 8px;
+            "
+          >
             Biblioteca de exercícios
           </p>
-          <div id="library-filters" class="row" style="flex-wrap: wrap; gap: 4px; margin-bottom: 10px"></div>
-          <ul id="library-list" class="list-plain divider-list small" style="max-height: 220px; overflow-y: auto"></ul>
+          <div
+            id="library-filters"
+            class="row"
+            style="flex-wrap: wrap; gap: 4px; margin-bottom: 10px"
+          ></div>
+          <ul
+            id="library-list"
+            class="list-plain divider-list small"
+            style="max-height: 220px; overflow-y: auto"
+          ></ul>
         </div>
         <p class="faint italic small" style="padding: 4px 6px">
           Khora / Kaline não substitui médico, fisioterapeuta ou educador físico. Sugestões aqui são
@@ -577,7 +644,12 @@
         }
         function emit(action, payload) {
           window.parent?.postMessage(
-            { source: "corpore-sano", action: action, payload: payload || {}, timestamp: Date.now() },
+            {
+              source: "corpore-sano",
+              action: action,
+              payload: payload || {},
+              timestamp: Date.now(),
+            },
             window.location.origin,
           );
         }
@@ -606,35 +678,209 @@
 
         // ── Dados semente ───────────────────────────────────────────
         var SEED_EXERCISES = [
-          { id: "supino-inclinado-halter", name: "Supino inclinado (halteres)", muscle_group: "Peito", equipment: "Halter", default_rest: 50 },
-          { id: "peck-deck", name: "Peck Deck", muscle_group: "Peito", equipment: "Máquina", default_rest: 50 },
-          { id: "crossover", name: "Crossover", muscle_group: "Peito", equipment: "Cabo", default_rest: 50 },
-          { id: "puxada-alta-aberta", name: "Puxada alta aberta", muscle_group: "Costas", equipment: "Cabo", default_rest: 50 },
-          { id: "puxada-alta-triangulo", name: "Puxada alta triângulo", muscle_group: "Costas", equipment: "Cabo", default_rest: 50 },
-          { id: "remada-sentada", name: "Remada sentada", muscle_group: "Costas", equipment: "Máquina", default_rest: 50 },
-          { id: "encolhimento-halter", name: "Encolhimento com halteres", muscle_group: "Trapézio", equipment: "Halter", default_rest: 50 },
-          { id: "elevacao-lateral", name: "Elevação lateral (halteres)", muscle_group: "Ombro", equipment: "Halter", default_rest: 30 },
-          { id: "elevacao-frontal", name: "Elevação frontal (halteres)", muscle_group: "Ombro", equipment: "Halter", default_rest: 50 },
-          { id: "desenvolvimento-ombro-halter", name: "Desenvolvimento de ombro (halteres)", muscle_group: "Ombro", equipment: "Halter", default_rest: 50 },
-          { id: "rosca-pulley-barra", name: "Rosca pulley (barra reta)", muscle_group: "Bíceps", equipment: "Cabo", default_rest: 30 },
-          { id: "rosca-barra-w", name: "Rosca barra W (em pé)", muscle_group: "Bíceps", equipment: "Barra W", default_rest: 50 },
-          { id: "rosca-concentrada", name: "Rosca concentrada unilateral", muscle_group: "Bíceps", equipment: "Halter", default_rest: 50 },
-          { id: "triceps-corda", name: "Tríceps corda (polia alta)", muscle_group: "Tríceps", equipment: "Cabo", default_rest: 30 },
-          { id: "triceps-frances", name: "Tríceps francês", muscle_group: "Tríceps", equipment: "Halter", default_rest: 50 },
-          { id: "agachamento-livre", name: "Agachamento livre (peso corporal)", muscle_group: "Pernas", equipment: "Peso corporal", default_rest: 60 },
-          { id: "cadeira-extensora", name: "Cadeira extensora", muscle_group: "Pernas", equipment: "Máquina", default_rest: 50 },
-          { id: "mesa-flexora", name: "Mesa flexora", muscle_group: "Posterior", equipment: "Máquina", default_rest: 50 },
-          { id: "leg-press", name: "Leg press (amplitude máxima)", muscle_group: "Pernas", equipment: "Máquina", default_rest: 120 },
-          { id: "cadeira-abdutora", name: "Cadeira abdutora", muscle_group: "Glúteos", equipment: "Máquina", default_rest: 50 },
-          { id: "cadeira-adutora", name: "Cadeira adutora", muscle_group: "Pernas", equipment: "Máquina", default_rest: 50 },
-          { id: "panturrilha-sentado", name: "Panturrilha gêmeos sentado", muscle_group: "Pernas", equipment: "Máquina", default_rest: 50 },
-          { id: "agachamento-sumo", name: "Agachamento sumô (respeite amplitude)", muscle_group: "Pernas", equipment: "Halter", default_rest: 50 },
-          { id: "abdominais-escolha", name: "Abdominais à escolha (peso corporal)", muscle_group: "Core", equipment: "Peso corporal", default_rest: 40 },
-          { id: "hiit-d321-moderado", name: "HIIT D:321 · 3 min moderado (base aeróbica, controle de respiração)", muscle_group: "Cardio", equipment: "Livre", default_rest: 0 },
-          { id: "hiit-d321-intenso", name: "HIIT D:321 · 2 min intenso (zona de queima)", muscle_group: "Cardio", equipment: "Livre", default_rest: 0 },
-          { id: "hiit-d321-allout", name: "HIIT D:321 · 1 min all-out (esforço total, foco na potência)", muscle_group: "Cardio", equipment: "Livre", default_rest: 0 },
+          {
+            id: "supino-inclinado-halter",
+            name: "Supino inclinado (halteres)",
+            muscle_group: "Peito",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "peck-deck",
+            name: "Peck Deck",
+            muscle_group: "Peito",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "crossover",
+            name: "Crossover",
+            muscle_group: "Peito",
+            equipment: "Cabo",
+            default_rest: 50,
+          },
+          {
+            id: "puxada-alta-aberta",
+            name: "Puxada alta aberta",
+            muscle_group: "Costas",
+            equipment: "Cabo",
+            default_rest: 50,
+          },
+          {
+            id: "puxada-alta-triangulo",
+            name: "Puxada alta triângulo",
+            muscle_group: "Costas",
+            equipment: "Cabo",
+            default_rest: 50,
+          },
+          {
+            id: "remada-sentada",
+            name: "Remada sentada",
+            muscle_group: "Costas",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "encolhimento-halter",
+            name: "Encolhimento com halteres",
+            muscle_group: "Trapézio",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "elevacao-lateral",
+            name: "Elevação lateral (halteres)",
+            muscle_group: "Ombro",
+            equipment: "Halter",
+            default_rest: 30,
+          },
+          {
+            id: "elevacao-frontal",
+            name: "Elevação frontal (halteres)",
+            muscle_group: "Ombro",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "desenvolvimento-ombro-halter",
+            name: "Desenvolvimento de ombro (halteres)",
+            muscle_group: "Ombro",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "rosca-pulley-barra",
+            name: "Rosca pulley (barra reta)",
+            muscle_group: "Bíceps",
+            equipment: "Cabo",
+            default_rest: 30,
+          },
+          {
+            id: "rosca-barra-w",
+            name: "Rosca barra W (em pé)",
+            muscle_group: "Bíceps",
+            equipment: "Barra W",
+            default_rest: 50,
+          },
+          {
+            id: "rosca-concentrada",
+            name: "Rosca concentrada unilateral",
+            muscle_group: "Bíceps",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "triceps-corda",
+            name: "Tríceps corda (polia alta)",
+            muscle_group: "Tríceps",
+            equipment: "Cabo",
+            default_rest: 30,
+          },
+          {
+            id: "triceps-frances",
+            name: "Tríceps francês",
+            muscle_group: "Tríceps",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "agachamento-livre",
+            name: "Agachamento livre (peso corporal)",
+            muscle_group: "Pernas",
+            equipment: "Peso corporal",
+            default_rest: 60,
+          },
+          {
+            id: "cadeira-extensora",
+            name: "Cadeira extensora",
+            muscle_group: "Pernas",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "mesa-flexora",
+            name: "Mesa flexora",
+            muscle_group: "Posterior",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "leg-press",
+            name: "Leg press (amplitude máxima)",
+            muscle_group: "Pernas",
+            equipment: "Máquina",
+            default_rest: 120,
+          },
+          {
+            id: "cadeira-abdutora",
+            name: "Cadeira abdutora",
+            muscle_group: "Glúteos",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "cadeira-adutora",
+            name: "Cadeira adutora",
+            muscle_group: "Pernas",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "panturrilha-sentado",
+            name: "Panturrilha gêmeos sentado",
+            muscle_group: "Pernas",
+            equipment: "Máquina",
+            default_rest: 50,
+          },
+          {
+            id: "agachamento-sumo",
+            name: "Agachamento sumô (respeite amplitude)",
+            muscle_group: "Pernas",
+            equipment: "Halter",
+            default_rest: 50,
+          },
+          {
+            id: "abdominais-escolha",
+            name: "Abdominais à escolha (peso corporal)",
+            muscle_group: "Core",
+            equipment: "Peso corporal",
+            default_rest: 40,
+          },
+          {
+            id: "hiit-d321-moderado",
+            name: "HIIT D:321 · 3 min moderado (base aeróbica, controle de respiração)",
+            muscle_group: "Cardio",
+            equipment: "Livre",
+            default_rest: 0,
+          },
+          {
+            id: "hiit-d321-intenso",
+            name: "HIIT D:321 · 2 min intenso (zona de queima)",
+            muscle_group: "Cardio",
+            equipment: "Livre",
+            default_rest: 0,
+          },
+          {
+            id: "hiit-d321-allout",
+            name: "HIIT D:321 · 1 min all-out (esforço total, foco na potência)",
+            muscle_group: "Cardio",
+            equipment: "Livre",
+            default_rest: 0,
+          },
         ];
-        var MUSCLE_FILTERS = ["Peito", "Costas", "Ombro", "Bíceps", "Tríceps", "Pernas", "Posterior", "Glúteos", "Trapézio", "Core", "Cardio"];
+        var MUSCLE_FILTERS = [
+          "Peito",
+          "Costas",
+          "Ombro",
+          "Bíceps",
+          "Tríceps",
+          "Pernas",
+          "Posterior",
+          "Glúteos",
+          "Trapézio",
+          "Core",
+          "Cardio",
+        ];
         var WEEK_DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
         var SEMAPHORE_META = {
           neutral: { label: "Sem leitura", color: "rgba(243,235,221,0.3)" },
@@ -651,26 +897,76 @@
           blue: "mobilidade e respiração",
         };
         var DEFAULT_TEMPLATE_SPECS = {
-          treinoA: { key: "treinoA", name: "Treino A", day: null, goal: "hipertrofia", estimated_min: 60, exercises: [
-            { exercise_id: "supino-inclinado-halter", sets: 3, target_reps: 13, rest_seconds: 50 },
-            { exercise_id: "puxada-alta-aberta", sets: 3, target_reps: 13, rest_seconds: 50 },
-            { exercise_id: "peck-deck", sets: 3, target_reps: 13, rest_seconds: 50 },
-          ] },
-          treinoB: { key: "treinoB", name: "Treino B", day: null, goal: "hipertrofia", estimated_min: 55, exercises: [
-            { exercise_id: "elevacao-lateral", sets: 3, target_reps: 13, rest_seconds: 30 },
-            { exercise_id: "triceps-corda", sets: 3, target_reps: 13, rest_seconds: 30 },
-            { exercise_id: "rosca-pulley-barra", sets: 3, target_reps: 13, rest_seconds: 30 },
-          ] },
-          treinoC: { key: "treinoC", name: "Treino C", day: null, goal: "hipertrofia", estimated_min: 70, exercises: [
-            { exercise_id: "agachamento-livre", sets: 3, target_reps: 25, rest_seconds: 60, block_type: "warmup" },
-            { exercise_id: "cadeira-extensora", sets: 3, target_reps: 16, rest_seconds: 50 },
-            { exercise_id: "leg-press", sets: 4, target_reps: 16, rest_seconds: 120 },
-          ] },
-          treinoD: { key: "treinoD", name: "Treino D", day: null, goal: "mobilidade", estimated_min: 40, exercises: [
-            { exercise_id: "desenvolvimento-ombro-halter", sets: 3, target_reps: 12, rest_seconds: 60 },
-            { exercise_id: "remada-sentada", sets: 3, target_reps: 12, rest_seconds: 60 },
-            { exercise_id: "abdominais-escolha", sets: 3, target_reps: 30, rest_seconds: 45, block_type: "mobility" },
-          ] },
+          treinoA: {
+            key: "treinoA",
+            name: "Treino A",
+            day: null,
+            goal: "hipertrofia",
+            estimated_min: 60,
+            exercises: [
+              {
+                exercise_id: "supino-inclinado-halter",
+                sets: 3,
+                target_reps: 13,
+                rest_seconds: 50,
+              },
+              { exercise_id: "puxada-alta-aberta", sets: 3, target_reps: 13, rest_seconds: 50 },
+              { exercise_id: "peck-deck", sets: 3, target_reps: 13, rest_seconds: 50 },
+            ],
+          },
+          treinoB: {
+            key: "treinoB",
+            name: "Treino B",
+            day: null,
+            goal: "hipertrofia",
+            estimated_min: 55,
+            exercises: [
+              { exercise_id: "elevacao-lateral", sets: 3, target_reps: 13, rest_seconds: 30 },
+              { exercise_id: "triceps-corda", sets: 3, target_reps: 13, rest_seconds: 30 },
+              { exercise_id: "rosca-pulley-barra", sets: 3, target_reps: 13, rest_seconds: 30 },
+            ],
+          },
+          treinoC: {
+            key: "treinoC",
+            name: "Treino C",
+            day: null,
+            goal: "hipertrofia",
+            estimated_min: 70,
+            exercises: [
+              {
+                exercise_id: "agachamento-livre",
+                sets: 3,
+                target_reps: 25,
+                rest_seconds: 60,
+                block_type: "warmup",
+              },
+              { exercise_id: "cadeira-extensora", sets: 3, target_reps: 16, rest_seconds: 50 },
+              { exercise_id: "leg-press", sets: 4, target_reps: 16, rest_seconds: 120 },
+            ],
+          },
+          treinoD: {
+            key: "treinoD",
+            name: "Treino D",
+            day: null,
+            goal: "mobilidade",
+            estimated_min: 40,
+            exercises: [
+              {
+                exercise_id: "desenvolvimento-ombro-halter",
+                sets: 3,
+                target_reps: 12,
+                rest_seconds: 60,
+              },
+              { exercise_id: "remada-sentada", sets: 3, target_reps: 12, rest_seconds: 60 },
+              {
+                exercise_id: "abdominais-escolha",
+                sets: 3,
+                target_reps: 30,
+                rest_seconds: 45,
+                block_type: "mobility",
+              },
+            ],
+          },
         };
         var TEMPLATE_KEYS = ["treinoA", "treinoB", "treinoC", "treinoD"];
         var CHIPS = [
@@ -699,7 +995,8 @@
           var week = { 0: null, 1: null, 2: null, 3: null, 4: null, 5: null, 6: null };
           Object.keys(templates).forEach(function (key) {
             var t = templates[key];
-            if (t.day !== null && t.day !== undefined) week[t.day] = { name: t.name, status: "planned" };
+            if (t.day !== null && t.day !== undefined)
+              week[t.day] = { name: t.name, status: "planned" };
           });
           return week;
         }
@@ -719,7 +1016,8 @@
             var raw = window.localStorage.getItem(STORAGE_KEY);
             if (!raw) return defaultState();
             var parsed = JSON.parse(raw);
-            if (!parsed.exercises || parsed.exercises.length === 0) parsed.exercises = SEED_EXERCISES;
+            if (!parsed.exercises || parsed.exercises.length === 0)
+              parsed.exercises = SEED_EXERCISES;
             var existingIds = {};
             parsed.exercises.forEach(function (e) {
               existingIds[e.id] = true;
@@ -739,31 +1037,37 @@
           window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
         }
         function normalizeImportedWorkout(workout) {
-          if (!workout || !Array.isArray(workout.blocks) || workout.blocks.length === 0) return null;
+          if (!workout || !Array.isArray(workout.blocks) || workout.blocks.length === 0)
+            return null;
           var exerciseIds = {};
-          state.exercises.forEach(function (e) { exerciseIds[e.id] = true; });
-          var unmatched = [];
-          var blocks = workout.blocks.filter(function (b) {
-            var ok = b && exerciseIds[b.exercise_id] && Array.isArray(b.planned) && b.planned.length;
-            if (!ok && b && b.exercise_id) unmatched.push(b.exercise_id);
-            return ok;
-          }).map(function (b) {
-            return {
-              id: uuid(),
-              block_type: b.block_type || "exercise",
-              exercise_id: b.exercise_id,
-              planned: b.planned.map(function (set, i) {
-                return {
-                  set_number: i + 1,
-                  target_reps: Number(set.target_reps) || 0,
-                  target_weight: Number(set.target_weight) || 0,
-                  target_rir: Number(set.target_rir) || 0,
-                  rest_seconds: Number(set.rest_seconds) || 60,
-                };
-              }),
-              logged: [],
-            };
+          state.exercises.forEach(function (e) {
+            exerciseIds[e.id] = true;
           });
+          var unmatched = [];
+          var blocks = workout.blocks
+            .filter(function (b) {
+              var ok =
+                b && exerciseIds[b.exercise_id] && Array.isArray(b.planned) && b.planned.length;
+              if (!ok && b && b.exercise_id) unmatched.push(b.exercise_id);
+              return ok;
+            })
+            .map(function (b) {
+              return {
+                id: uuid(),
+                block_type: b.block_type || "exercise",
+                exercise_id: b.exercise_id,
+                planned: b.planned.map(function (set, i) {
+                  return {
+                    set_number: i + 1,
+                    target_reps: Number(set.target_reps) || 0,
+                    target_weight: Number(set.target_weight) || 0,
+                    target_rir: Number(set.target_rir) || 0,
+                    rest_seconds: Number(set.rest_seconds) || 60,
+                  };
+                }),
+                logged: [],
+              };
+            });
           if (!blocks.length) return null;
           return {
             id: uuid(),
@@ -793,7 +1097,8 @@
           btn.onclick = function () {
             var text = input.value.trim();
             if (!text) return setWorkoutImportStatus("Cole o treino primeiro.", true);
-            if (text.length > 6000) return setWorkoutImportStatus("Texto grande demais. Limite: 6000 caracteres.", true);
+            if (text.length > 6000)
+              return setWorkoutImportStatus("Texto grande demais. Limite: 6000 caracteres.", true);
             importingWorkoutText = true;
             btn.disabled = true;
             btn.textContent = "Organizando...";
@@ -898,7 +1203,13 @@
               '<div class="grid2">' +
               ["treinoA", "treinoB", "treinoC", "treinoD"]
                 .map(function (k) {
-                  return '<button class="btn quick" data-create="' + k + '">' + state.templates[k].name + "</button>";
+                  return (
+                    '<button class="btn quick" data-create="' +
+                    k +
+                    '">' +
+                    state.templates[k].name +
+                    "</button>"
+                  );
                 })
                 .join("") +
               '<button class="btn quick" data-create="livre" style="grid-column:1/-1">Treino livre</button>' +
@@ -915,7 +1226,12 @@
             return acc + b.planned.length;
           }, 0);
           var doneSets = w.blocks.reduce(function (acc, b) {
-            return acc + b.logged.filter(function (l) { return l.status === "completed"; }).length;
+            return (
+              acc +
+              b.logged.filter(function (l) {
+                return l.status === "completed";
+              }).length
+            );
           }, 0);
 
           var blocksHtml =
@@ -923,18 +1239,39 @@
               ? '<li class="small dim italic" style="padding:8px 0">Sem blocos. Adicione exercícios pela biblioteca ou registre como notas.</li>'
               : w.blocks
                   .map(function (b, idx) {
-                    var ex = state.exercises.find(function (e) { return e.id === b.exercise_id; });
-                    var completed = b.logged.filter(function (l) { return l.status === "completed"; }).length;
+                    var ex = state.exercises.find(function (e) {
+                      return e.id === b.exercise_id;
+                    });
+                    var completed = b.logged.filter(function (l) {
+                      return l.status === "completed";
+                    }).length;
                     var pr = ex ? prs[ex.name] : null;
                     return (
                       '<li style="display:flex;align-items:center;gap:10px">' +
-                      '<span class="faint small" style="width:18px">' + (idx + 1) + ".</span>" +
+                      '<span class="faint small" style="width:18px">' +
+                      (idx + 1) +
+                      ".</span>" +
                       '<div style="flex:1;min-width:0">' +
-                      '<p style="font-size:0.88rem">' + esc(ex ? ex.name : "Exercício") + "</p>" +
-                      '<p class="small faint">' + completed + "/" + b.planned.length + " séries · " + esc(ex ? ex.muscle_group : "") +
-                      (pr ? ' · <span style="color:var(--khora-bright)">PR ' + pr.weight + "kg × " + pr.reps + "</span>" : "") +
+                      '<p style="font-size:0.88rem">' +
+                      esc(ex ? ex.name : "Exercício") +
+                      "</p>" +
+                      '<p class="small faint">' +
+                      completed +
+                      "/" +
+                      b.planned.length +
+                      " séries · " +
+                      esc(ex ? ex.muscle_group : "") +
+                      (pr
+                        ? ' · <span style="color:var(--khora-bright)">PR ' +
+                          pr.weight +
+                          "kg × " +
+                          pr.reps +
+                          "</span>"
+                        : "") +
                       "</p></div>" +
-                      '<button class="btn ghost" data-foco="' + b.id + '" style="text-transform:uppercase;letter-spacing:0.18em;font-size:0.68rem">Foco</button>' +
+                      '<button class="btn ghost" data-foco="' +
+                      b.id +
+                      '" style="text-transform:uppercase;letter-spacing:0.18em;font-size:0.68rem">Foco</button>' +
                       "</li>"
                     );
                   })
@@ -944,17 +1281,33 @@
             '<div class="row-between" style="align-items:flex-start;margin-bottom:12px">' +
             '<div style="flex:1;min-width:0">' +
             '<p class="small faint" style="text-transform:uppercase;letter-spacing:0.2em;font-size:0.62rem">Treino de hoje</p>' +
-            '<p style="font-family:Georgia,serif;font-size:1.2rem">' + esc(w.name) + "</p>" +
-            '<p class="small faint">' + esc(w.goal) + " · ~" + w.estimated_min + "min · " + doneSets + "/" + totalSets + " séries · " + esc(w.status) + "</p>" +
+            '<p style="font-family:Georgia,serif;font-size:1.2rem">' +
+            esc(w.name) +
+            "</p>" +
+            '<p class="small faint">' +
+            esc(w.goal) +
+            " · ~" +
+            w.estimated_min +
+            "min · " +
+            doneSets +
+            "/" +
+            totalSets +
+            " séries · " +
+            esc(w.status) +
+            "</p>" +
             "</div>" +
             '<button class="icon-btn" id="btn-discard" aria-label="Descartar">✕</button>' +
             "</div>" +
-            '<ul class="list-plain divider-list" style="margin-bottom:14px">' + blocksHtml + "</ul>" +
+            '<ul class="list-plain divider-list" style="margin-bottom:14px">' +
+            blocksHtml +
+            "</ul>" +
             (w.status !== "in_progress"
               ? '<button class="btn" id="btn-start" style="width:100%">▶ Iniciar Modo Foco</button>'
               : '<button class="btn success" id="btn-finish" style="width:100%"' +
                 (finishingWorkout ? " disabled" : "") +
-                ">" + (finishingWorkout ? "Salvando…" : "✓ Encerrar treino") + "</button>");
+                ">" +
+                (finishingWorkout ? "Salvando…" : "✓ Encerrar treino") +
+                "</button>");
 
           var discardBtn = $("btn-discard");
           if (discardBtn) discardBtn.onclick = discardToday;
@@ -1026,7 +1379,9 @@
           if (!current || finishingWorkout) return;
           var finished = Object.assign({}, current, { status: "completed" });
           var blocks = finished.blocks.map(function (b) {
-            var meta = state.exercises.find(function (e) { return e.id === b.exercise_id; });
+            var meta = state.exercises.find(function (e) {
+              return e.id === b.exercise_id;
+            });
             return {
               exercise_id: b.exercise_id,
               exercise_name: meta ? meta.name : b.exercise_id,
@@ -1042,7 +1397,11 @@
           finishingWorkout = true;
           pendingFinishedWorkout = finished;
           renderTodayCard();
-          emit("corpore-sano:finish-workout", { name: finished.name, semaforo: semaphore(), blocks: blocks });
+          emit("corpore-sano:finish-workout", {
+            name: finished.name,
+            semaforo: semaphore(),
+            blocks: blocks,
+          });
         }
 
         // ── Aba Plano ───────────────────────────────────────────────
@@ -1053,7 +1412,13 @@
           $("plano-sem-dot").style.boxShadow = "0 0 8px " + meta.color;
           $("plano-sem-label").textContent = meta.label;
 
-          var s = state.signals || { date: todayIso(), energy: "media", sleep: "ok", pain: "nenhuma", available: 40 };
+          var s = state.signals || {
+            date: todayIso(),
+            energy: "media",
+            sleep: "ok",
+            pain: "nenhuma",
+            available: 40,
+          };
           function pillGroup(label, field, options, fmt) {
             return (
               '<div><p class="small faint" style="text-transform:uppercase;letter-spacing:0.18em;font-size:0.62rem;margin-bottom:4px">' +
@@ -1064,7 +1429,13 @@
                 .map(function (o) {
                   var active = String(s[field]) === String(o);
                   return (
-                    '<button class="pill' + (active ? " active" : "") + '" data-signal="' + field + '" data-value="' + o + '">' +
+                    '<button class="pill' +
+                    (active ? " active" : "") +
+                    '" data-signal="' +
+                    field +
+                    '" data-value="' +
+                    o +
+                    '">' +
                     (fmt ? fmt(o) : o) +
                     "</button>"
                   );
@@ -1077,7 +1448,9 @@
             pillGroup("Energia", "energy", ["baixa", "media", "alta"]) +
             pillGroup("Sono", "sleep", ["ruim", "ok", "bom"]) +
             pillGroup("Dor", "pain", ["nenhuma", "leve", "relevante"]) +
-            pillGroup("Tempo", "available", [20, 40, 60], function (o) { return o + "min"; });
+            pillGroup("Tempo", "available", [20, 40, 60], function (o) {
+              return o + "min";
+            });
           $("signal-pills")
             .querySelectorAll("[data-signal]")
             .forEach(function (btn) {
@@ -1123,29 +1496,53 @@
             var rows = t.exercises
               .map(function (item) {
                 return (
-                  '<div class="template-ex-row" data-item="' + item.id + '">' +
+                  '<div class="template-ex-row" data-item="' +
+                  item.id +
+                  '">' +
                   '<label class="field">Exercício<select data-field="exercise_id">' +
                   state.exercises
                     .map(function (ex) {
-                      return '<option value="' + ex.id + '"' + (ex.id === item.exercise_id ? " selected" : "") + ">" + esc(ex.name) + "</option>";
+                      return (
+                        '<option value="' +
+                        ex.id +
+                        '"' +
+                        (ex.id === item.exercise_id ? " selected" : "") +
+                        ">" +
+                        esc(ex.name) +
+                        "</option>"
+                      );
                     })
                     .join("") +
                   "</select></label>" +
-                  '<label class="field">Séries<input type="number" min="1" data-field="sets" value="' + item.sets + '"></label>' +
-                  '<label class="field">Reps<input type="number" min="1" data-field="target_reps" value="' + item.target_reps + '"></label>' +
-                  '<label class="field">Desc<input type="number" min="0" data-field="rest_seconds" value="' + item.rest_seconds + '"></label>' +
+                  '<label class="field">Séries<input type="number" min="1" data-field="sets" value="' +
+                  item.sets +
+                  '"></label>' +
+                  '<label class="field">Reps<input type="number" min="1" data-field="target_reps" value="' +
+                  item.target_reps +
+                  '"></label>' +
+                  '<label class="field">Desc<input type="number" min="0" data-field="rest_seconds" value="' +
+                  item.rest_seconds +
+                  '"></label>' +
                   '<button class="icon-btn" data-remove-ex aria-label="Remover exercício">✕</button>' +
                   "</div>"
                 );
               })
               .join("");
             return (
-              '<details class="template" style="margin-bottom:10px;border:1px solid var(--border);border-radius:12px;padding:10px" data-key="' + key + '">' +
-              "<summary><strong style=\"font-family:Georgia,serif\">" + esc(t.name) + "</strong></summary>" +
+              '<details class="template" style="margin-bottom:10px;border:1px solid var(--border);border-radius:12px;padding:10px" data-key="' +
+              key +
+              '">' +
+              '<summary><strong style="font-family:Georgia,serif">' +
+              esc(t.name) +
+              "</strong></summary>" +
               '<div style="margin-top:10px">' +
               '<div class="grid2" style="margin-bottom:10px">' +
-              '<label class="field">Nome<input data-field="name" value="' + esc(t.name) + '"></label>' +
-              '<label class="field">Duração (min)<input type="number" min="10" data-field="estimated_min" value="' + t.estimated_min + '"></label>' +
+              '<label class="field">Nome<input data-field="name" value="' +
+              esc(t.name) +
+              '"></label>' +
+              '<label class="field">Duração (min)<input type="number" min="10" data-field="estimated_min" value="' +
+              t.estimated_min +
+              '"></label>' +
               "</div>" +
               rows +
               '<button class="btn outline" data-add-ex style="font-size:0.78rem;padding:8px 12px">+ adicionar exercício</button>' +
@@ -1209,14 +1606,24 @@
           updateTemplate(key, function (t) {
             return Object.assign({}, t, {
               exercises: t.exercises.concat([
-                { id: uuid(), exercise_id: state.exercises[0] ? state.exercises[0].id : "", sets: 3, target_reps: 12, rest_seconds: 60 },
+                {
+                  id: uuid(),
+                  exercise_id: state.exercises[0] ? state.exercises[0].id : "",
+                  sets: 3,
+                  target_reps: 12,
+                  rest_seconds: 60,
+                },
               ]),
             });
           });
         }
         function removeTemplateExercise(key, id) {
           updateTemplate(key, function (t) {
-            return Object.assign({}, t, { exercises: t.exercises.filter(function (x) { return x.id !== id; }) });
+            return Object.assign({}, t, {
+              exercises: t.exercises.filter(function (x) {
+                return x.id !== id;
+              }),
+            });
           });
         }
 
@@ -1224,12 +1631,24 @@
           $("week-list").innerHTML = WEEK_DAYS.map(function (d, i) {
             var v = state.week[i];
             var statusChip = v
-              ? '<button class="status-chip ' + v.status + '" data-week-status="' + i + '">' + v.status + "</button>"
+              ? '<button class="status-chip ' +
+                v.status +
+                '" data-week-status="' +
+                i +
+                '">' +
+                v.status +
+                "</button>"
               : "";
             return (
               '<div class="week-row">' +
-              '<span class="day">' + d + "</span>" +
-              '<input data-week-name="' + i + '" value="' + esc(v ? v.name : "") + '" placeholder="—">' +
+              '<span class="day">' +
+              d +
+              "</span>" +
+              '<input data-week-name="' +
+              i +
+              '" value="' +
+              esc(v ? v.name : "") +
+              '" placeholder="—">' +
               statusChip +
               "</div>"
             );
@@ -1253,7 +1672,8 @@
                 var i = Number(btn.getAttribute("data-week-status"));
                 var v = state.week[i];
                 if (!v) return;
-                var next = v.status === "rest" ? "planned" : v.status === "planned" ? "done" : "rest";
+                var next =
+                  v.status === "rest" ? "planned" : v.status === "planned" ? "done" : "rest";
                 state.week[i] = Object.assign({}, v, { status: next });
                 persist();
                 renderWeek();
@@ -1268,28 +1688,63 @@
           $("prs-list").innerHTML = prEntries
             .map(function (name) {
               var pr = prs[name];
-              return '<span class="chip-pr"><span class="name">' + esc(name) + "</span> · " + pr.weight + "kg</span>";
+              return (
+                '<span class="chip-pr"><span class="name">' +
+                esc(name) +
+                "</span> · " +
+                pr.weight +
+                "kg</span>"
+              );
             })
             .join("");
 
           var items =
             remoteHistory.length > 0
               ? remoteHistory.map(function (r) {
-                  return { id: r.id, name: r.name, date: r.date, sets: r.totalSets, volume: r.totalVolume, names: r.exerciseNames };
+                  return {
+                    id: r.id,
+                    name: r.name,
+                    date: r.date,
+                    sets: r.totalSets,
+                    volume: r.totalVolume,
+                    names: r.exerciseNames,
+                  };
                 })
               : state.history.slice(0, 6).map(function (w) {
                   return {
                     id: w.id,
                     name: w.name,
                     date: w.date,
-                    sets: w.blocks.reduce(function (acc, b) { return acc + b.logged.filter(function (l) { return l.status === "completed"; }).length; }, 0),
-                    volume: w.blocks.reduce(function (acc, b) { return acc + b.logged.reduce(function (s, l) { return s + (l.status === "completed" ? l.weight * l.reps : 0); }, 0); }, 0),
-                    names: w.blocks.map(function (b) { var e = state.exercises.find(function (x) { return x.id === b.exercise_id; }); return e ? e.name : ""; }).filter(Boolean),
+                    sets: w.blocks.reduce(function (acc, b) {
+                      return (
+                        acc +
+                        b.logged.filter(function (l) {
+                          return l.status === "completed";
+                        }).length
+                      );
+                    }, 0),
+                    volume: w.blocks.reduce(function (acc, b) {
+                      return (
+                        acc +
+                        b.logged.reduce(function (s, l) {
+                          return s + (l.status === "completed" ? l.weight * l.reps : 0);
+                        }, 0)
+                      );
+                    }, 0),
+                    names: w.blocks
+                      .map(function (b) {
+                        var e = state.exercises.find(function (x) {
+                          return x.id === b.exercise_id;
+                        });
+                        return e ? e.name : "";
+                      })
+                      .filter(Boolean),
                   };
                 });
 
           if (items.length === 0) {
-            $("history-list").innerHTML = '<p class="small dim italic">Ainda não há histórico real. O histórico nasce quando você registra séries no Modo Foco.</p>';
+            $("history-list").innerHTML =
+              '<p class="small dim italic">Ainda não há histórico real. O histórico nasce quando você registra séries no Modo Foco.</p>';
           } else {
             $("history-list").innerHTML =
               '<ul class="list-plain divider-list small">' +
@@ -1297,10 +1752,22 @@
                 .slice(0, 6)
                 .map(function (w) {
                   return (
-                    "<li><p>" + esc(w.name) + "</p>" +
-                    '<p class="faint">' + esc(w.date) + " · " + w.sets + " séries · vol " + Math.round(w.volume) + "kg</p>" +
-                    '<p class="faint" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(w.names.join(" · ")) + "</p>" +
-                    '<button class="btn ghost" data-del-hist="' + w.id + '" style="margin-top:4px;padding:2px 0">Apagar</button></li>'
+                    "<li><p>" +
+                    esc(w.name) +
+                    "</p>" +
+                    '<p class="faint">' +
+                    esc(w.date) +
+                    " · " +
+                    w.sets +
+                    " séries · vol " +
+                    Math.round(w.volume) +
+                    "kg</p>" +
+                    '<p class="faint" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+                    esc(w.names.join(" · ")) +
+                    "</p>" +
+                    '<button class="btn ghost" data-del-hist="' +
+                    w.id +
+                    '" style="margin-top:4px;padding:2px 0">Apagar</button></li>'
                   );
                 })
                 .join("") +
@@ -1311,7 +1778,9 @@
               .forEach(function (btn) {
                 btn.onclick = function () {
                   var id = btn.getAttribute("data-del-hist");
-                  state.history = state.history.filter(function (w) { return w.id !== id; });
+                  state.history = state.history.filter(function (w) {
+                    return w.id !== id;
+                  });
                   persist();
                   emit("corpore-sano:history-delete", { id: id });
                   renderHistorico();
@@ -1319,9 +1788,18 @@
               });
           }
 
-          $("library-filters").innerHTML = ["Todos"].concat(MUSCLE_FILTERS)
+          $("library-filters").innerHTML = ["Todos"]
+            .concat(MUSCLE_FILTERS)
             .map(function (m) {
-              return '<button class="pill' + (libraryFilter === m ? " active" : "") + '" data-filter="' + m + '">' + m + "</button>";
+              return (
+                '<button class="pill' +
+                (libraryFilter === m ? " active" : "") +
+                '" data-filter="' +
+                m +
+                '">' +
+                m +
+                "</button>"
+              );
             })
             .join("");
           $("library-filters")
@@ -1337,7 +1815,13 @@
           });
           $("library-list").innerHTML = list
             .map(function (e) {
-              return '<li style="display:flex;justify-content:space-between;gap:8px"><span>' + esc(e.name) + '</span><span class="faint">' + esc(e.equipment) + "</span></li>";
+              return (
+                '<li style="display:flex;justify-content:space-between;gap:8px"><span>' +
+                esc(e.name) +
+                '</span><span class="faint">' +
+                esc(e.equipment) +
+                "</span></li>"
+              );
             })
             .join("");
         }
@@ -1346,9 +1830,15 @@
         function openFocus(blockId) {
           focusBlockId = blockId;
           var w = state.todayWorkout;
-          var block = w && w.blocks.find(function (b) { return b.id === blockId; });
+          var block =
+            w &&
+            w.blocks.find(function (b) {
+              return b.id === blockId;
+            });
           if (!block) return;
-          var exercise = state.exercises.find(function (e) { return e.id === block.exercise_id; });
+          var exercise = state.exercises.find(function (e) {
+            return e.id === block.exercise_id;
+          });
           var nextIdx = block.logged.length;
           var planned = block.planned[nextIdx];
           var last = block.logged[block.logged.length - 1];
@@ -1356,7 +1846,7 @@
             weight: last ? last.weight : planned ? planned.target_weight : 0,
             reps: planned ? planned.target_reps : 10,
             rir: planned ? planned.target_rir : 2,
-            rest: planned ? planned.rest_seconds : (exercise ? exercise.default_rest : 90),
+            rest: planned ? planned.rest_seconds : exercise ? exercise.default_rest : 90,
           };
           timerLeft = null;
           clearInterval(timerInterval);
@@ -1380,7 +1870,9 @@
               clearInterval(timerInterval);
               timerLeft = 0;
               if (navigator.vibrate) {
-                try { navigator.vibrate(200); } catch (e) {}
+                try {
+                  navigator.vibrate(200);
+                } catch (e) {}
               }
             } else {
               timerLeft -= 1;
@@ -1403,20 +1895,33 @@
 
         function renderFocus() {
           var w = state.todayWorkout;
-          var block = w && w.blocks.find(function (b) { return b.id === focusBlockId; });
+          var block =
+            w &&
+            w.blocks.find(function (b) {
+              return b.id === focusBlockId;
+            });
           if (!w || !block) {
             closeFocus();
             return;
           }
-          var exercise = state.exercises.find(function (e) { return e.id === block.exercise_id; });
+          var exercise = state.exercises.find(function (e) {
+            return e.id === block.exercise_id;
+          });
           if (!exercise) {
             closeFocus();
             return;
           }
-          var idx = w.blocks.findIndex(function (b) { return b.id === focusBlockId; });
-          var done = block.logged.filter(function (l) { return l.status === "completed"; }).length;
+          var idx = w.blocks.findIndex(function (b) {
+            return b.id === focusBlockId;
+          });
+          var done = block.logged.filter(function (l) {
+            return l.status === "completed";
+          }).length;
           var pr = prs[exercise.name];
-          var currentE1rm = focusForm.weight > 0 && focusForm.reps > 0 ? focusForm.weight * (1 + focusForm.reps / 30) : 0;
+          var currentE1rm =
+            focusForm.weight > 0 && focusForm.reps > 0
+              ? focusForm.weight * (1 + focusForm.reps / 30)
+              : 0;
           var beatsPR = pr && currentE1rm > pr.e1rm;
           var isFirstPR = !pr && focusForm.weight > 0 && focusForm.reps > 0;
 
@@ -1424,13 +1929,30 @@
             ? '<ul class="list-plain small" style="margin-top:14px">' +
               block.logged
                 .map(function (l) {
-                  var color = l.status === "completed" ? "var(--green)" : l.status === "failed" ? "var(--red)" : "var(--text-faint)";
+                  var color =
+                    l.status === "completed"
+                      ? "var(--green)"
+                      : l.status === "failed"
+                        ? "var(--red)"
+                        : "var(--text-faint)";
                   return (
                     '<li style="display:flex;gap:10px;padding:2px 0">' +
-                    '<span class="faint" style="width:16px;text-align:right">' + l.set_number + "</span>" +
-                    "<span>" + l.weight + "kg</span><span>×" + l.reps + "</span>" +
-                    '<span class="faint">RIR ' + (l.rir != null ? l.rir : "-") + "</span>" +
-                    '<span style="color:' + color + '">' + l.status + "</span></li>"
+                    '<span class="faint" style="width:16px;text-align:right">' +
+                    l.set_number +
+                    "</span>" +
+                    "<span>" +
+                    l.weight +
+                    "kg</span><span>×" +
+                    l.reps +
+                    "</span>" +
+                    '<span class="faint">RIR ' +
+                    (l.rir != null ? l.rir : "-") +
+                    "</span>" +
+                    '<span style="color:' +
+                    color +
+                    '">' +
+                    l.status +
+                    "</span></li>"
                   );
                 })
                 .join("") +
@@ -1441,25 +1963,65 @@
             '<div class="focus-card">' +
             '<div class="row" style="margin-bottom:10px">' +
             '<span style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--khora)">Modo Foco</span>' +
-            '<span class="faint small">' + (idx + 1) + "/" + w.blocks.length + "</span>" +
+            '<span class="faint small">' +
+            (idx + 1) +
+            "/" +
+            w.blocks.length +
+            "</span>" +
             '<div style="margin-left:auto;display:flex;gap:4px">' +
-            '<button class="icon-btn" id="focus-prev" aria-label="Anterior" ' + (idx === 0 ? "disabled" : "") + ">←</button>" +
+            '<button class="icon-btn" id="focus-prev" aria-label="Anterior" ' +
+            (idx === 0 ? "disabled" : "") +
+            ">←</button>" +
             '<button class="icon-btn" id="focus-next" aria-label="Próximo">→</button>' +
             '<button class="icon-btn" id="focus-close" aria-label="Fechar">✕</button>' +
             "</div></div>" +
             '<div style="border:1px solid rgba(201,138,101,0.2);background:var(--khora-dim);border-radius:10px;padding:8px 12px;margin-bottom:10px">' +
-            '<p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--khora)">Treino atual: ' + esc(w.name) + "</p>" +
-            '<p class="small faint">Exercícios deste treino: ' + w.blocks.length + ". Você está vendo o treino em andamento, não a biblioteca inteira.</p></div>" +
-            '<p style="font-family:Georgia,serif;font-size:1.3rem">' + esc(exercise.name) + "</p>" +
-            '<p class="small faint" style="margin-bottom:10px">' + esc(exercise.muscle_group) + " · " + esc(exercise.equipment) + " · " + done + "/" + block.planned.length + " séries</p>" +
+            '<p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--khora)">Treino atual: ' +
+            esc(w.name) +
+            "</p>" +
+            '<p class="small faint">Exercícios deste treino: ' +
+            w.blocks.length +
+            ". Você está vendo o treino em andamento, não a biblioteca inteira.</p></div>" +
+            '<p style="font-family:Georgia,serif;font-size:1.3rem">' +
+            esc(exercise.name) +
+            "</p>" +
+            '<p class="small faint" style="margin-bottom:10px">' +
+            esc(exercise.muscle_group) +
+            " · " +
+            esc(exercise.equipment) +
+            " · " +
+            done +
+            "/" +
+            block.planned.length +
+            " séries</p>" +
             '<select id="focus-replace" aria-label="Substituir por exercício da biblioteca" style="margin-bottom:10px">' +
-            state.exercises.map(function (e) { return '<option value="' + e.id + '"' + (e.id === block.exercise_id ? " selected" : "") + ">" + esc(e.name) + "</option>"; }).join("") +
+            state.exercises
+              .map(function (e) {
+                return (
+                  '<option value="' +
+                  e.id +
+                  '"' +
+                  (e.id === block.exercise_id ? " selected" : "") +
+                  ">" +
+                  esc(e.name) +
+                  "</option>"
+                );
+              })
+              .join("") +
             "</select>" +
             '<div class="row" style="flex-wrap:wrap;margin-bottom:10px">' +
             (pr
-              ? '<span class="chip-pr">PR ' + pr.weight + "kg × " + pr.reps + " · e1RM " + Math.round(pr.e1rm) + "kg</span>"
+              ? '<span class="chip-pr">PR ' +
+                pr.weight +
+                "kg × " +
+                pr.reps +
+                " · e1RM " +
+                Math.round(pr.e1rm) +
+                "kg</span>"
               : '<span class="faint small italic">Sem PR registrado para este exercício.</span>') +
-            (beatsPR ? '<span class="chip-pr" style="border-color:rgba(22,163,74,0.4);color:var(--green)">🔥 Novo PR a caminho</span>' : "") +
+            (beatsPR
+              ? '<span class="chip-pr" style="border-color:rgba(22,163,74,0.4);color:var(--green)">🔥 Novo PR a caminho</span>'
+              : "") +
             (isFirstPR ? '<span class="chip-pr">Primeiro registro</span>' : "") +
             "</div>" +
             '<div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">' +
@@ -1470,14 +2032,20 @@
             '<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:12px">' +
             '<div class="row" style="flex-wrap:wrap">' +
             '<label class="faint small">Descanso</label>' +
-            '<input id="focus-rest" type="number" value="' + focusForm.rest + '" style="width:64px">' +
+            '<input id="focus-rest" type="number" value="' +
+            focusForm.rest +
+            '" style="width:64px">' +
             '<span class="faint small">s</span>' +
             '<span id="focus-timer-value" class="rest-timer" style="margin-left:auto"></span>' +
             "</div>" +
             '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
             '<button class="btn outline" id="timer-minus" style="padding:8px 10px;font-size:0.78rem">-15s</button>' +
             '<button class="btn outline" id="timer-plus" style="padding:8px 10px;font-size:0.78rem">+15s</button>' +
-            '<button class="btn outline" id="timer-toggle" aria-label="' + (timerInterval ? "Pausar" : "Iniciar") + ' timer" style="padding:8px 10px;font-size:0.78rem">' + (timerInterval ? "⏸" : "▶") + "</button>" +
+            '<button class="btn outline" id="timer-toggle" aria-label="' +
+            (timerInterval ? "Pausar" : "Iniciar") +
+            ' timer" style="padding:8px 10px;font-size:0.78rem">' +
+            (timerInterval ? "⏸" : "▶") +
+            "</button>" +
             "</div></div>" +
             '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;margin-bottom:10px">' +
             '<button class="btn success" id="log-completed">✓ Registrar série</button>' +
@@ -1493,21 +2061,37 @@
 
           function numField(label, field, value, step) {
             return (
-              '<div class="numfield"><p class="small faint" style="margin-bottom:4px">' + label + '</p>' +
-              '<div class="box"><button data-num-dec="' + field + '" aria-label="diminuir">−</button>' +
-              '<input type="number" step="' + step + '" value="' + value + '" data-num="' + field + '">' +
-              '<button data-num-inc="' + field + '" aria-label="aumentar">+</button></div></div>'
+              '<div class="numfield"><p class="small faint" style="margin-bottom:4px">' +
+              label +
+              "</p>" +
+              '<div class="box"><button data-num-dec="' +
+              field +
+              '" aria-label="diminuir">−</button>' +
+              '<input type="number" step="' +
+              step +
+              '" value="' +
+              value +
+              '" data-num="' +
+              field +
+              '">' +
+              '<button data-num-inc="' +
+              field +
+              '" aria-label="aumentar">+</button></div></div>'
             );
           }
 
           $("focus-close").onclick = closeFocus;
           $("focus-prev").onclick = function () {
-            var i = w.blocks.findIndex(function (b) { return b.id === focusBlockId; });
+            var i = w.blocks.findIndex(function (b) {
+              return b.id === focusBlockId;
+            });
             var prev = w.blocks[i - 1];
             if (prev) openFocus(prev.id);
           };
           $("focus-next").onclick = function () {
-            var i = w.blocks.findIndex(function (b) { return b.id === focusBlockId; });
+            var i = w.blocks.findIndex(function (b) {
+              return b.id === focusBlockId;
+            });
             var next = w.blocks[i + 1];
             if (next) openFocus(next.id);
             else closeFocus();
@@ -1517,7 +2101,9 @@
             patchToday(function (ww) {
               return Object.assign({}, ww, {
                 blocks: ww.blocks.map(function (b) {
-                  return b.id === focusBlockId ? Object.assign({}, b, { exercise_id: newId, logged: [] }) : b;
+                  return b.id === focusBlockId
+                    ? Object.assign({}, b, { exercise_id: newId, logged: [] })
+                    : b;
                 }),
               });
             });
@@ -1566,14 +2152,22 @@
               renderFocus();
             }
           };
-          $("log-completed").onclick = function () { logSet("completed"); };
-          $("log-failed").onclick = function () { logSet("failed"); };
-          $("log-skip").onclick = function () { logSet("skipped"); };
+          $("log-completed").onclick = function () {
+            logSet("completed");
+          };
+          $("log-failed").onclick = function () {
+            logSet("failed");
+          };
+          $("log-skip").onclick = function () {
+            logSet("skipped");
+          };
           $("log-undo").onclick = function () {
             patchToday(function (ww) {
               return Object.assign({}, ww, {
                 blocks: ww.blocks.map(function (b) {
-                  return b.id === focusBlockId ? Object.assign({}, b, { logged: b.logged.slice(0, -1) }) : b;
+                  return b.id === focusBlockId
+                    ? Object.assign({}, b, { logged: b.logged.slice(0, -1) })
+                    : b;
                 }),
               });
             });
@@ -1585,7 +2179,11 @@
                 blocks: ww.blocks.map(function (b) {
                   if (b.id !== focusBlockId) return b;
                   var last = b.planned[b.planned.length - 1];
-                  return Object.assign({}, b, { planned: b.planned.concat([Object.assign({}, last, { set_number: b.planned.length + 1 })]) });
+                  return Object.assign({}, b, {
+                    planned: b.planned.concat([
+                      Object.assign({}, last, { set_number: b.planned.length + 1 }),
+                    ]),
+                  });
                 }),
               });
             });
@@ -1595,7 +2193,11 @@
 
         function logSet(status) {
           var w = state.todayWorkout;
-          var block = w && w.blocks.find(function (b) { return b.id === focusBlockId; });
+          var block =
+            w &&
+            w.blocks.find(function (b) {
+              return b.id === focusBlockId;
+            });
           if (!block) return;
           var nextIdx = block.logged.length;
           patchToday(function (ww) {
@@ -1603,15 +2205,17 @@
               blocks: ww.blocks.map(function (b) {
                 if (b.id !== focusBlockId) return b;
                 return Object.assign({}, b, {
-                  logged: b.logged.concat([{
-                    set_number: nextIdx + 1,
-                    weight: focusForm.weight,
-                    reps: focusForm.reps,
-                    rir: focusForm.rir,
-                    rest_seconds: focusForm.rest,
-                    status: status,
-                    logged_at: new Date().toISOString(),
-                  }]),
+                  logged: b.logged.concat([
+                    {
+                      set_number: nextIdx + 1,
+                      weight: focusForm.weight,
+                      reps: focusForm.reps,
+                      rir: focusForm.rir,
+                      rest_seconds: focusForm.rest,
+                      status: status,
+                      logged_at: new Date().toISOString(),
+                    },
+                  ]),
                 });
               }),
             });
@@ -1624,46 +2228,138 @@
         function exerciseNamesFor(workout) {
           if (!workout) return [];
           return workout.blocks
-            .map(function (b) { var e = state.exercises.find(function (x) { return x.id === b.exercise_id; }); return e ? e.name : null; })
+            .map(function (b) {
+              var e = state.exercises.find(function (x) {
+                return x.id === b.exercise_id;
+              });
+              return e ? e.name : null;
+            })
             .filter(Boolean);
         }
         function buildKhoraReply(intent, workout, names) {
           var first = names[0] || "o primeiro exercício";
           var second = names[1] || "o segundo exercício";
           if (!workout) {
-            if (intent === "Tenho 20 minutos só") return "Escolha um modelo primeiro. Para 20 minutos, eu usaria 2 exercícios principais, 2 séries cada e descanso curto.";
-            if (intent === "Estou sem energia hoje") return "Sem treino ativo, a melhor saída é treino livre leve: 2 exercícios, 2 séries, sem falha.";
-            if (intent === "Substituir exercício") return "Ainda não há treino ativo. Escolha primeiro um modelo ou comece um treino livre para eu sugerir uma troca do mesmo grupo muscular.";
-            if (intent === "Ver minha evolução") return "Para evolução, olhe consistência, carga e sensação corporal. Vá ao Histórico para comparar os treinos registrados.";
+            if (intent === "Tenho 20 minutos só")
+              return "Escolha um modelo primeiro. Para 20 minutos, eu usaria 2 exercícios principais, 2 séries cada e descanso curto.";
+            if (intent === "Estou sem energia hoje")
+              return "Sem treino ativo, a melhor saída é treino livre leve: 2 exercícios, 2 séries, sem falha.";
+            if (intent === "Substituir exercício")
+              return "Ainda não há treino ativo. Escolha primeiro um modelo ou comece um treino livre para eu sugerir uma troca do mesmo grupo muscular.";
+            if (intent === "Ver minha evolução")
+              return "Para evolução, olhe consistência, carga e sensação corporal. Vá ao Histórico para comparar os treinos registrados.";
             return "Ainda não há treino ativo. Escolha primeiro um modelo de treino ou comece um treino livre. Depois eu consigo ajustar carga, volume e tempo.";
           }
-          if (intent === "Tenho 20 minutos só") return "Versão curta do " + workout.name + ":\n1. Faça " + first + ".\n2. Faça " + second + ", se der tempo.\n3. Use 2 séries por exercício.\n4. Descanse 40–60s.\n5. Corte acessórios hoje.";
-          if (intent === "Estou sem energia hoje") return "Hoje faça manutenção:\n- reduza 1 série de cada exercício;\n- evite falha;\n- mantenha técnica limpa;\n- registre como treino leve.";
-          if (intent === "Substituir exercício") return "Escolha qual exercício incomodou. No seu treino atual há: " + (names.join(", ") || "exercícios planejados") + ". Qual deles você quer substituir?";
-          if (intent === "Ver minha evolução") return "Para evolução, olhe consistência, carga e sensação corporal. Vá ao Histórico para comparar os treinos registrados.";
-          if (intent === "Registrar treino livre") return "Registre só o essencial no " + workout.name + ": exercício, carga, reps e sensação. Depois ajuste o plano com calma.";
-          return "Ajuste do " + workout.name + ": faça " + first + " e " + second + ". Se o tempo apertar, corte acessórios. Use 2 séries por exercício e descanso de 40–60s.";
+          if (intent === "Tenho 20 minutos só")
+            return (
+              "Versão curta do " +
+              workout.name +
+              ":\n1. Faça " +
+              first +
+              ".\n2. Faça " +
+              second +
+              ", se der tempo.\n3. Use 2 séries por exercício.\n4. Descanse 40–60s.\n5. Corte acessórios hoje."
+            );
+          if (intent === "Estou sem energia hoje")
+            return "Hoje faça manutenção:\n- reduza 1 série de cada exercício;\n- evite falha;\n- mantenha técnica limpa;\n- registre como treino leve.";
+          if (intent === "Substituir exercício")
+            return (
+              "Escolha qual exercício incomodou. No seu treino atual há: " +
+              (names.join(", ") || "exercícios planejados") +
+              ". Qual deles você quer substituir?"
+            );
+          if (intent === "Ver minha evolução")
+            return "Para evolução, olhe consistência, carga e sensação corporal. Vá ao Histórico para comparar os treinos registrados.";
+          if (intent === "Registrar treino livre")
+            return (
+              "Registre só o essencial no " +
+              workout.name +
+              ": exercício, carga, reps e sensação. Depois ajuste o plano com calma."
+            );
+          return (
+            "Ajuste do " +
+            workout.name +
+            ": faça " +
+            first +
+            " e " +
+            second +
+            ". Se o tempo apertar, corte acessórios. Use 2 séries por exercício e descanso de 40–60s."
+          );
         }
         function buildKhoraSeed(workout, names, signals) {
-          var body = signals ? " Energia: " + signals.energy + "; sono: " + signals.sleep + "; dor: " + signals.pain + "; tempo disponível: " + signals.available + " minutos." : "";
-          if (!workout) return "Khora, estou no Corpore Sano. Ainda não há treino ativo." + body + " Quero ajuda para escolher uma versão segura do treino de hoje.";
-          return "Khora, estou no Corpore Sano e quero ajuda com meu treino. Treino atual: " + workout.name + ". Exercícios: " + (names.join(", ") || "ainda não listados") + ". Séries planejadas: " + workout.blocks.map(function (b) { return b.planned.length; }).join("/") + ". Descansos: " + workout.blocks.map(function (b) { return b.planned[0] ? b.planned[0].rest_seconds : null; }).filter(Boolean).join("/") + "s." + body + " Monte uma orientação curta e prática.";
+          var body = signals
+            ? " Energia: " +
+              signals.energy +
+              "; sono: " +
+              signals.sleep +
+              "; dor: " +
+              signals.pain +
+              "; tempo disponível: " +
+              signals.available +
+              " minutos."
+            : "";
+          if (!workout)
+            return (
+              "Khora, estou no Corpore Sano. Ainda não há treino ativo." +
+              body +
+              " Quero ajuda para escolher uma versão segura do treino de hoje."
+            );
+          return (
+            "Khora, estou no Corpore Sano e quero ajuda com meu treino. Treino atual: " +
+            workout.name +
+            ". Exercícios: " +
+            (names.join(", ") || "ainda não listados") +
+            ". Séries planejadas: " +
+            workout.blocks
+              .map(function (b) {
+                return b.planned.length;
+              })
+              .join("/") +
+            ". Descansos: " +
+            workout.blocks
+              .map(function (b) {
+                return b.planned[0] ? b.planned[0].rest_seconds : null;
+              })
+              .filter(Boolean)
+              .join("/") +
+            "s." +
+            body +
+            " Monte uma orientação curta e prática."
+          );
         }
         function renderKhora() {
           var w = state.todayWorkout;
           var names = exerciseNamesFor(w);
-          var context = w ? (w.name + (names.length ? " · " + names.slice(0, 3).join(" · ") : "")) : "Ainda não há treino ativo.";
+          var context = w
+            ? w.name + (names.length ? " · " + names.slice(0, 3).join(" · ") : "")
+            : "Ainda não há treino ativo.";
           var reply = buildKhoraReply(khoraIntent, w, names);
           $("khora-panel").innerHTML =
             '<div class="row" style="margin-bottom:8px">' +
             '<p class="small faint" style="text-transform:uppercase;letter-spacing:0.2em;font-size:0.62rem">Khora</p></div>' +
             '<div style="border:1px solid rgba(201,138,101,0.2);background:var(--khora-dim);border-radius:10px;padding:10px;margin-bottom:10px">' +
-            '<p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--khora)">' + esc(khoraIntent) + "</p>" +
-            '<p class="small" style="white-space:pre-line;margin-top:4px">' + esc(reply) + "</p>" +
-            '<p class="faint small" style="margin-top:6px">' + esc(context) + "</p></div>" +
+            '<p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--khora)">' +
+            esc(khoraIntent) +
+            "</p>" +
+            '<p class="small" style="white-space:pre-line;margin-top:4px">' +
+            esc(reply) +
+            "</p>" +
+            '<p class="faint small" style="margin-top:6px">' +
+            esc(context) +
+            "</p></div>" +
             '<p class="small dim" style="margin-bottom:8px">Toque para uma orientação rápida sem sair do treino.</p>' +
             '<div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:10px">' +
-            CHIPS.map(function (c) { return '<button class="pill' + (c === khoraIntent ? " active" : "") + '" data-chip="' + esc(c) + '">' + esc(c) + "</button>"; }).join("") +
+            CHIPS.map(function (c) {
+              return (
+                '<button class="pill' +
+                (c === khoraIntent ? " active" : "") +
+                '" data-chip="' +
+                esc(c) +
+                '">' +
+                esc(c) +
+                "</button>"
+              );
+            }).join("") +
             "</div>" +
             '<button class="btn ghost" id="khora-full" style="text-transform:uppercase;letter-spacing:0.16em;font-size:0.7rem">↗ abrir chat completo</button>';
           $("khora-panel")
@@ -1715,7 +2411,9 @@
           }
           if (msg.action === "corpore-sano:workout-text-parsed") {
             var imported = normalizeImportedWorkout(p.workout);
-            var unmatched = (Array.isArray(p.unmatched) ? p.unmatched : []).concat(imported && imported.unmatched ? imported.unmatched : []);
+            var unmatched = (Array.isArray(p.unmatched) ? p.unmatched : []).concat(
+              imported && imported.unmatched ? imported.unmatched : [],
+            );
             importingWorkoutText = false;
             if (!imported) {
               setWorkoutImportStatus("Não consegui organizar esse treino agora.", true);
@@ -1728,7 +2426,9 @@
             // rascunho local: evita perder o treino importado, mas o salvamento definitivo continua no botão existente.
             persist();
             renderAll();
-            var okMsg = unmatched.length ? "Treino preenchido. Alguns exercícios não foram reconhecidos e ficaram de fora." : "Treino preenchido. Revise antes de salvar.";
+            var okMsg = unmatched.length
+              ? "Treino preenchido. Alguns exercícios não foram reconhecidos e ficaram de fora."
+              : "Treino preenchido. Revise antes de salvar.";
             setWorkoutImportStatus(okMsg, false);
             toast(okMsg);
             return;

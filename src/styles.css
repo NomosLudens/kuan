@@ -131,9 +131,21 @@
     /* --facet-accent é setado pelo ChatView (ver useEffect) com a cor da faceta ativa
        (Kaline/Kháris/Kuan-Yin); fora de um chat, cai no laranja padrão da Kaline. */
     background:
-      radial-gradient(1100px 700px at 80% -10%, color-mix(in oklab, var(--facet-accent, var(--kaline)) 45%, transparent), transparent 60%),
-      radial-gradient(900px 600px at -10% 20%, color-mix(in oklab, var(--facet-accent, var(--kaline)) 30%, transparent), transparent 65%),
-      radial-gradient(700px 500px at 50% 110%, color-mix(in oklab, var(--kaline) 6%, transparent), transparent 70%),
+      radial-gradient(
+        1100px 700px at 80% -10%,
+        color-mix(in oklab, var(--facet-accent, var(--kaline)) 45%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 600px at -10% 20%,
+        color-mix(in oklab, var(--facet-accent, var(--kaline)) 30%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        700px 500px at 50% 110%,
+        color-mix(in oklab, var(--kaline) 6%, transparent),
+        transparent 70%
+      ),
       var(--obsidian);
     min-height: 100dvh;
     transition: background 0.4s ease;
