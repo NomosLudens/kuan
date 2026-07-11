@@ -83,5 +83,5 @@ Checklist de controle de qualidade (QA) para validação do Guardian Calendar MV
 
 - [ ] Acessar `/convite?token=...` ou simular o fluxo de convites para garantir que os mecanismos de proteção implementados no PR #27 (como limite de taxa de requisições, proteção contra redirecionamentos abertos, e isolamento de sessão) continuam 100% íntegros e funcionais.
 - [ ] Executar a suíte de testes de convite:
-  `bun test src/lib/invite-security.test.ts`
-  E verificar que todos os testes de segurança passam com sucesso.
+      `bun test src/lib/invite-security.test.ts`
+      E verificar que todos os testes de segurança passam com sucesso.
