@@ -1,4 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
+import { isAuthSessionError, handleAuthSessionExpiry } from "@/lib/utils";
 
 /**
  * Skeletons fiéis — desenham a forma do conteúdo final em vez de spinner.
@@ -84,29 +85,47 @@ export function HomeMetaSkeleton() {
  */
 export function RouteErrorBoundary({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const isAuthError = isAuthSessionError(error);
+
   return (
     <div className="px-4 py-10 max-w-md mx-auto text-center fade-up">
-      <h2 className="text-base font-semibold text-[color:var(--ivory)]">Algo travou aqui.</h2>
+      <h2 className="text-base font-semibold text-[color:var(--ivory)]">
+        {isAuthError ? "Sua sessão expirou." : "Algo travou aqui."}
+      </h2>
       <p className="mt-2 text-xs text-[color:var(--ivory-dim)] break-words">
-        {error.message || "Erro inesperado ao carregar esta superfície."}
+        {isAuthError
+          ? "Sua sessão expirou. Entre novamente para continuar."
+          : error.message || "Erro inesperado ao carregar esta superfície."}
       </p>
       <div className="mt-5 flex justify-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-          className="press-scale inline-flex items-center justify-center rounded-md bg-[color:var(--gold)] px-4 py-2 text-sm font-medium text-[color:var(--obsidian)]"
-        >
-          Tentar de novo
-        </button>
-        <Link
-          to="/home"
-          className="press-scale inline-flex items-center justify-center rounded-md border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--ivory)]"
-        >
-          Voltar
-        </Link>
+        {isAuthError ? (
+          <button
+            type="button"
+            onClick={() => handleAuthSessionExpiry()}
+            className="press-scale inline-flex items-center justify-center rounded-md bg-[color:var(--gold)] px-4 py-2 text-sm font-medium text-[color:var(--obsidian)] transition-colors hover:opacity-90"
+          >
+            Entrar novamente
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                router.invalidate();
+                reset();
+              }}
+              className="press-scale inline-flex items-center justify-center rounded-md bg-[color:var(--gold)] px-4 py-2 text-sm font-medium text-[color:var(--obsidian)]"
+            >
+              Tentar de novo
+            </button>
+            <Link
+              to="/home"
+              className="press-scale inline-flex items-center justify-center rounded-md border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--ivory)]"
+            >
+              Voltar
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

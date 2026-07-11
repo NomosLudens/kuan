@@ -14,6 +14,7 @@ import "../lib/fonts";
 import { reportClientError } from "../lib/client-error-reporting";
 import { KalineLoadingShell } from "../components/KalineLoadingShell";
 import { Toaster } from "../components/ui/sonner";
+import { isAuthSessionError, handleAuthSessionExpiry } from "../lib/utils";
 
 function getPublicConfigScript() {
   const env = typeof process !== "undefined" ? process.env : {};
@@ -178,31 +179,46 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     reportClientError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  const isAuthError = isAuthSessionError(error);
+
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Esta página não carregou
+          {isAuthError ? "Sua sessão expirou" : "Esta página não carregou"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Algo deu errado por aqui. Você pode tentar novamente ou voltar ao início.
+          {isAuthError
+            ? "Sua sessão expirou. Entre novamente para continuar."
+            : "Algo deu errado por aqui. Você pode tentar novamente ou voltar ao início."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Tentar novamente
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Voltar ao início
-          </a>
+          {isAuthError ? (
+            <button
+              onClick={() => handleAuthSessionExpiry()}
+              className="inline-flex items-center justify-center rounded-md bg-[color:var(--gold)] px-4 py-2 text-sm font-medium text-[color:var(--obsidian)] transition-colors hover:opacity-90"
+            >
+              Entrar novamente
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  router.invalidate();
+                  reset();
+                }}
+                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Tentar novamente
+              </button>
+              <a
+                href="/"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                Voltar ao início
+              </a>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -281,6 +297,24 @@ function RootComponent() {
     } catch {
       /* sessionStorage indisponível — ignora */
     }
+
+    // Intercept sonner toast.error globally to capture and friendly-mask auth session errors
+    import("sonner").then(({ toast }) => {
+      const originalError = toast.error;
+      toast.error = (message, data) => {
+        if (isAuthSessionError(message)) {
+          const friendlyMessage = "Sua sessão expirou. Entre novamente para continuar.";
+          const lastAlert = (window as any).__last_auth_alert_time__ || 0;
+          if (Date.now() - lastAlert > 2000) {
+            (window as any).__last_auth_alert_time__ = Date.now();
+            originalError(friendlyMessage, data);
+            handleAuthSessionExpiry();
+          }
+          return "";
+        }
+        return originalError(message, data);
+      };
+    });
   }, []);
 
   useEffect(() => {
