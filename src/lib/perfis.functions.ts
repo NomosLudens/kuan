@@ -24,6 +24,12 @@ const inviteSchema = z.object({
   origin: z.string().url().max(300),
 });
 
+export function normalizeEmail(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim().toLowerCase();
+  return trimmed || null;
+}
+
 function slugifyGuardianSeed(value: string): string {
   const slug = value
     .normalize("NFD")
@@ -130,7 +136,7 @@ export const createInvite = createServerFn({ method: "POST" })
       .from("workspace_invitations")
       .insert({
         owner_id: userId,
-        email: data.email,
+        email: normalizeEmail(data.email) || data.email,
         modules: data.modules,
         token,
         status: "pending",
@@ -181,17 +187,6 @@ export const revokeInvite = createServerFn({ method: "POST" })
       .eq("owner_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
-  });
-
-export const acceptInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
-  .handler(async ({ data }) => {
-    const result = await acceptGuardianInvitation({ data: { token: data.token } });
-    if ("error" in result) {
-      throw new Error(result.error);
-    }
-    return result;
   });
 
 export const updateMemberModules = createServerFn({ method: "POST" })
@@ -445,8 +440,7 @@ export const checkGuardianInvitation = createServerFn({ method: "POST" })
           const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
           const { data: claimsData } = await supabase.auth.getClaims(token);
           if (claimsData?.claims) {
-            userEmail =
-              (claimsData.claims.email as string | undefined)?.trim().toLowerCase() ?? null;
+            userEmail = normalizeEmail(claimsData.claims.email as string | undefined);
             userId = claimsData.claims.sub ?? null;
           }
         }
@@ -505,7 +499,7 @@ export const checkGuardianInvitation = createServerFn({ method: "POST" })
       return { status: "auth_required" };
     }
 
-    const invitedEmailNormalized = invite.email.trim().toLowerCase();
+    const invitedEmailNormalized = normalizeEmail(invite.email);
 
     // 2. Already accepted (Estado 4 & 5)
     if (invite.status === "accepted") {
@@ -608,7 +602,7 @@ export const acceptGuardianInvitation = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
   .handler(async ({ data, context }) => {
     const { userId, claims } = context;
-    const userEmail = (claims.email as string | undefined)?.trim().toLowerCase();
+    const userEmail = normalizeEmail(claims.email as string | undefined);
 
     if (!userEmail) {
       logInviteEvent({
@@ -632,7 +626,7 @@ export const acceptGuardianInvitation = createServerFn({ method: "POST" })
       return { error: "invalid" };
     }
 
-    const invitedEmailNormalized = invite.email.trim().toLowerCase();
+    const invitedEmailNormalized = normalizeEmail(invite.email);
 
     // Check if expired
     if (invite.status === "expired" || new Date(invite.expires_at).getTime() < Date.now()) {
@@ -698,7 +692,7 @@ export const acceptGuardianInvitation = createServerFn({ method: "POST" })
       }
     }
 
-    // Comparison
+    // Email matching validation
     if (userEmail !== invitedEmailNormalized) {
       logInviteEvent({
         action: "invite_accept_blocked_wrong_email",
@@ -720,64 +714,82 @@ export const acceptGuardianInvitation = createServerFn({ method: "POST" })
       return { error: "owner_cannot_accept" };
     }
 
-    // Create/update workspace_member link
-    const { data: existingMember, error: existingMemberError } = await supabaseAdmin
-      .from("workspace_members")
-      .select("id")
-      .eq("owner_id", invite.owner_id)
-      .eq("member_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (existingMemberError) throw new Error(existingMemberError.message);
+    try {
+      // 1. Create/update workspace_members link
+      const { data: existingMember, error: existingMemberError } = await supabaseAdmin
+        .from("workspace_members")
+        .select("id")
+        .eq("owner_id", invite.owner_id)
+        .eq("member_id", userId)
+        .limit(1)
+        .maybeSingle();
+      if (existingMemberError) throw new Error(existingMemberError.message);
 
-    const memberPayload = {
-      owner_id: invite.owner_id,
-      member_id: userId,
-      modules: invite.modules,
-    } as never;
+      const memberPayload = {
+        owner_id: invite.owner_id,
+        member_id: userId,
+        modules: invite.modules,
+      } as never;
 
-    const { error: linkErr } = existingMember
-      ? await supabaseAdmin
-          .from("workspace_members")
-          .update(memberPayload)
-          .eq("id", (existingMember as { id: string }).id)
-      : await supabaseAdmin.from("workspace_members").insert(memberPayload);
-    if (linkErr) throw new Error(linkErr.message);
+      const { error: linkErr } = existingMember
+        ? await supabaseAdmin
+            .from("workspace_members")
+            .update(memberPayload)
+            .eq("id", (existingMember as { id: string }).id)
+        : await supabaseAdmin.from("workspace_members").insert(memberPayload);
+      if (linkErr) throw new Error(linkErr.message);
 
-    // Mark invitation as accepted
-    await supabaseAdmin
-      .from("workspace_invitations")
-      .update({
-        status: "accepted",
-        accepted_by: userId,
-        accepted_at: new Date().toISOString(),
-      })
-      .eq("id", invite.id);
+      // 2. Reset admin roles to member
+      const { error: roleDelErr } = await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+      if (roleDelErr) throw new Error(roleDelErr.message);
 
-    // Reset admin roles to member
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "member" }, { onConflict: "user_id,role" });
+      const { error: roleUpsertErr } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: userId, role: "member" }, { onConflict: "user_id,role" });
+      if (roleUpsertErr) throw new Error(roleUpsertErr.message);
 
-    // Set assigned_facet in profile
-    const modules = invite.modules as string[];
-    let assignedFacet: string | null = null;
-    if (modules.includes("kuanyin")) assignedFacet = "kuanyin";
-    else if (modules.includes("kharis")) assignedFacet = "kharis";
-    else assignedFacet = "kaline";
+      // 3. Set assigned_facet in profile
+      const modules = invite.modules as string[];
+      let assignedFacet: string | null = null;
+      if (modules.includes("kuanyin")) assignedFacet = "kuanyin";
+      else if (modules.includes("kharis")) assignedFacet = "kharis";
+      else assignedFacet = "kaline";
 
-    await supabaseAdmin
-      .from("profiles")
-      .update({ role: "user", assigned_facet: assignedFacet })
-      .eq("id", userId);
+      const { error: profileErr } = await supabaseAdmin
+        .from("profiles")
+        .update({ role: "user", assigned_facet: assignedFacet })
+        .eq("id", userId);
+      if (profileErr) throw new Error(profileErr.message);
 
-    if (modules.includes("kuanyin")) {
-      await createKuanYinGuardianLink({
-        adminUserId: invite.owner_id,
-        guardianUserId: userId,
-        email: invite.email,
-      });
+      // 4. Create guardian link if kuanyin
+      if (modules.includes("kuanyin")) {
+        await createKuanYinGuardianLink({
+          adminUserId: invite.owner_id,
+          guardianUserId: userId,
+          email: invite.email,
+        });
+      }
+
+      // 5. Mark invitation as accepted (VERY LAST STEP!)
+      const { error: inviteUpdateErr } = await supabaseAdmin
+        .from("workspace_invitations")
+        .update({
+          status: "accepted",
+          accepted_by: userId,
+          accepted_at: new Date().toISOString(),
+        })
+        .eq("id", invite.id);
+      if (inviteUpdateErr) throw new Error(inviteUpdateErr.message);
+    } catch (dbErr) {
+      console.error("[acceptGuardianInvitation] Atomic sequential transaction failed:", dbErr);
+      return {
+        error: "accept_failed",
+        message: dbErr instanceof Error ? dbErr.message : "Erro ao aceitar convite.",
+      };
     }
 
     logInviteEvent({
