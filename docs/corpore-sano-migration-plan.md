@@ -6,16 +6,16 @@ Existe um protótipo abandonado de microapp HTML para o Corpore Sano: `src/compo
 
 ## 2. Comparação de escopo
 
-| | Protótipo morto | Versão real em produção |
-|---|---|---|
-| Abas | hoje / sessão / histórico / sinais | hoje / plano / histórico + Focus Mode full-screen |
-| Templates de treino | ❌ | ✅ criar/editar/gerenciar (`TrainingTemplatesCard`) |
-| Plano semanal | ❌ | ✅ `WeekPlanCard` |
-| Biblioteca de exercícios | ❌ | ✅ `ExerciseLibraryPanel` |
-| Execução guiada | ❌ | ✅ `FocusMode` (374 linhas: timer de descanso, log de série, desfazer, trocar exercício) |
-| Recordes pessoais (PR) | ❌ | ✅ |
-| Chat com Khora (IA) | ❌ | ✅ `KhoraChatChips` |
-| Motor | `corpore-sano.functions.ts`, chama Supabase direto do cliente (sem server function) | `treinos-sync.ts`, mesma coisa |
+|                          | Protótipo morto                                                                     | Versão real em produção                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Abas                     | hoje / sessão / histórico / sinais                                                  | hoje / plano / histórico + Focus Mode full-screen                                        |
+| Templates de treino      | ❌                                                                                  | ✅ criar/editar/gerenciar (`TrainingTemplatesCard`)                                      |
+| Plano semanal            | ❌                                                                                  | ✅ `WeekPlanCard`                                                                        |
+| Biblioteca de exercícios | ❌                                                                                  | ✅ `ExerciseLibraryPanel`                                                                |
+| Execução guiada          | ❌                                                                                  | ✅ `FocusMode` (374 linhas: timer de descanso, log de série, desfazer, trocar exercício) |
+| Recordes pessoais (PR)   | ❌                                                                                  | ✅                                                                                       |
+| Chat com Khora (IA)      | ❌                                                                                  | ✅ `KhoraChatChips`                                                                      |
+| Motor                    | `corpore-sano.functions.ts`, chama Supabase direto do cliente (sem server function) | `treinos-sync.ts`, mesma coisa                                                           |
 
 Tamanho total do que precisa ser portado: `CorporeSanoPage.tsx` (418) + `use-treinos.ts` (212) + 12 componentes (1215) + `storage.ts`/`types.ts`/`utils.ts`/`data.ts` + `treinos-sync.ts` (~340) ≈ **2200+ linhas**. Maior microapp até agora.
 
@@ -75,12 +75,12 @@ Paleta usa os tons cobre/âmbar (`#C98A65`/`#D9A441`) já usados pela persona Kh
 
 ## 5. Riscos
 
-| Risco | Mitigação |
-|-------|-----------|
-| Maior superfície já migrada — risco de regressão funcional | Fazer por partes (aba por aba), testar cada uma isoladamente antes de trocar a rota real |
-| Focus Mode tem lógica de timer/estado complexa | Portar com cuidado, testar timer de descanso e log de série manualmente |
-| `localStorage` compartilhado entre React antigo e HTML novo | Não mudar o formato de `TrainingState` sem migração explícita de schema |
-| Semáforo/PRs calculados errado | Replicar `inferSemaphore()` e cálculo de e1RM exatamente como estão em `utils.ts`/`treinos-sync.ts` |
+| Risco                                                       | Mitigação                                                                                           |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Maior superfície já migrada — risco de regressão funcional  | Fazer por partes (aba por aba), testar cada uma isoladamente antes de trocar a rota real            |
+| Focus Mode tem lógica de timer/estado complexa              | Portar com cuidado, testar timer de descanso e log de série manualmente                             |
+| `localStorage` compartilhado entre React antigo e HTML novo | Não mudar o formato de `TrainingState` sem migração explícita de schema                             |
+| Semáforo/PRs calculados errado                              | Replicar `inferSemaphore()` e cálculo de e1RM exatamente como estão em `utils.ts`/`treinos-sync.ts` |
 
 ## 6. Status
 

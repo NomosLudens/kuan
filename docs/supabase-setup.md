@@ -34,16 +34,16 @@ inesperado). Por isso os dois foram trocados para `workflow_dispatch` (só manua
   contra o projeto linkado nos secrets, sem aplicar nada. Útil para validar a baseline contra um
   projeto **novo** antes de aplicar de verdade.
 - **`.github/workflows/supabase-migrations-apply.yml`** — aplica de verdade (`supabase db
-  push`) contra o projeto linkado nos secrets.
+push`) contra o projeto linkado nos secrets.
 
 Se for usar esses workflows (ex.: apontando os secrets para um Supabase novo, não a produção
 atual), cadastre em **Settings → Secrets and variables → Actions**:
 
-| Secret | Onde pegar |
-| - | - |
-| `SUPABASE_ACCESS_TOKEN` | supabase.com/dashboard/account/tokens |
-| `SUPABASE_PROJECT_REF` | Project Settings → General (ou o subdomínio da `SUPABASE_URL`, ex. `eljftgvjjeynkhijdthq`) |
-| `SUPABASE_DB_PASSWORD` | Project Settings → Database |
+| Secret                  | Onde pegar                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `SUPABASE_ACCESS_TOKEN` | supabase.com/dashboard/account/tokens                                                      |
+| `SUPABASE_PROJECT_REF`  | Project Settings → General (ou o subdomínio da `SUPABASE_URL`, ex. `eljftgvjjeynkhijdthq`) |
+| `SUPABASE_DB_PASSWORD`  | Project Settings → Database                                                                |
 
 Depois dispare manualmente em **Actions → Supabase migrations check/apply → Run workflow**.
 

@@ -35,7 +35,11 @@
       body {
         background: var(--bg);
         color: var(--text);
-        font-family: Inter, system-ui, -apple-system, sans-serif;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          sans-serif;
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
       }
@@ -621,16 +625,18 @@
           return document.getElementById(id);
         }
         function esc(value) {
-          return String(value == null ? "" : value).replace(
-            /[&<>"']/g,
-            function (c) {
-              return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-            },
-          );
+          return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+          });
         }
         function emit(action, payload) {
           window.parent?.postMessage(
-            { source: "camara-do-eco", action: action, payload: payload || {}, timestamp: Date.now() },
+            {
+              source: "camara-do-eco",
+              action: action,
+              payload: payload || {},
+              timestamp: Date.now(),
+            },
             window.location.origin,
           );
         }
@@ -731,7 +737,10 @@
         $("btn-salvar-novo").onclick = function () {
           var titulo = $("novo-input-titulo").value.trim();
           if (!titulo) {
-            toast(novoMode === "audio" ? "Dê um título à câmara primeiro" : "Título obrigatório", true);
+            toast(
+              novoMode === "audio" ? "Dê um título à câmara primeiro" : "Título obrigatório",
+              true,
+            );
             return;
           }
           if (novoMode === "texto") {
@@ -755,9 +764,7 @@
           ul.innerHTML = sessoes
             .map(function (s) {
               var emCurso =
-                s.status === "gravando"
-                  ? '<span class="pill gold">em curso</span>'
-                  : "";
+                s.status === "gravando" ? '<span class="pill gold">em curso</span>' : "";
               return (
                 '<li class="item">' +
                 '<button class="link" data-open="' +
@@ -792,7 +799,11 @@
               var s = sessoes.find(function (x) {
                 return x.id === id;
               });
-              if (!confirm('Remover "' + (s ? s.titulo : "") + '"? Áudios e transcrições serão apagados.'))
+              if (
+                !confirm(
+                  'Remover "' + (s ? s.titulo : "") + '"? Áudios e transcrições serão apagados.',
+                )
+              )
                 return;
               emit("camara:sessao-deletar", { sessao_id: id });
             };
@@ -876,7 +887,9 @@
                 seg.status === "failed"
                   ? '<div style="margin-top:8px;display:flex;align-items:center;gap:10px">' +
                     (seg.erro
-                      ? '<span class="small" style="color:var(--danger)">' + esc(seg.erro) + "</span>"
+                      ? '<span class="small" style="color:var(--danger)">' +
+                        esc(seg.erro) +
+                        "</span>"
                       : "") +
                     '<button class="btn outline" style="padding:6px 12px;font-size:0.78rem" data-retry="' +
                     esc(seg.id) +
@@ -1015,7 +1028,8 @@
           var vazio = $("analise-vazio");
           if (!a && !podeBtn) {
             vazio.classList.remove("hide");
-            vazio.textContent = "A análise estará disponível quando houver pelo menos um bloco transcrito.";
+            vazio.textContent =
+              "A análise estará disponível quando houver pelo menos um bloco transcrito.";
           } else if (!a && podeBtn && !analisando) {
             vazio.classList.remove("hide");
             vazio.textContent =
@@ -1112,7 +1126,13 @@
             btn.onclick = function () {
               var origem = btn.getAttribute("data-origem");
               var idx = Number(btn.getAttribute("data-semear"));
-              var itens = { tema: a.temas, decisao: a.decisoes, sinal: a.sinais, proximo_gesto: a.proximos_gestos, candidato_revisao: a.candidatos_revisao }[origem];
+              var itens = {
+                tema: a.temas,
+                decisao: a.decisoes,
+                sinal: a.sinais,
+                proximo_gesto: a.proximos_gestos,
+                candidato_revisao: a.candidatos_revisao,
+              }[origem];
               abrirSemear(itens[idx], origem);
             };
           });
@@ -1121,7 +1141,13 @@
             var origem = block ? block.getAttribute("data-lista") : "tema";
             var idx = Number(btn.getAttribute("data-kairos"));
             btn.onclick = function () {
-              var itens = { tema: a.temas, decisao: a.decisoes, sinal: a.sinais, proximo_gesto: a.proximos_gestos, candidato_revisao: a.candidatos_revisao }[origem];
+              var itens = {
+                tema: a.temas,
+                decisao: a.decisoes,
+                sinal: a.sinais,
+                proximo_gesto: a.proximos_gestos,
+                candidato_revisao: a.candidatos_revisao,
+              }[origem];
               abrirKairos(itens[idx]);
             };
           });
@@ -1136,7 +1162,11 @@
           var baixarAta = $("btn-baixar-ata");
           if (baixarAta)
             baixarAta.onclick = function () {
-              baixar(a.ata_markdown, "text/markdown;charset=utf-8", "ata-" + slug(s.titulo) + ".md");
+              baixar(
+                a.ata_markdown,
+                "text/markdown;charset=utf-8",
+                "ata-" + slug(s.titulo) + ".md",
+              );
             };
           var baixarSvg = $("btn-baixar-svg");
           if (baixarSvg)
@@ -1333,7 +1363,9 @@
             recording = false;
             finalizing = false;
             if (currentSessao) currentSessao.status = "finalizado";
-            toast("Câmara finalizada. Mantenha esta tela aberta até os blocos pendentes concluírem.");
+            toast(
+              "Câmara finalizada. Mantenha esta tela aberta até os blocos pendentes concluírem.",
+            );
             renderSessao();
             return;
           }

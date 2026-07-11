@@ -43,7 +43,8 @@ describe("PR #24 - Public Client Requests MVP State Invariants", () => {
 
 describe("PR #24 - Deterministic Text Intent Parser", () => {
   it("7. Cliente público pode solicitar horário via texto estruturado", () => {
-    const msg = "Quero solicitar um horário amanhã às 14h. Meu nome é Ana e meu WhatsApp é 11999999999.";
+    const msg =
+      "Quero solicitar um horário amanhã às 14h. Meu nome é Ana e meu WhatsApp é 11999999999.";
     const intent = parseDeterministicPublicIntent(msg);
     expect(intent).not.toBeNull();
     expect(intent?.type).toBe("appointment");
@@ -52,7 +53,8 @@ describe("PR #24 - Deterministic Text Intent Parser", () => {
   });
 
   it("8. Cliente público pode pedir orçamento via texto estruturado", () => {
-    const msg = "Quero pedir orçamento para massagem terapêutica. Meu celular é 11988888888 e meu nome é Marcos.";
+    const msg =
+      "Quero pedir orçamento para massagem terapêutica. Meu celular é 11988888888 e meu nome é Marcos.";
     const intent = parseDeterministicPublicIntent(msg);
     expect(intent).not.toBeNull();
     expect(intent?.type).toBe("order");
@@ -85,7 +87,9 @@ describe("PR #24 - Security Policies and Blocked Intents", () => {
   });
 
   it("12. Serviço legítimo não é bloqueado", () => {
-    const blockCheck = detectPublicClientBlockedIntent("Gostaria de agendar uma massagem relaxante");
+    const blockCheck = detectPublicClientBlockedIntent(
+      "Gostaria de agendar uma massagem relaxante",
+    );
     expect(blockCheck.blocked).toBe(false);
   });
 });

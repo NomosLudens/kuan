@@ -30,7 +30,11 @@
       body {
         background: var(--bg);
         color: var(--text);
-        font-family: Inter, system-ui, -apple-system, sans-serif;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          sans-serif;
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
       }
@@ -535,7 +539,8 @@
 
           var cells = [];
           for (var i = 0; i < startOffset; i++) cells.push(null);
-          for (var d = 1; d <= total; d++) cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), d));
+          for (var d = 1; d <= total; d++)
+            cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), d));
           while (cells.length % 7) cells.push(null);
 
           $("cal-grid").innerHTML = cells
@@ -598,9 +603,7 @@
               var fim = e.fim ? new Date(e.fim) : null;
               var hora = pad2(ini.getHours()) + ":" + pad2(ini.getMinutes());
               var horaFim = fim ? pad2(fim.getHours()) + ":" + pad2(fim.getMinutes()) : null;
-              var descHtml = e.descricao
-                ? '<div class="desc">' + esc(e.descricao) + "</div>"
-                : "";
+              var descHtml = e.descricao ? '<div class="desc">' + esc(e.descricao) + "</div>" : "";
               return (
                 '<li class="item">' +
                 '<span class="dot ' +
@@ -736,7 +739,10 @@
             emit("agenda:evento-criar", payload);
           }
           selected = inicio;
-          if (inicio.getMonth() !== cursor.getMonth() || inicio.getFullYear() !== cursor.getFullYear()) {
+          if (
+            inicio.getMonth() !== cursor.getMonth() ||
+            inicio.getFullYear() !== cursor.getFullYear()
+          ) {
             cursor = startOfMonth(inicio);
             renderCalendario();
             requestEventos();

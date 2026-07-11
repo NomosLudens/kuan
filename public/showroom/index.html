@@ -1,807 +1,2368 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kuan-Yin — uma IA de atendimento com a voz do seu negócio</title>
-<meta name="description" content="Kuan-Yin é uma IA comercial personalizada para empresas que atendem pessoas. Acolhe, explica serviços, organiza solicitações e prepara o primeiro contato com elegância." />
-<meta property="og:title" content="Kuan-Yin — IA de atendimento personalizada" />
-<meta property="og:description" content="Uma presença digital com a voz do seu negócio." />
-<meta property="og:type" content="website" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<style>
-:root{
-  --bg:#050308; --bg-soft:#100612;
-  --surface:rgba(255,255,255,.06); --surface-strong:rgba(255,255,255,.10);
-  --line:rgba(255,255,255,.14);
-  --rose:#BE185D; --magenta:#E879F9; --violet:#7C3AED; --amethyst:#A855F7;
-  --wine:#3B071F; --gold:#D6A85A;
-  --text:#F8EAF2; --muted:#BFA8B5;
-  --grad:linear-gradient(135deg,#E879F9 0%, #A855F7 45%, #7C3AED 100%);
-  --grad-soft:linear-gradient(135deg,rgba(232,121,249,.18),rgba(124,58,237,.18));
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.55}
-body{overflow-x:hidden;background:
-  radial-gradient(1200px 600px at 80% -10%, rgba(168,85,247,.25), transparent 60%),
-  radial-gradient(900px 500px at -10% 10%, rgba(190,24,93,.22), transparent 65%),
-  radial-gradient(1000px 700px at 50% 120%, rgba(124,58,237,.20), transparent 60%),
-  var(--bg)}
-a{color:inherit;text-decoration:none}
-img,svg{display:block;max-width:100%}
-.serif{font-family:'Cormorant Garamond',serif;font-weight:500;letter-spacing:-.01em}
-.container{max-width:1180px;margin:0 auto;padding:0 24px}
-.muted{color:var(--muted)}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kuan-Yin — uma IA de atendimento com a voz do seu negócio</title>
+    <meta
+      name="description"
+      content="Kuan-Yin é uma IA comercial personalizada para empresas que atendem pessoas. Acolhe, explica serviços, organiza solicitações e prepara o primeiro contato com elegância."
+    />
+    <meta property="og:title" content="Kuan-Yin — IA de atendimento personalizada" />
+    <meta property="og:description" content="Uma presença digital com a voz do seu negócio." />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #050308;
+        --bg-soft: #100612;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-strong: rgba(255, 255, 255, 0.1);
+        --line: rgba(255, 255, 255, 0.14);
+        --rose: #be185d;
+        --magenta: #e879f9;
+        --violet: #7c3aed;
+        --amethyst: #a855f7;
+        --wine: #3b071f;
+        --gold: #d6a85a;
+        --text: #f8eaf2;
+        --muted: #bfa8b5;
+        --grad: linear-gradient(135deg, #e879f9 0%, #a855f7 45%, #7c3aed 100%);
+        --grad-soft: linear-gradient(135deg, rgba(232, 121, 249, 0.18), rgba(124, 58, 237, 0.18));
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter Tight", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.55;
+      }
+      body {
+        overflow-x: hidden;
+        background:
+          radial-gradient(1200px 600px at 80% -10%, rgba(168, 85, 247, 0.25), transparent 60%),
+          radial-gradient(900px 500px at -10% 10%, rgba(190, 24, 93, 0.22), transparent 65%),
+          radial-gradient(1000px 700px at 50% 120%, rgba(124, 58, 237, 0.2), transparent 60%),
+          var(--bg);
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      img,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+      .serif {
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .container {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .muted {
+        color: var(--muted);
+      }
 
-/* NAV */
-.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(5,3,8,.55);border-bottom:1px solid var(--line)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:68px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.02em}
-.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--grad);box-shadow:0 0 24px var(--magenta)}
-.brand span small{display:block;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:-2px}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{color:var(--muted);font-size:14px}
-.nav-links a:hover{color:var(--text)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;font-size:14px;font-weight:500;transition:transform .25s,box-shadow .25s,background .25s;cursor:pointer;border:none}
-.btn-primary{background:var(--grad);color:#fff;box-shadow:0 10px 40px -10px rgba(168,85,247,.6)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 50px -10px rgba(168,85,247,.8)}
-.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--line)}
-.btn-ghost:hover{background:var(--surface-strong)}
-@media(max-width:760px){.nav-links a:not(.btn){display:none}}
+      /* NAV */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(14px);
+        background: rgba(5, 3, 8, 0.55);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-in {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 68px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .brand .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--grad);
+        box-shadow: 0 0 24px var(--magenta);
+      }
+      .brand span small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: -2px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+      .nav-links a {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        transition:
+          transform 0.25s,
+          box-shadow 0.25s,
+          background 0.25s;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary {
+        background: var(--grad);
+        color: #fff;
+        box-shadow: 0 10px 40px -10px rgba(168, 85, 247, 0.6);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 50px -10px rgba(168, 85, 247, 0.8);
+      }
+      .btn-ghost {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--line);
+      }
+      .btn-ghost:hover {
+        background: var(--surface-strong);
+      }
+      @media (max-width: 760px) {
+        .nav-links a:not(.btn) {
+          display: none;
+        }
+      }
 
-/* HERO */
-.hero{position:relative;padding:90px 0 80px;overflow:hidden}
-.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}
-@media(max-width:960px){.hero-grid{grid-template-columns:1fr;gap:48px}}
-.kicker{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-.kicker .pulse{width:6px;height:6px;border-radius:50%;background:var(--magenta);box-shadow:0 0 12px var(--magenta);animation:pulse 2s infinite}
-@keyframes pulse{50%{opacity:.4}}
-h1.title{font-size:clamp(40px,6vw,72px);line-height:1.02;margin:24px 0 22px;letter-spacing:-.02em}
-h1.title em{font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.lead{font-size:18px;color:var(--muted);max-width:560px;margin-bottom:18px}
-.impact{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--text);max-width:520px;border-left:2px solid var(--magenta);padding-left:16px;margin:24px 0 32px}
-.cta-row{display:flex;flex-wrap:wrap;gap:12px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:36px}
-.chip{padding:8px 14px;border-radius:999px;font-size:12px;background:var(--surface);border:1px solid var(--line);color:var(--text)}
+      /* HERO */
+      .hero {
+        position: relative;
+        padding: 90px 0 80px;
+        overflow: hidden;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 60px;
+        align-items: center;
+      }
+      @media (max-width: 960px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+          gap: 48px;
+        }
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .kicker .pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--magenta);
+        box-shadow: 0 0 12px var(--magenta);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.4;
+        }
+      }
+      h1.title {
+        font-size: clamp(40px, 6vw, 72px);
+        line-height: 1.02;
+        margin: 24px 0 22px;
+        letter-spacing: -0.02em;
+      }
+      h1.title em {
+        font-style: italic;
+        background: var(--grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .lead {
+        font-size: 18px;
+        color: var(--muted);
+        max-width: 560px;
+        margin-bottom: 18px;
+      }
+      .impact {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 22px;
+        color: var(--text);
+        max-width: 520px;
+        border-left: 2px solid var(--magenta);
+        padding-left: 16px;
+        margin: 24px 0 32px;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 36px;
+      }
+      .chip {
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--text);
+      }
 
-/* Hero visual — chat mockup */
-.hero-visual{position:relative;height:560px}
-.aura{position:absolute;inset:-10% -10%;background:radial-gradient(closest-side,rgba(232,121,249,.45),transparent 70%);filter:blur(40px);z-index:0;animation:float 8s ease-in-out infinite}
-@keyframes float{50%{transform:translateY(-14px)}}
-.mock{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,100%);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:28px;padding:22px;backdrop-filter:blur(20px);box-shadow:0 40px 80px -20px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04)}
-.mock-head{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.avatar{width:42px;height:42px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;font-style:italic}
-.mock-head h4{font-size:14px;font-weight:600}
-.mock-head p{font-size:11px;color:var(--muted)}
-.mock-head .status{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
-.mock-head .status::before{content:"";width:6px;height:6px;border-radius:50%;background:#22C55E;box-shadow:0 0 8px #22C55E}
-.bubbles{padding:18px 4px 6px;display:flex;flex-direction:column;gap:10px}
-.b{padding:11px 14px;border-radius:16px;font-size:14px;max-width:88%;animation:in .5s ease both}
-.b.ai{background:var(--grad-soft);border:1px solid rgba(232,121,249,.25);align-self:flex-start;border-bottom-left-radius:4px}
-.b.me{background:var(--surface-strong);border:1px solid var(--line);align-self:flex-end;border-bottom-right-radius:4px}
-@keyframes in{from{opacity:0;transform:translateY(6px)}}
-.mock-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
-.mock-opts span{font-size:12px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+      /* Hero visual — chat mockup */
+      .hero-visual {
+        position: relative;
+        height: 560px;
+      }
+      .aura {
+        position: absolute;
+        inset: -10% -10%;
+        background: radial-gradient(closest-side, rgba(232, 121, 249, 0.45), transparent 70%);
+        filter: blur(40px);
+        z-index: 0;
+        animation: float 8s ease-in-out infinite;
+      }
+      @keyframes float {
+        50% {
+          transform: translateY(-14px);
+        }
+      }
+      .mock {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(440px, 100%);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 22px;
+        backdrop-filter: blur(20px);
+        box-shadow:
+          0 40px 80px -20px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+      .mock-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--grad);
+        display: grid;
+        place-items: center;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 22px;
+        color: #fff;
+        font-style: italic;
+      }
+      .mock-head h4 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .mock-head p {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .mock-head .status {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .mock-head .status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 8px #22c55e;
+      }
+      .bubbles {
+        padding: 18px 4px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .b {
+        padding: 11px 14px;
+        border-radius: 16px;
+        font-size: 14px;
+        max-width: 88%;
+        animation: in 0.5s ease both;
+      }
+      .b.ai {
+        background: var(--grad-soft);
+        border: 1px solid rgba(232, 121, 249, 0.25);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+      }
+      .b.me {
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      .mock-opts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 14px;
+      }
+      .mock-opts span {
+        font-size: 12px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--muted);
+      }
 
-/* SECTIONS */
-section{padding:90px 0;position:relative}
-.section-head{max-width:720px;margin-bottom:48px}
-.eyebrow{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--magenta);font-weight:500}
-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,4.5vw,56px);line-height:1.05;letter-spacing:-.02em;margin:14px 0 18px}
-h3{font-family:'Inter Tight',sans-serif;font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
-.section-head p{color:var(--muted);font-size:17px}
+      /* SECTIONS */
+      section {
+        padding: 90px 0;
+        position: relative;
+      }
+      .section-head {
+        max-width: 720px;
+        margin-bottom: 48px;
+      }
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--magenta);
+        font-weight: 500;
+      }
+      h2 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(32px, 4.5vw, 56px);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin: 14px 0 18px;
+      }
+      h3 {
+        font-family: "Inter Tight", sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+      }
+      .section-head p {
+        color: var(--muted);
+        font-size: 17px;
+      }
 
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-@media(max-width:960px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
-@media(max-width:560px){.grid-4{grid-template-columns:1fr}}
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+      @media (max-width: 960px) {
+        .grid-4 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 560px) {
+        .grid-4 {
+          grid-template-columns: 1fr;
+        }
+      }
 
-.card{padding:26px;border-radius:20px;background:var(--surface);border:1px solid var(--line);transition:transform .3s,border-color .3s,background .3s;position:relative;overflow:hidden}
-.card:hover{transform:translateY(-3px);border-color:rgba(232,121,249,.35);background:var(--surface-strong)}
-.card .num{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--magenta);margin-bottom:14px;display:block}
-.card p{color:var(--muted);font-size:14px}
-.card ul{list-style:none;margin-top:10px}
-.card ul li{color:var(--muted);font-size:13px;padding-left:14px;position:relative;margin-bottom:4px}
-.card ul li::before{content:"";position:absolute;left:0;top:9px;width:4px;height:4px;border-radius:50%;background:var(--magenta)}
+      .card {
+        padding: 26px;
+        border-radius: 20px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        transition:
+          transform 0.3s,
+          border-color 0.3s,
+          background 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(232, 121, 249, 0.35);
+        background: var(--surface-strong);
+      }
+      .card .num {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 14px;
+        color: var(--magenta);
+        margin-bottom: 14px;
+        display: block;
+      }
+      .card p {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .card ul {
+        list-style: none;
+        margin-top: 10px;
+      }
+      .card ul li {
+        color: var(--muted);
+        font-size: 13px;
+        padding-left: 14px;
+        position: relative;
+        margin-bottom: 4px;
+      }
+      .card ul li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 9px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--magenta);
+      }
 
-/* DEMOS — big cards */
-.demos{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
-@media(max-width:760px){.demos{grid-template-columns:1fr}}
-.demo{position:relative;padding:36px;border-radius:24px;border:1px solid var(--line);overflow:hidden;min-height:280px;display:flex;flex-direction:column;justify-content:space-between;isolation:isolate;transition:transform .35s}
-.demo:hover{transform:translateY(-4px)}
-.demo::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.9}
-.demo .ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);margin-bottom:18px}
-.demo h3{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;margin-bottom:8px}
-.demo p{color:rgba(255,255,255,.78);font-size:14px;margin-bottom:24px;max-width:90%}
-.demo .go{display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:500;padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);width:fit-content;transition:gap .25s,background .25s}
-.demo:hover .go{gap:14px;background:rgba(0,0,0,.6)}
-.d-terapias::before{background:linear-gradient(135deg,#3B071F 0%,#7c2d4a 60%,#a35a40 100%)}
-.d-beleza::before{background:linear-gradient(135deg,#1a0a14 0%,#3a1a2a 50%,#8a6a4a 100%)}
-.d-pet::before{background:linear-gradient(135deg,#0e2a2a 0%,#1f4b4b 60%,#3a6b6b 100%)}
-.d-casa::before{background:linear-gradient(135deg,#0f1a2a 0%,#1f3a5a 55%,#c66a1f 110%)}
+      /* DEMOS — big cards */
+      .demos {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+      @media (max-width: 760px) {
+        .demos {
+          grid-template-columns: 1fr;
+        }
+      }
+      .demo {
+        position: relative;
+        padding: 36px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        isolation: isolate;
+        transition: transform 0.35s;
+      }
+      .demo:hover {
+        transform: translateY(-4px);
+      }
+      .demo::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.9;
+      }
+      .demo .ico {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-bottom: 18px;
+      }
+      .demo h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 30px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+      .demo p {
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 14px;
+        margin-bottom: 24px;
+        max-width: 90%;
+      }
+      .demo .go {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        width: fit-content;
+        transition:
+          gap 0.25s,
+          background 0.25s;
+      }
+      .demo:hover .go {
+        gap: 14px;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .d-terapias::before {
+        background: linear-gradient(135deg, #3b071f 0%, #7c2d4a 60%, #a35a40 100%);
+      }
+      .d-beleza::before {
+        background: linear-gradient(135deg, #1a0a14 0%, #3a1a2a 50%, #8a6a4a 100%);
+      }
+      .d-pet::before {
+        background: linear-gradient(135deg, #0e2a2a 0%, #1f4b4b 60%, #3a6b6b 100%);
+      }
+      .d-casa::before {
+        background: linear-gradient(135deg, #0f1a2a 0%, #1f3a5a 55%, #c66a1f 110%);
+      }
 
-/* TIMELINE */
-.timeline{position:relative;display:grid;grid-template-columns:1fr;gap:14px;max-width:760px;margin:0 auto}
-.step{display:flex;gap:18px;align-items:flex-start;padding:18px 22px;border:1px solid var(--line);border-radius:16px;background:var(--surface);position:relative}
-.step .n{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px}
-.step h4{font-size:15px;font-weight:600;margin-bottom:4px}
-.step p{font-size:13px;color:var(--muted)}
+      /* TIMELINE */
+      .timeline {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      .step {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        padding: 18px 22px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        position: relative;
+      }
+      .step .n {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--grad);
+        display: grid;
+        place-items: center;
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 16px;
+      }
+      .step h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .step p {
+        font-size: 13px;
+        color: var(--muted);
+      }
 
-/* CTA FINAL */
-.cta-final{margin:40px 0 90px;padding:64px 40px;border-radius:32px;text-align:center;background:
-  radial-gradient(800px 400px at 50% 0%,rgba(232,121,249,.25),transparent 60%),
-  linear-gradient(180deg,rgba(124,58,237,.12),rgba(190,24,93,.10));
-  border:1px solid var(--line);position:relative;overflow:hidden}
-.cta-final h2{max-width:780px;margin:0 auto 16px}
-.cta-final p{color:var(--muted);max-width:600px;margin:0 auto 28px;font-size:16px}
-.cta-final .cta-row{justify-content:center}
+      /* CTA FINAL */
+      .cta-final {
+        margin: 40px 0 90px;
+        padding: 64px 40px;
+        border-radius: 32px;
+        text-align: center;
+        background:
+          radial-gradient(800px 400px at 50% 0%, rgba(232, 121, 249, 0.25), transparent 60%),
+          linear-gradient(180deg, rgba(124, 58, 237, 0.12), rgba(190, 24, 93, 0.1));
+        border: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+      .cta-final h2 {
+        max-width: 780px;
+        margin: 0 auto 16px;
+      }
+      .cta-final p {
+        color: var(--muted);
+        max-width: 600px;
+        margin: 0 auto 28px;
+        font-size: 16px;
+      }
+      .cta-final .cta-row {
+        justify-content: center;
+      }
 
-footer{padding:40px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
-.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+      footer {
+        padding: 40px 0 60px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .foot {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
 
-/* reveal */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s,transform .8s}
-.reveal.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.aura{animation:none}}
-.short{display:none}
-@media(max-width:760px){.short{display:inline}.full{display:none}.nav-in .btn-primary{padding:10px 14px;font-size:13px}}
+      /* reveal */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.8s,
+          transform 0.8s;
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .reveal {
+          opacity: 1;
+          transform: none;
+        }
+        .aura {
+          animation: none;
+        }
+      }
+      .short {
+        display: none;
+      }
+      @media (max-width: 760px) {
+        .short {
+          display: inline;
+        }
+        .full {
+          display: none;
+        }
+        .nav-in .btn-primary {
+          padding: 10px 14px;
+          font-size: 13px;
+        }
+      }
 
-/* ====== Mobile polish ====== */
-@media(max-width:760px){
-  .container{padding:0 18px}
-  .nav-in{height:60px}
-  .nav-links{gap:8px}
-  .nav-links a:not(.btn){display:none}
-  .brand span small{font-size:9px;letter-spacing:.26em}
-  .hero{padding:40px 0 28px}
-  .hero-grid{gap:32px}
-  h1.title{font-size:clamp(32px,8.6vw,44px);line-height:1.05;letter-spacing:-.015em;word-break:break-word;hyphens:auto}
-  h1.title em{display:inline-block;padding-right:.08em}
-  .lead{font-size:15px}
-  .impact{font-size:17px;padding-left:14px;margin:18px 0 24px}
-  .cta-row .btn{font-size:13px;padding:11px 16px}
-  .chips{margin-top:24px;gap:6px}
-  .chip{font-size:11px;padding:6px 11px}
-  section{padding:48px 0}
-  h2{font-size:clamp(26px,7vw,36px) !important}
-  .section-head p{font-size:15px}
-  .hero-visual{height:auto;min-height:420px}
-  .mock{position:relative;left:auto;top:auto;transform:none;margin:0 auto;width:100%}
-  .aura{inset:-20px}
-  .demo{padding:26px;min-height:220px}
-  .demo h3{font-size:26px}
-  .timeline{gap:10px}
-  .step{padding:14px 16px;gap:12px}
-  .cta-final{padding:40px 22px;margin:24px 0 60px;border-radius:24px}
-  .cta-final p{font-size:15px}
-  .foot{font-size:12px;flex-direction:column;text-align:center}
-}
+      /* ====== Mobile polish ====== */
+      @media (max-width: 760px) {
+        .container {
+          padding: 0 18px;
+        }
+        .nav-in {
+          height: 60px;
+        }
+        .nav-links {
+          gap: 8px;
+        }
+        .nav-links a:not(.btn) {
+          display: none;
+        }
+        .brand span small {
+          font-size: 9px;
+          letter-spacing: 0.26em;
+        }
+        .hero {
+          padding: 40px 0 28px;
+        }
+        .hero-grid {
+          gap: 32px;
+        }
+        h1.title {
+          font-size: clamp(32px, 8.6vw, 44px);
+          line-height: 1.05;
+          letter-spacing: -0.015em;
+          word-break: break-word;
+          hyphens: auto;
+        }
+        h1.title em {
+          display: inline-block;
+          padding-right: 0.08em;
+        }
+        .lead {
+          font-size: 15px;
+        }
+        .impact {
+          font-size: 17px;
+          padding-left: 14px;
+          margin: 18px 0 24px;
+        }
+        .cta-row .btn {
+          font-size: 13px;
+          padding: 11px 16px;
+        }
+        .chips {
+          margin-top: 24px;
+          gap: 6px;
+        }
+        .chip {
+          font-size: 11px;
+          padding: 6px 11px;
+        }
+        section {
+          padding: 48px 0;
+        }
+        h2 {
+          font-size: clamp(26px, 7vw, 36px) !important;
+        }
+        .section-head p {
+          font-size: 15px;
+        }
+        .hero-visual {
+          height: auto;
+          min-height: 420px;
+        }
+        .mock {
+          position: relative;
+          left: auto;
+          top: auto;
+          transform: none;
+          margin: 0 auto;
+          width: 100%;
+        }
+        .aura {
+          inset: -20px;
+        }
+        .demo {
+          padding: 26px;
+          min-height: 220px;
+        }
+        .demo h3 {
+          font-size: 26px;
+        }
+        .timeline {
+          gap: 10px;
+        }
+        .step {
+          padding: 14px 16px;
+          gap: 12px;
+        }
+        .cta-final {
+          padding: 40px 22px;
+          margin: 24px 0 60px;
+          border-radius: 24px;
+        }
+        .cta-final p {
+          font-size: 15px;
+        }
+        .foot {
+          font-size: 12px;
+          flex-direction: column;
+          text-align: center;
+        }
+      }
 
-/* ====== Editorial layer ====== */
-body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-.mono{font-family:'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:500}
-.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace !important;letter-spacing:.26em !important;font-size:11px !important}
+      /* ====== Editorial layer ====== */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.06;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      }
+      .mono {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .eyebrow {
+        font-family: "JetBrains Mono", ui-monospace, monospace !important;
+        letter-spacing: 0.26em !important;
+        font-size: 11px !important;
+      }
 
-
-/* Hairline grid for demos (index) */
-.demos{background:var(--line);gap:1px;padding:1px;border-radius:24px;border:1px solid var(--line);overflow:hidden}
-.demo{border-radius:0;border:none;min-height:260px}
-.demo::before{border-radius:0}
-@media(min-width:761px){
-  .demo:nth-child(1){border-top-left-radius:23px}
-  .demo:nth-child(2){border-top-right-radius:23px}
-  .demo:nth-child(3){border-bottom-left-radius:23px}
-  .demo:nth-child(4){border-bottom-right-radius:23px}
-}
-@media(max-width:760px){
-  .demo:first-child{border-radius:23px 23px 0 0}
-  .demo:last-child{border-radius:0 0 23px 23px}
-}
-/* Card numbers in mono */
-.card .num{font-family:'JetBrains Mono',ui-monospace,monospace !important;font-style:normal !important;letter-spacing:.2em;font-size:11px;color:var(--magenta);text-transform:uppercase}
-/* Step numbers stay serif (they're inside circles) */
-.step .n{font-family:'JetBrains Mono',ui-monospace,monospace;font-style:normal;font-size:12px}
-/* Editorial marks on hero */
-.hero{padding-top:60px}
-.hero-mark{position:absolute;top:18px;right:24px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);z-index:2}
-.scroll-hint{position:absolute;left:24px;bottom:24px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);z-index:2;display:flex;align-items:center;gap:10px}
-.scroll-hint::before{content:"";width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--muted))}
-@media(max-width:760px){.hero-mark,.scroll-hint{display:none}}
-/* Chat mock meta in mono */
-.mock-head p,.mock-head .status{font-family:'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;font-size:10px}
-
-</style>
-<link rel="icon" type="image/png" href="/assets/kuan-yin-apple.png">
-<meta property="og:image" content="/assets/kuan-yin-avatar.png">
-<meta name="twitter:image" content="/assets/kuan-yin-avatar.png">
-<meta name="twitter:card" content="summary_large_image">
-<style id="kuan-brand-override">
-.brand{position:relative}
-.brand .mark{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(232,28,150,.55));transition:filter .3s ease,transform .3s ease}
-.brand:hover .mark{filter:drop-shadow(0 0 22px rgba(232,28,150,.85));transform:scale(1.06)}
-.chat-head .avatar{padding:0!important;background:transparent!important;overflow:hidden;border:1px solid rgba(232,28,150,.45);box-shadow:0 0 24px rgba(232,28,150,.35),inset 0 0 12px rgba(232,28,150,.25)}
-.chat-head .avatar img,.mock-head .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.mock-head .avatar{padding:0!important;background:transparent!important;overflow:hidden;border:1px solid rgba(232,28,150,.45);box-shadow:0 0 24px rgba(232,28,150,.35)}
-.chat-head .avatar::after,.mock-head .avatar::after{display:none!important}
-</style>
-<style id="kuan-overlap-fix">
-/* Avoid floating Personalizar overlapping content */
-body{padding-bottom:96px!important}
-/* Header brand row safety on small screens */
-.nav-in{flex-wrap:nowrap;gap:10px}
-.brand{min-width:0;flex:0 1 auto}
-.brand span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav-links{flex-shrink:0}
-@media(max-width:480px){
-  .brand .mark{width:28px;height:28px}
-  .brand span{font-size:13px}
-  .brand small{display:block;font-size:9px;letter-spacing:.22em;opacity:.7}
-}
-/* Hero apple must never overlap text on mobile */
-@media(max-width:780px){
-  .hero{padding-top:18px}
-  .hero-apple{position:relative!important;display:block;margin:0 auto 8px;top:auto!important;right:auto!important;left:auto!important;width:120px!important;height:120px!important;opacity:.85!important;animation:kuanFloat 7s ease-in-out infinite}
-}
-/* Avoid full + short label both visible (keep one) */
-.btn .full{display:inline}
-.btn .short{display:none}
-@media(max-width:640px){.btn .full{display:none}.btn .short{display:inline}}
-</style>
-</head>
-<body>
-
-<nav class="nav">
-  <div class="container nav-in">
-    <a class="brand" href="/showroom">
-      <img class="mark" src="/assets/kuan-yin-apple.png" alt="Kuan-Yin">
-      <span>Kuan-Yin<small>Showroom</small></span>
-    </a>
-    <div class="nav-links">
-      <a href="/showroom">Início</a>
-      <a href="#demos">Demonstrações</a>
-      <a href="#cta" class="btn btn-primary"><span class="full">Quero uma Kuan-Yin para meu negócio</span><span class="short">Quero uma Kuan-Yin</span></a>
-    </div>
-  </div>
-</nav>
-
-<header class="hero">
-  <div class="hero-mark">Kuan-Yin · Showroom / 2026</div>
-  <div class="scroll-hint">Scroll</div>
-  <img class="hero-apple" src="/assets/kuan-yin-apple.png" alt="" aria-hidden="true">
-  <style>
-    .hero{position:relative;overflow:hidden}
-    .hero-apple{position:absolute;top:14%;right:-40px;width:160px;height:160px;object-fit:contain;opacity:.85;filter:drop-shadow(0 0 60px rgba(232,28,150,.55));animation:kuanFloat 7s ease-in-out infinite;pointer-events:none;z-index:1}
-    @keyframes kuanFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-18px) rotate(2deg)}}
-    @media(max-width:780px){.hero-apple{width:96px;top:8%;right:-18px;opacity:.65}}
-  </style>
-
-  <div class="container hero-grid">
-    <div class="reveal">
-      <span class="kicker"><span class="pulse"></span>Kuan-Yin · IA de atendimento</span>
-      <h1 class="title">Uma IA <em>moldada</em> para cada negócio.</h1>
-      <p class="lead">Recebe o cliente, entende o motivo do contato e encaminha — com a voz da sua empresa, sem soar genérica.</p>
-      <p class="impact">Não substitui o profissional. Melhora o primeiro contato e entrega à equipe uma demanda organizada.</p>
-      <div class="cta-row">
-        <a href="#oferece" class="btn btn-primary">O que ela oferece →</a>
-        <a href="#fluxo" class="btn btn-ghost">Como atende</a>
-        <a href="#demos" class="btn btn-ghost">Ver vitrines</a>
+      /* Hairline grid for demos (index) */
+      .demos {
+        background: var(--line);
+        gap: 1px;
+        padding: 1px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .demo {
+        border-radius: 0;
+        border: none;
+        min-height: 260px;
+      }
+      .demo::before {
+        border-radius: 0;
+      }
+      @media (min-width: 761px) {
+        .demo:nth-child(1) {
+          border-top-left-radius: 23px;
+        }
+        .demo:nth-child(2) {
+          border-top-right-radius: 23px;
+        }
+        .demo:nth-child(3) {
+          border-bottom-left-radius: 23px;
+        }
+        .demo:nth-child(4) {
+          border-bottom-right-radius: 23px;
+        }
+      }
+      @media (max-width: 760px) {
+        .demo:first-child {
+          border-radius: 23px 23px 0 0;
+        }
+        .demo:last-child {
+          border-radius: 0 0 23px 23px;
+        }
+      }
+      /* Card numbers in mono */
+      .card .num {
+        font-family: "JetBrains Mono", ui-monospace, monospace !important;
+        font-style: normal !important;
+        letter-spacing: 0.2em;
+        font-size: 11px;
+        color: var(--magenta);
+        text-transform: uppercase;
+      }
+      /* Step numbers stay serif (they're inside circles) */
+      .step .n {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-style: normal;
+        font-size: 12px;
+      }
+      /* Editorial marks on hero */
+      .hero {
+        padding-top: 60px;
+      }
+      .hero-mark {
+        position: absolute;
+        top: 18px;
+        right: 24px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        z-index: 2;
+      }
+      .scroll-hint {
+        position: absolute;
+        left: 24px;
+        bottom: 24px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .scroll-hint::before {
+        content: "";
+        width: 1px;
+        height: 40px;
+        background: linear-gradient(to bottom, transparent, var(--muted));
+      }
+      @media (max-width: 760px) {
+        .hero-mark,
+        .scroll-hint {
+          display: none;
+        }
+      }
+      /* Chat mock meta in mono */
+      .mock-head p,
+      .mock-head .status {
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+    </style>
+    <link rel="icon" type="image/png" href="/assets/kuan-yin-apple.png" />
+    <meta property="og:image" content="/assets/kuan-yin-avatar.png" />
+    <meta name="twitter:image" content="/assets/kuan-yin-avatar.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style id="kuan-brand-override">
+      .brand {
+        position: relative;
+      }
+      .brand .mark {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 14px rgba(232, 28, 150, 0.55));
+        transition:
+          filter 0.3s ease,
+          transform 0.3s ease;
+      }
+      .brand:hover .mark {
+        filter: drop-shadow(0 0 22px rgba(232, 28, 150, 0.85));
+        transform: scale(1.06);
+      }
+      .chat-head .avatar {
+        padding: 0 !important;
+        background: transparent !important;
+        overflow: hidden;
+        border: 1px solid rgba(232, 28, 150, 0.45);
+        box-shadow:
+          0 0 24px rgba(232, 28, 150, 0.35),
+          inset 0 0 12px rgba(232, 28, 150, 0.25);
+      }
+      .chat-head .avatar img,
+      .mock-head .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .mock-head .avatar {
+        padding: 0 !important;
+        background: transparent !important;
+        overflow: hidden;
+        border: 1px solid rgba(232, 28, 150, 0.45);
+        box-shadow: 0 0 24px rgba(232, 28, 150, 0.35);
+      }
+      .chat-head .avatar::after,
+      .mock-head .avatar::after {
+        display: none !important;
+      }
+    </style>
+    <style id="kuan-overlap-fix">
+      /* Avoid floating Personalizar overlapping content */
+      body {
+        padding-bottom: 96px !important;
+      }
+      /* Header brand row safety on small screens */
+      .nav-in {
+        flex-wrap: nowrap;
+        gap: 10px;
+      }
+      .brand {
+        min-width: 0;
+        flex: 0 1 auto;
+      }
+      .brand span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .nav-links {
+        flex-shrink: 0;
+      }
+      @media (max-width: 480px) {
+        .brand .mark {
+          width: 28px;
+          height: 28px;
+        }
+        .brand span {
+          font-size: 13px;
+        }
+        .brand small {
+          display: block;
+          font-size: 9px;
+          letter-spacing: 0.22em;
+          opacity: 0.7;
+        }
+      }
+      /* Hero apple must never overlap text on mobile */
+      @media (max-width: 780px) {
+        .hero {
+          padding-top: 18px;
+        }
+        .hero-apple {
+          position: relative !important;
+          display: block;
+          margin: 0 auto 8px;
+          top: auto !important;
+          right: auto !important;
+          left: auto !important;
+          width: 120px !important;
+          height: 120px !important;
+          opacity: 0.85 !important;
+          animation: kuanFloat 7s ease-in-out infinite;
+        }
+      }
+      /* Avoid full + short label both visible (keep one) */
+      .btn .full {
+        display: inline;
+      }
+      .btn .short {
+        display: none;
+      }
+      @media (max-width: 640px) {
+        .btn .full {
+          display: none;
+        }
+        .btn .short {
+          display: inline;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="container nav-in">
+        <a class="brand" href="/showroom">
+          <img class="mark" src="/assets/kuan-yin-apple.png" alt="Kuan-Yin" />
+          <span>Kuan-Yin<small>Showroom</small></span>
+        </a>
+        <div class="nav-links">
+          <a href="/showroom">Início</a>
+          <a href="#demos">Demonstrações</a>
+          <a href="#cta" class="btn btn-primary"
+            ><span class="full">Quero uma Kuan-Yin para meu negócio</span
+            ><span class="short">Quero uma Kuan-Yin</span></a
+          >
+        </div>
       </div>
-      <div class="chips">
-        <span class="chip">Acolhe</span><span class="chip">Entende</span><span class="chip">Explica</span>
-        <span class="chip">Orienta</span><span class="chip">Organiza</span><span class="chip">Encaminha</span>
-      </div>
-    </div>
-    <div class="hero-visual reveal">
-      <div class="aura"></div>
-      <div class="mock">
-        <div class="mock-head">
-          <div class="avatar"><img src="/assets/kuan-yin-avatar.png" alt="Kuan-Yin"></div>
-          <div>
-            <h4>Kuan-Yin</h4>
-            <p>assistente do seu negócio</p>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-mark">Kuan-Yin · Showroom / 2026</div>
+      <div class="scroll-hint">Scroll</div>
+      <img class="hero-apple" src="/assets/kuan-yin-apple.png" alt="" aria-hidden="true" />
+      <style>
+        .hero {
+          position: relative;
+          overflow: hidden;
+        }
+        .hero-apple {
+          position: absolute;
+          top: 14%;
+          right: -40px;
+          width: 160px;
+          height: 160px;
+          object-fit: contain;
+          opacity: 0.85;
+          filter: drop-shadow(0 0 60px rgba(232, 28, 150, 0.55));
+          animation: kuanFloat 7s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 1;
+        }
+        @keyframes kuanFloat {
+          0%,
+          100% {
+            transform: translateY(0) rotate(-2deg);
+          }
+          50% {
+            transform: translateY(-18px) rotate(2deg);
+          }
+        }
+        @media (max-width: 780px) {
+          .hero-apple {
+            width: 96px;
+            top: 8%;
+            right: -18px;
+            opacity: 0.65;
+          }
+        }
+      </style>
+
+      <div class="container hero-grid">
+        <div class="reveal">
+          <span class="kicker"><span class="pulse"></span>Kuan-Yin · IA de atendimento</span>
+          <h1 class="title">Uma IA <em>moldada</em> para cada negócio.</h1>
+          <p class="lead">
+            Recebe o cliente, entende o motivo do contato e encaminha — com a voz da sua empresa,
+            sem soar genérica.
+          </p>
+          <p class="impact">
+            Não substitui o profissional. Melhora o primeiro contato e entrega à equipe uma demanda
+            organizada.
+          </p>
+          <div class="cta-row">
+            <a href="#oferece" class="btn btn-primary">O que ela oferece →</a>
+            <a href="#fluxo" class="btn btn-ghost">Como atende</a>
+            <a href="#demos" class="btn btn-ghost">Ver vitrines</a>
           </div>
-          <div class="status">online</div>
+          <div class="chips">
+            <span class="chip">Acolhe</span><span class="chip">Entende</span
+            ><span class="chip">Explica</span> <span class="chip">Orienta</span
+            ><span class="chip">Organiza</span><span class="chip">Encaminha</span>
+          </div>
         </div>
-        <div class="bubbles">
-          <div class="b ai">Olá, que bom receber você. O que trouxe você até aqui hoje?</div>
-          <div class="b me" style="animation-delay:.3s">Quero entender quais serviços vocês oferecem.</div>
-          <div class="b ai" style="animation-delay:.7s">Posso apresentar as opções e preparar uma solicitação para a equipe confirmar com você?</div>
-        </div>
-        <div class="mock-opts">
-          <span>Ver opções</span><span>Falar com humano</span><span>Pedir orçamento</span>
+        <div class="hero-visual reveal">
+          <div class="aura"></div>
+          <div class="mock">
+            <div class="mock-head">
+              <div class="avatar"><img src="/assets/kuan-yin-avatar.png" alt="Kuan-Yin" /></div>
+              <div>
+                <h4>Kuan-Yin</h4>
+                <p>assistente do seu negócio</p>
+              </div>
+              <div class="status">online</div>
+            </div>
+            <div class="bubbles">
+              <div class="b ai">Olá, que bom receber você. O que trouxe você até aqui hoje?</div>
+              <div class="b me" style="animation-delay: 0.3s">
+                Quero entender quais serviços vocês oferecem.
+              </div>
+              <div class="b ai" style="animation-delay: 0.7s">
+                Posso apresentar as opções e preparar uma solicitação para a equipe confirmar com
+                você?
+              </div>
+            </div>
+            <div class="mock-opts">
+              <span>Ver opções</span><span>Falar com humano</span><span>Pedir orçamento</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</header>
+    </header>
 
-<!-- ============ O QUE KUAN-YIN OFERECE ============ -->
-<section id="oferece">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">O que Kuan-Yin oferece</span>
-      <h2>Uma assistente <em>moldada</em> para cada empresa</h2>
-      <p>Sete capacidades que substituem o chatbot genérico por uma presença com voz própria, ética e útil.</p>
-    </div>
-    <ul class="offer-grid">
-      <li class="offer reveal"><span class="o-n">01</span><h3>Recebe</h3><p>Com a linguagem da empresa, sem fricção.</p></li>
-      <li class="offer reveal"><span class="o-n">02</span><h3>Entende</h3><p>O motivo do contato, sem parecer formulário.</p></li>
-      <li class="offer reveal"><span class="o-n">03</span><h3>Explica</h3><p>Serviços com o vocabulário da área.</p></li>
-      <li class="offer reveal"><span class="o-n">04</span><h3>Orienta</h3><p>Sugere o caminho que faz mais sentido.</p></li>
-      <li class="offer reveal"><span class="o-n">05</span><h3>Organiza</h3><p>Pedidos, agendamentos, orçamentos e retornos.</p></li>
-      <li class="offer reveal"><span class="o-n">06</span><h3>Prepara</h3><p>Informação útil para o profissional humano.</p></li>
-      <li class="offer reveal o-ethic"><span class="o-n">07</span><h3>Mantém ética</h3><p>Não promete. Não inventa. Não decide sozinha.</p></li>
-    </ul>
-  </div>
-</section>
-<style>
-.offer-grid{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden}
-@media(max-width:960px){.offer-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.offer-grid{grid-template-columns:1fr}}
-.offer{padding:24px 22px;background:var(--bg);transition:background .3s}
-.offer:hover{background:var(--bg-soft)}
-.offer .o-n{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:var(--magenta);display:block;margin-bottom:14px}
-.offer h3{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;font-weight:500;letter-spacing:-.01em;margin-bottom:6px;color:var(--text)}
-.offer p{color:var(--muted);font-size:14px;line-height:1.5}
-.offer.o-ethic h3{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-</style>
-
-<!-- ============ COMO SERÁ O ATENDIMENTO — diagrama orgânico ============ -->
-<section id="fluxo">
-  <div class="container">
-    <div class="section-head reveal" style="margin-left:auto;margin-right:auto;text-align:center">
-      <span class="eyebrow">Como será o atendimento</span>
-      <h2>Um fluxo simples, com <em>presença</em> em cada passo</h2>
-      <p>Da chegada até o encaminhamento ao profissional humano — sete momentos calibrados para acolher e preparar.</p>
-    </div>
-    <div class="flow-section reveal">
-      <svg class="flow-curve" viewBox="0 0 1200 380" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="flowGrad" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stop-color="#E879F9"/>
-            <stop offset=".5" stop-color="#A855F7"/>
-            <stop offset="1" stop-color="#7C3AED"/>
-          </linearGradient>
-        </defs>
-        <path class="flow-path" d="M 85 90 C 171 90, 171 300, 257 300 S 343 90, 428 90 S 514 300, 600 300 S 686 90, 771 90 S 857 300, 942 300 S 1028 90, 1114 90"
-              fill="none" stroke="url(#flowGrad)" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <ol class="flow-nodes">
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">01</span><h4>Chega</h4><p>Chat, link, QR ou site.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">02</span><h4>Acolhe</h4><p>Recebe com a voz do negócio.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">03</span><h4>Entende</h4><p>Pergunta sem parecer formulário.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">04</span><h4>Explica</h4><p>Apresenta serviços possíveis.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">05</span><h4>Organiza</h4><p>Resume contexto e preferências.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">06</span><h4>Sugere</h4><p>Indica o próximo passo natural.</p></li>
-        <li class="fn"><span class="fn-dot"></span><span class="fn-num">07</span><h4>Encaminha</h4><p>Entrega ao humano com tudo pronto.</p></li>
-      </ol>
-    </div>
-  </div>
-</section>
-<style>
-.flow-section{position:relative;margin-top:24px}
-.flow-curve{display:none}
-.flow-nodes{list-style:none;display:flex;flex-direction:column;gap:22px;position:relative;padding-left:44px;max-width:560px;margin:0 auto}
-.flow-nodes::before{content:"";position:absolute;left:14px;top:14px;bottom:14px;width:1px;background:linear-gradient(to bottom,var(--magenta),var(--violet));opacity:.45}
-.fn{position:relative}
-.fn .fn-dot{position:absolute;left:-34px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--grad);box-shadow:0 0 12px var(--magenta)}
-.fn .fn-num{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:var(--magenta);display:block;margin-bottom:3px}
-.fn h4{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;font-weight:500;margin-bottom:3px;letter-spacing:-.01em}
-.fn p{color:var(--muted);font-size:14px;line-height:1.5}
-@media(min-width:900px){
-  .flow-section{height:420px;max-width:1200px;margin-left:auto;margin-right:auto}
-  .flow-curve{display:block;position:absolute;inset:0;width:100%;height:100%;stroke-dasharray:2800;stroke-dashoffset:2800;transition:stroke-dashoffset 2.4s cubic-bezier(.2,.7,.2,1)}
-  .reveal.in .flow-curve .flow-path,.reveal.in.flow-section .flow-curve{stroke-dashoffset:0}
-  .flow-section.reveal.in .flow-curve{stroke-dashoffset:0}
-  .flow-nodes{padding:0;max-width:none;display:grid;grid-template-columns:repeat(7,1fr);gap:0;height:100%}
-  .flow-nodes::before{display:none}
-  .fn{text-align:center;display:flex;flex-direction:column;align-items:center;padding:0 8px;max-width:150px;justify-self:center}
-  .fn .fn-dot{position:static;width:14px;height:14px;margin-bottom:10px}
-  .fn:nth-child(odd){align-self:start;padding-top:42px}
-  .fn:nth-child(even){align-self:end;padding-bottom:42px}
-  .fn h4{font-size:20px}
-  .fn p{font-size:13px}
-}
-</style>
-
-<!-- ============ VITRINES ============ -->
-<section id="demos">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Moldada para cada negócio</span>
-      <h2>Quatro vitrines, quatro <em>vozes</em></h2>
-      <p>Mesma Kuan-Yin, vocabulário diferente. Cada vitrine mostra como ela acolhe num segmento real.</p>
-    </div>
-    <div class="demos">
-      <a href="/showroom/terapias-manuais" class="demo d-terapias reveal">
-        <div>
-          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M12 2C9 6 6 8 6 13a6 6 0 0 0 12 0c0-5-3-7-6-11z"/></svg></div>
-          <h3>Terapias Manuais</h3>
-          <p>Acolhe quem busca alívio muscular com vocabulário miofascial.</p>
+    <!-- ============ O QUE KUAN-YIN OFERECE ============ -->
+    <section id="oferece">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">O que Kuan-Yin oferece</span>
+          <h2>Uma assistente <em>moldada</em> para cada empresa</h2>
+          <p>
+            Sete capacidades que substituem o chatbot genérico por uma presença com voz própria,
+            ética e útil.
+          </p>
         </div>
-        <span class="go">Ver vitrine →</span>
-      </a>
-      <a href="/showroom/beleza-estetica" class="demo d-beleza reveal">
-        <div>
-          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="9" r="6"/><path d="M9 14l-3 8 6-4 6 4-3-8"/></svg></div>
-          <h3>Beleza & Estética</h3>
-          <p>Recebe cada cliente com elegância antes do atendimento.</p>
-        </div>
-        <span class="go">Ver vitrine →</span>
-      </a>
-      <a href="/showroom/pet-care" class="demo d-pet reveal">
-        <div>
-          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="9" cy="5" r="2"/><circle cx="15" cy="5" r="2"/><path d="M12 11c-3 0-6 3-6 6 0 2 2 3 4 3s2-1 2-1 0 1 2 1 4-1 4-3c0-3-3-6-6-6z"/></svg></div>
-          <h3>Pet Care</h3>
-          <p>Acolhe o tutor e organiza o cuidado com clareza.</p>
-        </div>
-        <span class="go">Ver vitrine →</span>
-      </a>
-      <a href="/showroom/assistencia-residencial" class="demo d-casa reveal">
-        <div>
-          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></div>
-          <h3>Assistência Residencial</h3>
-          <p>Entende a demanda e prepara a visita técnica.</p>
-        </div>
-        <span class="go">Ver vitrine →</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ============ LIMITES ÉTICOS ============ -->
-<section id="etica">
-  <div class="container">
-    <div class="section-head reveal" style="margin-left:auto;margin-right:auto;text-align:center">
-      <span class="eyebrow">Limites éticos</span>
-      <h2>Atendimento com <em>presença</em> exige limite</h2>
-      <p>Três compromissos não-negociáveis. Toda Kuan-Yin nasce com eles.</p>
-    </div>
-    <div class="ethic-grid">
-      <article class="ethic-card reveal">
-        <span class="ec-n">não</span>
-        <h3>promete resultado</h3>
-        <p>Apresenta serviços com clareza. Não vende garantia que ninguém pode dar.</p>
-      </article>
-      <article class="ethic-card reveal">
-        <span class="ec-n">não</span>
-        <h3>inventa disponibilidade</h3>
-        <p>Respeita a agenda real configurada pelo negócio. Confirma com a equipe.</p>
-      </article>
-      <article class="ethic-card reveal">
-        <span class="ec-n">não</span>
-        <h3>decide o que é sensível</h3>
-        <p>Casos delicados voltam para o profissional humano. Sempre.</p>
-      </article>
-    </div>
-  </div>
-</section>
-<style>
-.ethic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden}
-@media(max-width:760px){.ethic-grid{grid-template-columns:1fr}}
-.ethic-card{padding:32px 28px;background:var(--bg);transition:background .3s}
-.ethic-card:hover{background:var(--bg-soft)}
-.ethic-card .ec-n{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--magenta);display:block;margin-bottom:12px}
-.ethic-card h3{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;font-weight:500;line-height:1.1;letter-spacing:-.01em;margin-bottom:12px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ethic-card p{color:var(--muted);font-size:14.5px;line-height:1.55}
-</style>
-
-<!-- ============ CTA ============ -->
-<section id="cta">
-  <div class="container">
-    <div class="cta-final reveal">
-      <span class="eyebrow">Próximo passo</span>
-      <h2>Quero uma Kuan-Yin para meu <em>negócio</em>.</h2>
-      <p>Linguagem, serviços e regras configurados para a sua empresa. O cliente chega orientado. A equipe começa preparada.</p>
-      <div class="cta-row">
-        <a href="mailto:contato@kuan-yin.ai?subject=Quero%20uma%20Kuan-Yin%20para%20meu%20neg%C3%B3cio" class="btn btn-primary">Falar com a Kuan-Yin →</a>
-        <a href="#demos" class="btn btn-ghost">Ver vitrines</a>
+        <ul class="offer-grid">
+          <li class="offer reveal">
+            <span class="o-n">01</span>
+            <h3>Recebe</h3>
+            <p>Com a linguagem da empresa, sem fricção.</p>
+          </li>
+          <li class="offer reveal">
+            <span class="o-n">02</span>
+            <h3>Entende</h3>
+            <p>O motivo do contato, sem parecer formulário.</p>
+          </li>
+          <li class="offer reveal">
+            <span class="o-n">03</span>
+            <h3>Explica</h3>
+            <p>Serviços com o vocabulário da área.</p>
+          </li>
+          <li class="offer reveal">
+            <span class="o-n">04</span>
+            <h3>Orienta</h3>
+            <p>Sugere o caminho que faz mais sentido.</p>
+          </li>
+          <li class="offer reveal">
+            <span class="o-n">05</span>
+            <h3>Organiza</h3>
+            <p>Pedidos, agendamentos, orçamentos e retornos.</p>
+          </li>
+          <li class="offer reveal">
+            <span class="o-n">06</span>
+            <h3>Prepara</h3>
+            <p>Informação útil para o profissional humano.</p>
+          </li>
+          <li class="offer reveal o-ethic">
+            <span class="o-n">07</span>
+            <h3>Mantém ética</h3>
+            <p>Não promete. Não inventa. Não decide sozinha.</p>
+          </li>
+        </ul>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
+    <style>
+      .offer-grid {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      @media (max-width: 960px) {
+        .offer-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 520px) {
+        .offer-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .offer {
+        padding: 24px 22px;
+        background: var(--bg);
+        transition: background 0.3s;
+      }
+      .offer:hover {
+        background: var(--bg-soft);
+      }
+      .offer .o-n {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        color: var(--magenta);
+        display: block;
+        margin-bottom: 14px;
+      }
+      .offer h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .offer p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .offer.o-ethic h3 {
+        background: var(--grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    </style>
 
-<footer>
-  <div class="container foot">
-    <div>© Kuan-Yin Showroom — demonstração comercial</div>
-    <div>Uma presença digital com a voz do seu negócio.</div>
-  </div>
-</footer>
-
-<script>
-const io = new IntersectionObserver((es)=>es.forEach(e=>e.isIntersecting && e.target.classList.add('in')),{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-</script>
-<!-- KUAN-BRAND-PANEL:START -->
-<style id="kuan-brand-panel-style">
-/* Mobile reading polish — applies everywhere */
-@media (max-width:560px){
-  .lead{font-size:15.5px!important;line-height:1.55!important}
-  .section-head p{font-size:15px!important;line-height:1.55!important}
-  .bubble,.msg .bubble{font-size:14.5px!important;line-height:1.55!important}
-  .opts button,.ask .opts button{font-size:11.5px!important;padding:11px 14px!important;min-height:42px}
-  .segments button{min-height:44px}
-  .card p{font-size:13.5px!important;line-height:1.55!important}
-  .resume{font-size:16px!important;line-height:1.5!important}
-}
-/* Panel */
-#kbp-btn{position:fixed;right:14px;bottom:14px;z-index:9999;padding:11px 16px;border:1px solid rgba(255,255,255,.18);background:rgba(15,8,18,.85);backdrop-filter:blur(12px);color:#fff;font:500 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;border-radius:999px;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45);transition:transform .2s}
-#kbp-btn:hover{transform:translateY(-1px)}
-#kbp-btn .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#E879F9,#7C3AED);margin-right:8px;vertical-align:middle;box-shadow:0 0 10px #E879F9}
-#kbp-sheet{position:fixed;inset:auto 0 0 0;z-index:10000;background:#0b0610;color:#F3E8F2;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -20px 60px rgba(0,0,0,.6);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto;font-family:'Manrope',ui-sans-serif,system-ui,sans-serif}
-#kbp-sheet.open{transform:translateY(0)}
-#kbp-sheet .kbp-in{max-width:780px;margin:0 auto;padding:18px 18px 28px}
-.kbp-grab{width:42px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin:6px auto 14px}
-.kbp-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.kbp-h h4{font:600 13px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:#fff}
-.kbp-h .kbp-x{background:transparent;border:1px solid rgba(255,255,255,.18);color:#fff;padding:6px 10px;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:6px}
-.kbp-row{margin-bottom:14px}
-.kbp-row label{display:block;font:500 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:#bfa8b5;margin-bottom:6px}
-.kbp-row input[type=text],.kbp-row textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:11px 12px;font:400 14px/1.45 'Manrope',sans-serif;border-radius:8px;outline:none}
-.kbp-row textarea{min-height:96px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:12.5px}
-.kbp-row input:focus,.kbp-row textarea:focus{border-color:rgba(232,121,249,.55)}
-.kbp-colors{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.kbp-colors label.cc{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);padding:7px 10px;border-radius:8px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#bfa8b5;cursor:pointer}
-.kbp-colors input[type=color]{width:30px;height:30px;border:none;background:transparent;padding:0;cursor:pointer}
-.kbp-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.kbp-presets button{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
-.kbp-presets button:hover{border-color:rgba(255,255,255,.32)}
-.kbp-presets .swatch{width:14px;height:14px;border-radius:50%;display:inline-block}
-.kbp-chips{display:flex;gap:8px;flex-wrap:wrap}
-.kbp-chips button{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#fff;padding:9px 14px;border-radius:999px;cursor:pointer;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase}
-.kbp-chips button.active{background:linear-gradient(135deg,#E879F9,#7C3AED);border-color:transparent;color:#0b0610}
-.kbp-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
-.kbp-actions button{flex:1;min-width:120px;padding:13px 16px;border-radius:8px;border:none;cursor:pointer;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.22em;text-transform:uppercase}
-.kbp-apply{background:linear-gradient(135deg,#E879F9,#7C3AED);color:#0b0610}
-.kbp-reset{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18)!important}
-.kbp-hint{font-size:11px;color:#8B7585;margin-top:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
-@media(max-width:520px){
-  #kbp-btn{padding:10px 14px;font-size:10px}
-  #kbp-sheet .kbp-in{padding:14px 14px 22px}
-}
-</style>
-
-<button id="kbp-btn" type="button"><span class="dot"></span>Personalizar</button>
-<aside id="kbp-sheet" aria-hidden="true">
-  <div class="kbp-in">
-    <div class="kbp-grab"></div>
-    <div class="kbp-h">
-      <h4>Branding · Vitrine</h4>
-      <button class="kbp-x" type="button" data-kbp-close>Fechar</button>
-    </div>
-
-    <div class="kbp-row">
-      <label>Nome do negócio</label>
-      <input type="text" id="kbp-name" placeholder="Ex: Maison Lúmina" maxlength="48" />
-    </div>
-
-    <div class="kbp-row">
-      <label>Tagline / Subtítulo (opcional)</label>
-      <input type="text" id="kbp-tag" placeholder="Ex: beleza, técnica e experiência" maxlength="90" />
-    </div>
-
-    <div class="kbp-row">
-      <label>Paleta</label>
-      <div class="kbp-colors">
-        <label class="cc">Primária <input type="color" id="kbp-c1" value="#E879F9"></label>
-        <label class="cc">Secundária <input type="color" id="kbp-c2" value="#7C3AED"></label>
+    <!-- ============ COMO SERÁ O ATENDIMENTO — diagrama orgânico ============ -->
+    <section id="fluxo">
+      <div class="container">
+        <div
+          class="section-head reveal"
+          style="margin-left: auto; margin-right: auto; text-align: center"
+        >
+          <span class="eyebrow">Como será o atendimento</span>
+          <h2>Um fluxo simples, com <em>presença</em> em cada passo</h2>
+          <p>
+            Da chegada até o encaminhamento ao profissional humano — sete momentos calibrados para
+            acolher e preparar.
+          </p>
+        </div>
+        <div class="flow-section reveal">
+          <svg
+            class="flow-curve"
+            viewBox="0 0 1200 380"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="flowGrad" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#E879F9" />
+                <stop offset=".5" stop-color="#A855F7" />
+                <stop offset="1" stop-color="#7C3AED" />
+              </linearGradient>
+            </defs>
+            <path
+              class="flow-path"
+              d="M 85 90 C 171 90, 171 300, 257 300 S 343 90, 428 90 S 514 300, 600 300 S 686 90, 771 90 S 857 300, 942 300 S 1028 90, 1114 90"
+              fill="none"
+              stroke="url(#flowGrad)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <ol class="flow-nodes">
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">01</span>
+              <h4>Chega</h4>
+              <p>Chat, link, QR ou site.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">02</span>
+              <h4>Acolhe</h4>
+              <p>Recebe com a voz do negócio.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">03</span>
+              <h4>Entende</h4>
+              <p>Pergunta sem parecer formulário.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">04</span>
+              <h4>Explica</h4>
+              <p>Apresenta serviços possíveis.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">05</span>
+              <h4>Organiza</h4>
+              <p>Resume contexto e preferências.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">06</span>
+              <h4>Sugere</h4>
+              <p>Indica o próximo passo natural.</p>
+            </li>
+            <li class="fn">
+              <span class="fn-dot"></span><span class="fn-num">07</span>
+              <h4>Encaminha</h4>
+              <p>Entrega ao humano com tudo pronto.</p>
+            </li>
+          </ol>
+        </div>
       </div>
-      <div class="kbp-presets" id="kbp-presets"></div>
-    </div>
+    </section>
+    <style>
+      .flow-section {
+        position: relative;
+        margin-top: 24px;
+      }
+      .flow-curve {
+        display: none;
+      }
+      .flow-nodes {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: relative;
+        padding-left: 44px;
+        max-width: 560px;
+        margin: 0 auto;
+      }
+      .flow-nodes::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        bottom: 14px;
+        width: 1px;
+        background: linear-gradient(to bottom, var(--magenta), var(--violet));
+        opacity: 0.45;
+      }
+      .fn {
+        position: relative;
+      }
+      .fn .fn-dot {
+        position: absolute;
+        left: -34px;
+        top: 8px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--grad);
+        box-shadow: 0 0 12px var(--magenta);
+      }
+      .fn .fn-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        color: var(--magenta);
+        display: block;
+        margin-bottom: 3px;
+      }
+      .fn h4 {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 22px;
+        font-weight: 500;
+        margin-bottom: 3px;
+        letter-spacing: -0.01em;
+      }
+      .fn p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      @media (min-width: 900px) {
+        .flow-section {
+          height: 420px;
+          max-width: 1200px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .flow-curve {
+          display: block;
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          stroke-dasharray: 2800;
+          stroke-dashoffset: 2800;
+          transition: stroke-dashoffset 2.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+        }
+        .reveal.in .flow-curve .flow-path,
+        .reveal.in.flow-section .flow-curve {
+          stroke-dashoffset: 0;
+        }
+        .flow-section.reveal.in .flow-curve {
+          stroke-dashoffset: 0;
+        }
+        .flow-nodes {
+          padding: 0;
+          max-width: none;
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 0;
+          height: 100%;
+        }
+        .flow-nodes::before {
+          display: none;
+        }
+        .fn {
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0 8px;
+          max-width: 150px;
+          justify-self: center;
+        }
+        .fn .fn-dot {
+          position: static;
+          width: 14px;
+          height: 14px;
+          margin-bottom: 10px;
+        }
+        .fn:nth-child(odd) {
+          align-self: start;
+          padding-top: 42px;
+        }
+        .fn:nth-child(even) {
+          align-self: end;
+          padding-bottom: 42px;
+        }
+        .fn h4 {
+          font-size: 20px;
+        }
+        .fn p {
+          font-size: 13px;
+        }
+      }
+    </style>
 
-    <div class="kbp-row">
-      <label>Tom de voz</label>
-      <div class="kbp-chips" id="kbp-tone">
-        <button type="button" data-tone="acolhedor" class="active">Acolhedor</button>
-        <button type="button" data-tone="tecnico">Técnico</button>
-        <button type="button" data-tone="premium">Premium</button>
-        <button type="button" data-tone="direto">Direto</button>
+    <!-- ============ VITRINES ============ -->
+    <section id="demos">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Moldada para cada negócio</span>
+          <h2>Quatro vitrines, quatro <em>vozes</em></h2>
+          <p>
+            Mesma Kuan-Yin, vocabulário diferente. Cada vitrine mostra como ela acolhe num segmento
+            real.
+          </p>
+        </div>
+        <div class="demos">
+          <a href="/showroom/terapias-manuais" class="demo d-terapias reveal">
+            <div>
+              <div class="ico">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.5"
+                >
+                  <path d="M12 2C9 6 6 8 6 13a6 6 0 0 0 12 0c0-5-3-7-6-11z" />
+                </svg>
+              </div>
+              <h3>Terapias Manuais</h3>
+              <p>Acolhe quem busca alívio muscular com vocabulário miofascial.</p>
+            </div>
+            <span class="go">Ver vitrine →</span>
+          </a>
+          <a href="/showroom/beleza-estetica" class="demo d-beleza reveal">
+            <div>
+              <div class="ico">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.5"
+                >
+                  <circle cx="12" cy="9" r="6" />
+                  <path d="M9 14l-3 8 6-4 6 4-3-8" />
+                </svg>
+              </div>
+              <h3>Beleza & Estética</h3>
+              <p>Recebe cada cliente com elegância antes do atendimento.</p>
+            </div>
+            <span class="go">Ver vitrine →</span>
+          </a>
+          <a href="/showroom/pet-care" class="demo d-pet reveal">
+            <div>
+              <div class="ico">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.5"
+                >
+                  <circle cx="5" cy="9" r="2" />
+                  <circle cx="19" cy="9" r="2" />
+                  <circle cx="9" cy="5" r="2" />
+                  <circle cx="15" cy="5" r="2" />
+                  <path d="M12 11c-3 0-6 3-6 6 0 2 2 3 4 3s2-1 2-1 0 1 2 1 4-1 4-3c0-3-3-6-6-6z" />
+                </svg>
+              </div>
+              <h3>Pet Care</h3>
+              <p>Acolhe o tutor e organiza o cuidado com clareza.</p>
+            </div>
+            <span class="go">Ver vitrine →</span>
+          </a>
+          <a href="/showroom/assistencia-residencial" class="demo d-casa reveal">
+            <div>
+              <div class="ico">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.5"
+                >
+                  <path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
+                </svg>
+              </div>
+              <h3>Assistência Residencial</h3>
+              <p>Entende a demanda e prepara a visita técnica.</p>
+            </div>
+            <span class="go">Ver vitrine →</span>
+          </a>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="kbp-row">
-      <label>Serviços (um por linha, até 6)</label>
-      <textarea id="kbp-svcs" placeholder="Corte feminino&#10;Maquiagem social&#10;Design de sobrancelhas"></textarea>
-      <p class="kbp-hint">Substitui os títulos dos cards de serviços em ordem.</p>
-    </div>
+    <!-- ============ LIMITES ÉTICOS ============ -->
+    <section id="etica">
+      <div class="container">
+        <div
+          class="section-head reveal"
+          style="margin-left: auto; margin-right: auto; text-align: center"
+        >
+          <span class="eyebrow">Limites éticos</span>
+          <h2>Atendimento com <em>presença</em> exige limite</h2>
+          <p>Três compromissos não-negociáveis. Toda Kuan-Yin nasce com eles.</p>
+        </div>
+        <div class="ethic-grid">
+          <article class="ethic-card reveal">
+            <span class="ec-n">não</span>
+            <h3>promete resultado</h3>
+            <p>Apresenta serviços com clareza. Não vende garantia que ninguém pode dar.</p>
+          </article>
+          <article class="ethic-card reveal">
+            <span class="ec-n">não</span>
+            <h3>inventa disponibilidade</h3>
+            <p>Respeita a agenda real configurada pelo negócio. Confirma com a equipe.</p>
+          </article>
+          <article class="ethic-card reveal">
+            <span class="ec-n">não</span>
+            <h3>decide o que é sensível</h3>
+            <p>Casos delicados voltam para o profissional humano. Sempre.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    <style>
+      .ethic-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      @media (max-width: 760px) {
+        .ethic-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .ethic-card {
+        padding: 32px 28px;
+        background: var(--bg);
+        transition: background 0.3s;
+      }
+      .ethic-card:hover {
+        background: var(--bg-soft);
+      }
+      .ethic-card .ec-n {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        color: var(--magenta);
+        display: block;
+        margin-bottom: 12px;
+      }
+      .ethic-card h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 28px;
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+        margin-bottom: 12px;
+        background: var(--grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .ethic-card p {
+        color: var(--muted);
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
+    </style>
 
-    <div class="kbp-actions">
-      <button type="button" class="kbp-apply" data-kbp-apply>Aplicar</button>
-      <button type="button" class="kbp-reset" data-kbp-reset>Resetar</button>
-    </div>
-  </div>
-</aside>
+    <!-- ============ CTA ============ -->
+    <section id="cta">
+      <div class="container">
+        <div class="cta-final reveal">
+          <span class="eyebrow">Próximo passo</span>
+          <h2>Quero uma Kuan-Yin para meu <em>negócio</em>.</h2>
+          <p>
+            Linguagem, serviços e regras configurados para a sua empresa. O cliente chega orientado.
+            A equipe começa preparada.
+          </p>
+          <div class="cta-row">
+            <a
+              href="mailto:contato@kuan-yin.ai?subject=Quero%20uma%20Kuan-Yin%20para%20meu%20neg%C3%B3cio"
+              class="btn btn-primary"
+              >Falar com a Kuan-Yin →</a
+            >
+            <a href="#demos" class="btn btn-ghost">Ver vitrines</a>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<script>
-(function(){
-  var KEY = 'kbp:' + location.pathname;
-  var PRESETS = [
-    {name:'Magenta',  c1:'#E879F9', c2:'#7C3AED'},
-    {name:'Champagne',c1:'#E8C8AA', c2:'#C9A26B'},
-    {name:'Âmbar',    c1:'#D6A85A', c2:'#C7783E'},
-    {name:'Oceano',   c1:'#3A7787', c2:'#1E4E5F'},
-    {name:'Azul',     c1:'#60A5FA', c2:'#1E3A8A'},
-    {name:'Verde',    c1:'#86EFAC', c2:'#15803D'},
-    {name:'Coral',    c1:'#FB7185', c2:'#9F1239'}
-  ];
-  var TONES = {
-    acolhedor:{eyebrow:'Atendimento humano',font:'inherit'},
-    tecnico:  {eyebrow:'Precisão técnica', font:'inherit'},
-    premium:  {eyebrow:'Experiência premium',font:'inherit'},
-    direto:   {eyebrow:'Direto ao ponto',  font:'inherit'}
-  };
+    <footer>
+      <div class="container foot">
+        <div>© Kuan-Yin Showroom — demonstração comercial</div>
+        <div>Uma presença digital com a voz do seu negócio.</div>
+      </div>
+    </footer>
 
-  function $(s,r){return (r||document).querySelector(s)}
-  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+    <script>
+      const io = new IntersectionObserver(
+        (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
+        { threshold: 0.12 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    </script>
+    <!-- KUAN-BRAND-PANEL:START -->
+    <style id="kuan-brand-panel-style">
+      /* Mobile reading polish — applies everywhere */
+      @media (max-width: 560px) {
+        .lead {
+          font-size: 15.5px !important;
+          line-height: 1.55 !important;
+        }
+        .section-head p {
+          font-size: 15px !important;
+          line-height: 1.55 !important;
+        }
+        .bubble,
+        .msg .bubble {
+          font-size: 14.5px !important;
+          line-height: 1.55 !important;
+        }
+        .opts button,
+        .ask .opts button {
+          font-size: 11.5px !important;
+          padding: 11px 14px !important;
+          min-height: 42px;
+        }
+        .segments button {
+          min-height: 44px;
+        }
+        .card p {
+          font-size: 13.5px !important;
+          line-height: 1.55 !important;
+        }
+        .resume {
+          font-size: 16px !important;
+          line-height: 1.5 !important;
+        }
+      }
+      /* Panel */
+      #kbp-btn {
+        position: fixed;
+        right: 14px;
+        bottom: 14px;
+        z-index: 9999;
+        padding: 11px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(15, 8, 18, 0.85);
+        backdrop-filter: blur(12px);
+        color: #fff;
+        font:
+          500 11px/1 "JetBrains Mono",
+          ui-monospace,
+          monospace;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+        transition: transform 0.2s;
+      }
+      #kbp-btn:hover {
+        transform: translateY(-1px);
+      }
+      #kbp-btn .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e879f9, #7c3aed);
+        margin-right: 8px;
+        vertical-align: middle;
+        box-shadow: 0 0 10px #e879f9;
+      }
+      #kbp-sheet {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 10000;
+        background: #0b0610;
+        color: #f3e8f2;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6);
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-height: 88vh;
+        overflow: auto;
+        font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+      }
+      #kbp-sheet.open {
+        transform: translateY(0);
+      }
+      #kbp-sheet .kbp-in {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 18px 18px 28px;
+      }
+      .kbp-grab {
+        width: 42px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: 6px auto 14px;
+      }
+      .kbp-h {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .kbp-h h4 {
+        font:
+          600 13px/1 "JetBrains Mono",
+          ui-monospace,
+          monospace;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .kbp-h .kbp-x {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #fff;
+        padding: 6px 10px;
+        font:
+          500 10px/1 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      .kbp-row {
+        margin-bottom: 14px;
+      }
+      .kbp-row label {
+        display: block;
+        font:
+          500 10px/1.4 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #bfa8b5;
+        margin-bottom: 6px;
+      }
+      .kbp-row input[type="text"],
+      .kbp-row textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #fff;
+        padding: 11px 12px;
+        font:
+          400 14px/1.45 "Manrope",
+          sans-serif;
+        border-radius: 8px;
+        outline: none;
+      }
+      .kbp-row textarea {
+        min-height: 96px;
+        resize: vertical;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12.5px;
+      }
+      .kbp-row input:focus,
+      .kbp-row textarea:focus {
+        border-color: rgba(232, 121, 249, 0.55);
+      }
+      .kbp-colors {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .kbp-colors label.cc {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: 7px 10px;
+        border-radius: 8px;
+        font:
+          500 11px/1 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #bfa8b5;
+        cursor: pointer;
+      }
+      .kbp-colors input[type="color"] {
+        width: 30px;
+        height: 30px;
+        border: none;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+      }
+      .kbp-presets {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .kbp-presets button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+        font:
+          500 10px/1 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .kbp-presets button:hover {
+        border-color: rgba(255, 255, 255, 0.32);
+      }
+      .kbp-presets .swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .kbp-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .kbp-chips button {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #fff;
+        padding: 9px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font:
+          500 11px/1 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .kbp-chips button.active {
+        background: linear-gradient(135deg, #e879f9, #7c3aed);
+        border-color: transparent;
+        color: #0b0610;
+      }
+      .kbp-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .kbp-actions button {
+        flex: 1;
+        min-width: 120px;
+        padding: 13px 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font:
+          600 11px/1 "JetBrains Mono",
+          monospace;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+      .kbp-apply {
+        background: linear-gradient(135deg, #e879f9, #7c3aed);
+        color: #0b0610;
+      }
+      .kbp-reset {
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      }
+      .kbp-hint {
+        font-size: 11px;
+        color: #8b7585;
+        margin-top: 8px;
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.08em;
+      }
+      @media (max-width: 520px) {
+        #kbp-btn {
+          padding: 10px 14px;
+          font-size: 10px;
+        }
+        #kbp-sheet .kbp-in {
+          padding: 14px 14px 22px;
+        }
+      }
+    </style>
 
-  // Cache originals once
-  var ORIG = {
-    title: document.title,
-    brand: null, brandSmall:null,
-    h1Html:null, eyebrow:null,
-    services: [], asks: [],
-    chatHeadName:null
-  };
-  function snap(){
-    var brand = $('.brand span') || $('.brand');
-    if(brand){
-      // First text node of .brand span (avoiding nested <small>)
-      var clone = brand.cloneNode(true);
-      var smalls = clone.querySelectorAll('small'); smalls.forEach(function(s){s.remove()});
-      ORIG.brand = clone.textContent.trim();
-      var small = brand.querySelector('small');
-      ORIG.brandSmall = small ? small.textContent : '';
-    }
-    var h1 = $('.hero h1') || $('h1');
-    if(h1){ ORIG.h1Html = h1.innerHTML }
-    var eb = $('.hero .eyebrow');
-    if(eb){ ORIG.eyebrow = eb.textContent }
-    ORIG.services = $$('.card h3').map(function(n){return n.textContent});
-    ORIG.asks = $$('.ask .opts button').map(function(n){return n.textContent});
-    var chn = $('.chat-head strong') || $('.chat-head .name');
-    if(chn){ ORIG.chatHeadName = chn.textContent }
-  }
+    <button id="kbp-btn" type="button"><span class="dot"></span>Personalizar</button>
+    <aside id="kbp-sheet" aria-hidden="true">
+      <div class="kbp-in">
+        <div class="kbp-grab"></div>
+        <div class="kbp-h">
+          <h4>Branding · Vitrine</h4>
+          <button class="kbp-x" type="button" data-kbp-close>Fechar</button>
+        </div>
 
-  function setBrandText(name){
-    var brand = $('.brand span'); if(!brand) return;
-    // Preserve <small>
-    var small = brand.querySelector('small');
-    brand.textContent = name;
-    if(small){ brand.appendChild(small) }
-  }
-  function applyOverrideStyle(c1,c2){
-    var id='kbp-override';
-    var st=document.getElementById(id);
-    if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st)}
-    var grad='linear-gradient(135deg,'+c1+' 0%,'+c2+' 100%)';
-    st.textContent = ':root{'+
-      '--grad:'+grad+'!important;'+
-      '--magenta:'+c1+'!important;--rose:'+c1+'!important;--amethyst:'+c1+'!important;'+
-      '--violet:'+c2+'!important;--wine:'+c2+'!important;'+
-      '--champagne:'+c1+'!important;--gold:'+c2+'!important;--rose:'+c1+'!important;'+
-      '--amber:'+c1+'!important;--copper:'+c2+'!important;--gold-soft:'+c1+'!important;'+
-      '--teal:'+c2+'!important;--teal-soft:'+c1+'!important;--sage:'+c1+'!important;--coral:'+c1+'!important;'+
-      '--blue:'+c1+'!important;--orange:'+c1+'!important;--green:'+c1+'!important;'+
-      '--kbp-c1:'+c1+';--kbp-c2:'+c2+';'+
-    '}'+
-    '.brand .mark{filter:drop-shadow(0 0 16px '+c1+'88)!important}'+
-    '.chat-head .avatar,.mock-head .avatar{border-color:'+c1+'88!important;box-shadow:0 0 22px '+c1+'55!important}';
-  }
+        <div class="kbp-row">
+          <label>Nome do negócio</label>
+          <input type="text" id="kbp-name" placeholder="Ex: Maison Lúmina" maxlength="48" />
+        </div>
 
-  function apply(state, persist){
-    if(state.name){
-      setBrandText(state.name);
-      document.title = state.name + ' — Kuan-Yin';
-      var h1 = $('.hero h1');
-      if(h1) h1.innerHTML = state.name.replace(/\s+(\S+)$/, ' <em>$1</em>');
-      var chn = $('.chat-head strong') || $('.chat-head .name');
-      if(chn) chn.textContent = 'Kuan-Yin · ' + state.name;
-    } else {
-      if(ORIG.brand) setBrandText(ORIG.brand);
-      document.title = ORIG.title;
-      var h1b = $('.hero h1'); if(h1b && ORIG.h1Html) h1b.innerHTML = ORIG.h1Html;
-      var chn2 = $('.chat-head strong') || $('.chat-head .name');
-      if(chn2 && ORIG.chatHeadName) chn2.textContent = ORIG.chatHeadName;
-    }
-    if(state.tag){
-      var lead = $('.hero .lead'); if(lead) lead.textContent = state.tag;
-    }
-    if(state.tone){
-      document.body.setAttribute('data-tone', state.tone);
-      var eb = $('.hero .eyebrow');
-      if(eb && TONES[state.tone]) eb.textContent = TONES[state.tone].eyebrow;
-    } else if(ORIG.eyebrow){
-      var eb2 = $('.hero .eyebrow'); if(eb2) eb2.textContent = ORIG.eyebrow;
-    }
-    if(state.c1 && state.c2){ applyOverrideStyle(state.c1, state.c2) }
-    else { var o=document.getElementById('kbp-override'); if(o) o.remove() }
+        <div class="kbp-row">
+          <label>Tagline / Subtítulo (opcional)</label>
+          <input
+            type="text"
+            id="kbp-tag"
+            placeholder="Ex: beleza, técnica e experiência"
+            maxlength="90"
+          />
+        </div>
 
-    var svcNodes = $$('.card h3');
-    var svcs = (state.services||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
-    svcNodes.forEach(function(node,i){
-      node.textContent = svcs[i] || ORIG.services[i] || node.textContent;
-    });
+        <div class="kbp-row">
+          <label>Paleta</label>
+          <div class="kbp-colors">
+            <label class="cc">Primária <input type="color" id="kbp-c1" value="#E879F9" /></label>
+            <label class="cc">Secundária <input type="color" id="kbp-c2" value="#7C3AED" /></label>
+          </div>
+          <div class="kbp-presets" id="kbp-presets"></div>
+        </div>
 
-    if(persist){
-      try{ localStorage.setItem(KEY, JSON.stringify(state)) }catch(e){}
-    }
-  }
+        <div class="kbp-row">
+          <label>Tom de voz</label>
+          <div class="kbp-chips" id="kbp-tone">
+            <button type="button" data-tone="acolhedor" class="active">Acolhedor</button>
+            <button type="button" data-tone="tecnico">Técnico</button>
+            <button type="button" data-tone="premium">Premium</button>
+            <button type="button" data-tone="direto">Direto</button>
+          </div>
+        </div>
 
-  function reset(){
-    try{ localStorage.removeItem(KEY) }catch(e){}
-    apply({}, false);
-    fillForm({});
-  }
+        <div class="kbp-row">
+          <label>Serviços (um por linha, até 6)</label>
+          <textarea
+            id="kbp-svcs"
+            placeholder="Corte feminino&#10;Maquiagem social&#10;Design de sobrancelhas"
+          ></textarea>
+          <p class="kbp-hint">Substitui os títulos dos cards de serviços em ordem.</p>
+        </div>
 
-  function fillForm(state){
-    $('#kbp-name').value = state.name||'';
-    $('#kbp-tag').value = state.tag||'';
-    $('#kbp-c1').value = state.c1||'#E879F9';
-    $('#kbp-c2').value = state.c2||'#7C3AED';
-    $('#kbp-svcs').value = state.services||'';
-    var tone = state.tone||'acolhedor';
-    $$('#kbp-tone button').forEach(function(b){
-      b.classList.toggle('active', b.dataset.tone===tone);
-    });
-  }
+        <div class="kbp-actions">
+          <button type="button" class="kbp-apply" data-kbp-apply>Aplicar</button>
+          <button type="button" class="kbp-reset" data-kbp-reset>Resetar</button>
+        </div>
+      </div>
+    </aside>
 
-  function readForm(){
-    var tone = ($$('#kbp-tone button.active')[0]||{}).dataset;
-    return {
-      name: $('#kbp-name').value.trim(),
-      tag:  $('#kbp-tag').value.trim(),
-      c1:   $('#kbp-c1').value,
-      c2:   $('#kbp-c2').value,
-      tone: tone ? tone.tone : 'acolhedor',
-      services: $('#kbp-svcs').value
-    };
-  }
+    <script>
+      (function () {
+        var KEY = "kbp:" + location.pathname;
+        var PRESETS = [
+          { name: "Magenta", c1: "#E879F9", c2: "#7C3AED" },
+          { name: "Champagne", c1: "#E8C8AA", c2: "#C9A26B" },
+          { name: "Âmbar", c1: "#D6A85A", c2: "#C7783E" },
+          { name: "Oceano", c1: "#3A7787", c2: "#1E4E5F" },
+          { name: "Azul", c1: "#60A5FA", c2: "#1E3A8A" },
+          { name: "Verde", c1: "#86EFAC", c2: "#15803D" },
+          { name: "Coral", c1: "#FB7185", c2: "#9F1239" },
+        ];
+        var TONES = {
+          acolhedor: { eyebrow: "Atendimento humano", font: "inherit" },
+          tecnico: { eyebrow: "Precisão técnica", font: "inherit" },
+          premium: { eyebrow: "Experiência premium", font: "inherit" },
+          direto: { eyebrow: "Direto ao ponto", font: "inherit" },
+        };
 
-  function init(){
-    snap();
-    // Presets
-    var p = $('#kbp-presets');
-    PRESETS.forEach(function(P){
-      var b=document.createElement('button');
-      b.type='button';
-      b.innerHTML='<span class="swatch" style="background:linear-gradient(135deg,'+P.c1+','+P.c2+')"></span>'+P.name;
-      b.addEventListener('click',function(){
-        $('#kbp-c1').value=P.c1; $('#kbp-c2').value=P.c2;
-      });
-      p.appendChild(b);
-    });
-    // Tone chips
-    $$('#kbp-tone button').forEach(function(b){
-      b.addEventListener('click',function(){
-        $$('#kbp-tone button').forEach(function(x){x.classList.remove('active')});
-        b.classList.add('active');
-      });
-    });
-    // Open/close
-    var sheet = $('#kbp-sheet');
-    $('#kbp-btn').addEventListener('click',function(){ sheet.classList.add('open') });
-    $$('[data-kbp-close]').forEach(function(x){x.addEventListener('click',function(){sheet.classList.remove('open')})});
-    $('[data-kbp-apply]').addEventListener('click',function(){
-      var s = readForm(); apply(s,true); sheet.classList.remove('open');
-    });
-    $('[data-kbp-reset]').addEventListener('click',function(){ reset() });
+        function $(s, r) {
+          return (r || document).querySelector(s);
+        }
+        function $$(s, r) {
+          return Array.prototype.slice.call((r || document).querySelectorAll(s));
+        }
 
-    // Restore
-    var saved = null;
-    try{ saved = JSON.parse(localStorage.getItem(KEY)||'null') }catch(e){}
-    if(saved){ fillForm(saved); apply(saved,false); }
-    else { fillForm({}); }
-  }
+        // Cache originals once
+        var ORIG = {
+          title: document.title,
+          brand: null,
+          brandSmall: null,
+          h1Html: null,
+          eyebrow: null,
+          services: [],
+          asks: [],
+          chatHeadName: null,
+        };
+        function snap() {
+          var brand = $(".brand span") || $(".brand");
+          if (brand) {
+            // First text node of .brand span (avoiding nested <small>)
+            var clone = brand.cloneNode(true);
+            var smalls = clone.querySelectorAll("small");
+            smalls.forEach(function (s) {
+              s.remove();
+            });
+            ORIG.brand = clone.textContent.trim();
+            var small = brand.querySelector("small");
+            ORIG.brandSmall = small ? small.textContent : "";
+          }
+          var h1 = $(".hero h1") || $("h1");
+          if (h1) {
+            ORIG.h1Html = h1.innerHTML;
+          }
+          var eb = $(".hero .eyebrow");
+          if (eb) {
+            ORIG.eyebrow = eb.textContent;
+          }
+          ORIG.services = $$(".card h3").map(function (n) {
+            return n.textContent;
+          });
+          ORIG.asks = $$(".ask .opts button").map(function (n) {
+            return n.textContent;
+          });
+          var chn = $(".chat-head strong") || $(".chat-head .name");
+          if (chn) {
+            ORIG.chatHeadName = chn.textContent;
+          }
+        }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else { init(); }
-})();
-</script>
-<!-- KUAN-BRAND-PANEL:END -->
+        function setBrandText(name) {
+          var brand = $(".brand span");
+          if (!brand) return;
+          // Preserve <small>
+          var small = brand.querySelector("small");
+          brand.textContent = name;
+          if (small) {
+            brand.appendChild(small);
+          }
+        }
+        function applyOverrideStyle(c1, c2) {
+          var id = "kbp-override";
+          var st = document.getElementById(id);
+          if (!st) {
+            st = document.createElement("style");
+            st.id = id;
+            document.head.appendChild(st);
+          }
+          var grad = "linear-gradient(135deg," + c1 + " 0%," + c2 + " 100%)";
+          st.textContent =
+            ":root{" +
+            "--grad:" +
+            grad +
+            "!important;" +
+            "--magenta:" +
+            c1 +
+            "!important;--rose:" +
+            c1 +
+            "!important;--amethyst:" +
+            c1 +
+            "!important;" +
+            "--violet:" +
+            c2 +
+            "!important;--wine:" +
+            c2 +
+            "!important;" +
+            "--champagne:" +
+            c1 +
+            "!important;--gold:" +
+            c2 +
+            "!important;--rose:" +
+            c1 +
+            "!important;" +
+            "--amber:" +
+            c1 +
+            "!important;--copper:" +
+            c2 +
+            "!important;--gold-soft:" +
+            c1 +
+            "!important;" +
+            "--teal:" +
+            c2 +
+            "!important;--teal-soft:" +
+            c1 +
+            "!important;--sage:" +
+            c1 +
+            "!important;--coral:" +
+            c1 +
+            "!important;" +
+            "--blue:" +
+            c1 +
+            "!important;--orange:" +
+            c1 +
+            "!important;--green:" +
+            c1 +
+            "!important;" +
+            "--kbp-c1:" +
+            c1 +
+            ";--kbp-c2:" +
+            c2 +
+            ";" +
+            "}" +
+            ".brand .mark{filter:drop-shadow(0 0 16px " +
+            c1 +
+            "88)!important}" +
+            ".chat-head .avatar,.mock-head .avatar{border-color:" +
+            c1 +
+            "88!important;box-shadow:0 0 22px " +
+            c1 +
+            "55!important}";
+        }
 
-</body>
+        function apply(state, persist) {
+          if (state.name) {
+            setBrandText(state.name);
+            document.title = state.name + " — Kuan-Yin";
+            var h1 = $(".hero h1");
+            if (h1) h1.innerHTML = state.name.replace(/\s+(\S+)$/, " <em>$1</em>");
+            var chn = $(".chat-head strong") || $(".chat-head .name");
+            if (chn) chn.textContent = "Kuan-Yin · " + state.name;
+          } else {
+            if (ORIG.brand) setBrandText(ORIG.brand);
+            document.title = ORIG.title;
+            var h1b = $(".hero h1");
+            if (h1b && ORIG.h1Html) h1b.innerHTML = ORIG.h1Html;
+            var chn2 = $(".chat-head strong") || $(".chat-head .name");
+            if (chn2 && ORIG.chatHeadName) chn2.textContent = ORIG.chatHeadName;
+          }
+          if (state.tag) {
+            var lead = $(".hero .lead");
+            if (lead) lead.textContent = state.tag;
+          }
+          if (state.tone) {
+            document.body.setAttribute("data-tone", state.tone);
+            var eb = $(".hero .eyebrow");
+            if (eb && TONES[state.tone]) eb.textContent = TONES[state.tone].eyebrow;
+          } else if (ORIG.eyebrow) {
+            var eb2 = $(".hero .eyebrow");
+            if (eb2) eb2.textContent = ORIG.eyebrow;
+          }
+          if (state.c1 && state.c2) {
+            applyOverrideStyle(state.c1, state.c2);
+          } else {
+            var o = document.getElementById("kbp-override");
+            if (o) o.remove();
+          }
+
+          var svcNodes = $$(".card h3");
+          var svcs = (state.services || "")
+            .split("\n")
+            .map(function (s) {
+              return s.trim();
+            })
+            .filter(Boolean);
+          svcNodes.forEach(function (node, i) {
+            node.textContent = svcs[i] || ORIG.services[i] || node.textContent;
+          });
+
+          if (persist) {
+            try {
+              localStorage.setItem(KEY, JSON.stringify(state));
+            } catch (e) {}
+          }
+        }
+
+        function reset() {
+          try {
+            localStorage.removeItem(KEY);
+          } catch (e) {}
+          apply({}, false);
+          fillForm({});
+        }
+
+        function fillForm(state) {
+          $("#kbp-name").value = state.name || "";
+          $("#kbp-tag").value = state.tag || "";
+          $("#kbp-c1").value = state.c1 || "#E879F9";
+          $("#kbp-c2").value = state.c2 || "#7C3AED";
+          $("#kbp-svcs").value = state.services || "";
+          var tone = state.tone || "acolhedor";
+          $$("#kbp-tone button").forEach(function (b) {
+            b.classList.toggle("active", b.dataset.tone === tone);
+          });
+        }
+
+        function readForm() {
+          var tone = ($$("#kbp-tone button.active")[0] || {}).dataset;
+          return {
+            name: $("#kbp-name").value.trim(),
+            tag: $("#kbp-tag").value.trim(),
+            c1: $("#kbp-c1").value,
+            c2: $("#kbp-c2").value,
+            tone: tone ? tone.tone : "acolhedor",
+            services: $("#kbp-svcs").value,
+          };
+        }
+
+        function init() {
+          snap();
+          // Presets
+          var p = $("#kbp-presets");
+          PRESETS.forEach(function (P) {
+            var b = document.createElement("button");
+            b.type = "button";
+            b.innerHTML =
+              '<span class="swatch" style="background:linear-gradient(135deg,' +
+              P.c1 +
+              "," +
+              P.c2 +
+              ')"></span>' +
+              P.name;
+            b.addEventListener("click", function () {
+              $("#kbp-c1").value = P.c1;
+              $("#kbp-c2").value = P.c2;
+            });
+            p.appendChild(b);
+          });
+          // Tone chips
+          $$("#kbp-tone button").forEach(function (b) {
+            b.addEventListener("click", function () {
+              $$("#kbp-tone button").forEach(function (x) {
+                x.classList.remove("active");
+              });
+              b.classList.add("active");
+            });
+          });
+          // Open/close
+          var sheet = $("#kbp-sheet");
+          $("#kbp-btn").addEventListener("click", function () {
+            sheet.classList.add("open");
+          });
+          $$("[data-kbp-close]").forEach(function (x) {
+            x.addEventListener("click", function () {
+              sheet.classList.remove("open");
+            });
+          });
+          $("[data-kbp-apply]").addEventListener("click", function () {
+            var s = readForm();
+            apply(s, true);
+            sheet.classList.remove("open");
+          });
+          $("[data-kbp-reset]").addEventListener("click", function () {
+            reset();
+          });
+
+          // Restore
+          var saved = null;
+          try {
+            saved = JSON.parse(localStorage.getItem(KEY) || "null");
+          } catch (e) {}
+          if (saved) {
+            fillForm(saved);
+            apply(saved, false);
+          } else {
+            fillForm({});
+          }
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+    <!-- KUAN-BRAND-PANEL:END -->
+  </body>
 </html>

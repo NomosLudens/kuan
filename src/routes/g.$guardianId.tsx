@@ -328,7 +328,9 @@ function GuardianPublicPage() {
         setAppointmentStartsAt("");
         setAppointmentNotes("");
 
-        setSuccessMessage("Solicitação de agendamento enviada! Ela está pendente de aprovação pelo Guardião.");
+        setSuccessMessage(
+          "Solicitação de agendamento enviada! Ela está pendente de aprovação pelo Guardião.",
+        );
 
         // Refresh conversation
         if (threadId) {
@@ -451,7 +453,9 @@ function GuardianPublicPage() {
         setProofRef("");
         setProofPayerNote("");
 
-        setSuccessMessage("Comprovante enviado com sucesso! Ele está pendente de conferência pelo Guardião.");
+        setSuccessMessage(
+          "Comprovante enviado com sucesso! Ele está pendente de conferência pelo Guardião.",
+        );
 
         // Refresh conversation
         if (threadId) {
@@ -564,14 +568,18 @@ function GuardianPublicPage() {
 
         <div className="rounded-3xl border border-[color:var(--gold)]/35 bg-[color:var(--gold)]/10 p-5 text-sm leading-relaxed text-[color:var(--ivory)]">
           <p className="font-semibold text-[color:var(--gold)]">Aviso Importante:</p>
-          <p className="mt-1">Pedidos, agendamentos e pagamentos dependem de aprovação e confirmação manual do Guardião.</p>
+          <p className="mt-1">
+            Pedidos, agendamentos e pagamentos dependem de aprovação e confirmação manual do
+            Guardião.
+          </p>
           <p className="mt-2">O envio de comprovante indica apenas solicitação em análise.</p>
         </div>
 
         <div className="rounded-3xl border border-[color:var(--border)] bg-card/50 p-5 backdrop-blur-md">
           <h2 className="serif text-2xl text-[color:var(--ivory)]">Converse com a Kuan-Yin</h2>
           <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">
-            Deixe suas dúvidas, solicite orçamentos ou faça pedidos. A Kuan-Yin orientará você e registrará suas solicitações como pendentes para aprovação do Guardião.
+            Deixe suas dúvidas, solicite orçamentos ou faça pedidos. A Kuan-Yin orientará você e
+            registrará suas solicitações como pendentes para aprovação do Guardião.
           </p>
           <div className="mt-4 min-h-40 max-h-96 overflow-y-auto space-y-3 rounded-2xl border border-[color:var(--border)] bg-background/40 p-4">
             {conversationLoading && (
@@ -579,7 +587,8 @@ function GuardianPublicPage() {
             )}
             {!conversationLoading && messages.length === 0 && (
               <p className="text-sm text-[color:var(--ivory-dim)]">
-                Sem mensagens ainda. Envie sua primeira pergunta ou clique em um dos atalhos rápidos abaixo!
+                Sem mensagens ainda. Envie sua primeira pergunta ou clique em um dos atalhos rápidos
+                abaixo!
               </p>
             )}
             {messages.map((item) => (
@@ -643,9 +652,14 @@ function GuardianPublicPage() {
             />
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-[color:var(--ivory-dim)]">
-                Kuan-Yin é uma assistente. Decisões financeiras e comerciais finais são tomadas pelo Guardião.
+                Kuan-Yin é uma assistente. Decisões financeiras e comerciais finais são tomadas pelo
+                Guardião.
               </p>
-              <Button type="submit" disabled={sending || conversationLoading || !hasPublicData} className="bg-[color:var(--gold)]/90 hover:bg-[color:var(--gold)] text-black font-semibold rounded-full px-6 transition-all duration-200 shadow-[0_4px_20px_rgba(212,175,55,0.15)] hover:shadow-[0_4px_25px_rgba(212,175,55,0.25)]">
+              <Button
+                type="submit"
+                disabled={sending || conversationLoading || !hasPublicData}
+                className="bg-[color:var(--gold)]/90 hover:bg-[color:var(--gold)] text-black font-semibold rounded-full px-6 transition-all duration-200 shadow-[0_4px_20px_rgba(212,175,55,0.15)] hover:shadow-[0_4px_25px_rgba(212,175,55,0.25)]"
+              >
                 {sending ? "Enviando…" : "Enviar"}
               </Button>
             </div>
@@ -662,14 +676,17 @@ function GuardianPublicPage() {
               <span>📅 Solicitar Agendamento</span>
             </DialogTitle>
             <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-              Deixe sua solicitação de horário. Ela ficará pendente de aprovação e confirmação manual do Guardião.
+              Deixe sua solicitação de horário. Ela ficará pendente de aprovação e confirmação
+              manual do Guardião.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleRequestAppointment} className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="appt-name" className="text-xs text-[color:var(--ivory-dim)]">Seu Nome *</Label>
+                <Label htmlFor="appt-name" className="text-xs text-[color:var(--ivory-dim)]">
+                  Seu Nome *
+                </Label>
                 <Input
                   id="appt-name"
                   value={apptName}
@@ -680,7 +697,9 @@ function GuardianPublicPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="appt-phone" className="text-xs text-[color:var(--ivory-dim)]">Telefone *</Label>
+                <Label htmlFor="appt-phone" className="text-xs text-[color:var(--ivory-dim)]">
+                  Telefone *
+                </Label>
                 <Input
                   id="appt-phone"
                   value={apptPhone}
@@ -692,7 +711,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="appt-email" className="text-xs text-[color:var(--ivory-dim)]">E-mail</Label>
+              <Label htmlFor="appt-email" className="text-xs text-[color:var(--ivory-dim)]">
+                E-mail
+              </Label>
               <Input
                 id="appt-email"
                 type="email"
@@ -705,7 +726,9 @@ function GuardianPublicPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="appt-service" className="text-xs text-[color:var(--ivory-dim)]">Serviço *</Label>
+                <Label htmlFor="appt-service" className="text-xs text-[color:var(--ivory-dim)]">
+                  Serviço *
+                </Label>
                 <Input
                   id="appt-service"
                   value={apptService}
@@ -716,7 +739,9 @@ function GuardianPublicPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="appt-time" className="text-xs text-[color:var(--ivory-dim)]">Data e Hora *</Label>
+                <Label htmlFor="appt-time" className="text-xs text-[color:var(--ivory-dim)]">
+                  Data e Hora *
+                </Label>
                 <Input
                   id="appt-time"
                   type="datetime-local"
@@ -729,7 +754,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="appt-notes" className="text-xs text-[color:var(--ivory-dim)]">Observações (opcional)</Label>
+              <Label htmlFor="appt-notes" className="text-xs text-[color:var(--ivory-dim)]">
+                Observações (opcional)
+              </Label>
               <Textarea
                 id="appt-notes"
                 value={apptNotes}
@@ -741,7 +768,8 @@ function GuardianPublicPage() {
             </div>
 
             <p className="text-[10px] text-[color:var(--ivory-dim)] leading-snug">
-              * Ao clicar em enviar, os contatos serão guardados localmente para facilitar novas solicitações.
+              * Ao clicar em enviar, os contatos serão guardados localmente para facilitar novas
+              solicitações.
             </p>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -774,14 +802,17 @@ function GuardianPublicPage() {
               <span>📝 Solicitar Orçamento/Pedido</span>
             </DialogTitle>
             <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-              Descreva detalhadamente o que você precisa. O Guardião analisará a viabilidade e entrará em contato.
+              Descreva detalhadamente o que você precisa. O Guardião analisará a viabilidade e
+              entrará em contato.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleRequestOrder} className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="order-name" className="text-xs text-[color:var(--ivory-dim)]">Seu Nome *</Label>
+                <Label htmlFor="order-name" className="text-xs text-[color:var(--ivory-dim)]">
+                  Seu Nome *
+                </Label>
                 <Input
                   id="order-name"
                   value={orderName}
@@ -792,7 +823,9 @@ function GuardianPublicPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="order-phone" className="text-xs text-[color:var(--ivory-dim)]">Telefone *</Label>
+                <Label htmlFor="order-phone" className="text-xs text-[color:var(--ivory-dim)]">
+                  Telefone *
+                </Label>
                 <Input
                   id="order-phone"
                   value={orderPhone}
@@ -804,7 +837,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="order-email" className="text-xs text-[color:var(--ivory-dim)]">E-mail</Label>
+              <Label htmlFor="order-email" className="text-xs text-[color:var(--ivory-dim)]">
+                E-mail
+              </Label>
               <Input
                 id="order-email"
                 type="email"
@@ -816,7 +851,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="order-desc" className="text-xs text-[color:var(--ivory-dim)]">Descrição Detalhada do Pedido *</Label>
+              <Label htmlFor="order-desc" className="text-xs text-[color:var(--ivory-dim)]">
+                Descrição Detalhada do Pedido *
+              </Label>
               <Textarea
                 id="order-desc"
                 value={orderDesc}
@@ -829,7 +866,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="order-budget" className="text-xs text-[color:var(--ivory-dim)]">Orçamento Estimado (Opcional)</Label>
+              <Label htmlFor="order-budget" className="text-xs text-[color:var(--ivory-dim)]">
+                Orçamento Estimado (Opcional)
+              </Label>
               <Input
                 id="order-budget"
                 value={orderBudget}
@@ -840,7 +879,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="order-notes" className="text-xs text-[color:var(--ivory-dim)]">Notas adicionais (opcional)</Label>
+              <Label htmlFor="order-notes" className="text-xs text-[color:var(--ivory-dim)]">
+                Notas adicionais (opcional)
+              </Label>
               <Input
                 id="order-notes"
                 value={orderNotes}
@@ -880,14 +921,17 @@ function GuardianPublicPage() {
               <span>💵 Notificar Pagamento / Enviar Comprovante</span>
             </DialogTitle>
             <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-              Informe os dados do seu pagamento pendente. O Guardião confirmará os valores para concluir a transação.
+              Informe os dados do seu pagamento pendente. O Guardião confirmará os valores para
+              concluir a transação.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmitProof} className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="proof-name" className="text-xs text-[color:var(--ivory-dim)]">Seu Nome *</Label>
+                <Label htmlFor="proof-name" className="text-xs text-[color:var(--ivory-dim)]">
+                  Seu Nome *
+                </Label>
                 <Input
                   id="proof-name"
                   value={proofName}
@@ -898,7 +942,9 @@ function GuardianPublicPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="proof-phone" className="text-xs text-[color:var(--ivory-dim)]">Telefone *</Label>
+                <Label htmlFor="proof-phone" className="text-xs text-[color:var(--ivory-dim)]">
+                  Telefone *
+                </Label>
                 <Input
                   id="proof-phone"
                   value={proofPhone}
@@ -910,7 +956,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="proof-email" className="text-xs text-[color:var(--ivory-dim)]">E-mail</Label>
+              <Label htmlFor="proof-email" className="text-xs text-[color:var(--ivory-dim)]">
+                E-mail
+              </Label>
               <Input
                 id="proof-email"
                 type="email"
@@ -923,7 +971,9 @@ function GuardianPublicPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="proof-amount" className="text-xs text-[color:var(--ivory-dim)]">Valor Pago (BRL) *</Label>
+                <Label htmlFor="proof-amount" className="text-xs text-[color:var(--ivory-dim)]">
+                  Valor Pago (BRL) *
+                </Label>
                 <Input
                   id="proof-amount"
                   value={proofAmount}
@@ -934,7 +984,9 @@ function GuardianPublicPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="proof-method" className="text-xs text-[color:var(--ivory-dim)]">Forma de Pagamento</Label>
+                <Label htmlFor="proof-method" className="text-xs text-[color:var(--ivory-dim)]">
+                  Forma de Pagamento
+                </Label>
                 <Input
                   id="proof-method"
                   value={proofMethod}
@@ -946,7 +998,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="proof-ref" className="text-xs text-[color:var(--ivory-dim)]">Ref / ID Transação / Código do Comprovante</Label>
+              <Label htmlFor="proof-ref" className="text-xs text-[color:var(--ivory-dim)]">
+                Ref / ID Transação / Código do Comprovante
+              </Label>
               <Input
                 id="proof-ref"
                 value={proofRef}
@@ -957,7 +1011,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="proof-note" className="text-xs text-[color:var(--ivory-dim)]">Nota Adicional / Informações Úteis</Label>
+              <Label htmlFor="proof-note" className="text-xs text-[color:var(--ivory-dim)]">
+                Nota Adicional / Informações Úteis
+              </Label>
               <Textarea
                 id="proof-note"
                 value={proofPayerNote}
@@ -969,7 +1025,8 @@ function GuardianPublicPage() {
             </div>
 
             <p className="text-[10px] text-[color:var(--gold)] leading-snug">
-              Nota: "Public clients can only create pending requests. Confirmation is guardian-only."
+              Nota: "Public clients can only create pending requests. Confirmation is
+              guardian-only."
             </p>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -1002,13 +1059,16 @@ function GuardianPublicPage() {
               <span>📞 Deixar Dados de Contato</span>
             </DialogTitle>
             <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-              Sintonize seus contatos. Eles serão salvos localmente para preenchimento rápido em todas as ações públicas.
+              Sintonize seus contatos. Eles serão salvos localmente para preenchimento rápido em
+              todas as ações públicas.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveContact} className="space-y-4 mt-2">
             <div className="space-y-1">
-              <Label htmlFor="contact-name" className="text-xs text-[color:var(--ivory-dim)]">Seu Nome completo *</Label>
+              <Label htmlFor="contact-name" className="text-xs text-[color:var(--ivory-dim)]">
+                Seu Nome completo *
+              </Label>
               <Input
                 id="contact-name"
                 value={contactName}
@@ -1020,7 +1080,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="contact-phone" className="text-xs text-[color:var(--ivory-dim)]">Telefone Celular *</Label>
+              <Label htmlFor="contact-phone" className="text-xs text-[color:var(--ivory-dim)]">
+                Telefone Celular *
+              </Label>
               <Input
                 id="contact-phone"
                 value={contactPhone}
@@ -1031,7 +1093,9 @@ function GuardianPublicPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="contact-email" className="text-xs text-[color:var(--ivory-dim)]">E-mail</Label>
+              <Label htmlFor="contact-email" className="text-xs text-[color:var(--ivory-dim)]">
+                E-mail
+              </Label>
               <Input
                 id="contact-email"
                 type="email"

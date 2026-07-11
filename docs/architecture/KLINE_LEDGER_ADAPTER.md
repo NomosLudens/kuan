@@ -7,6 +7,7 @@ Este documento descreve a primeira camada TypeScript do K∧LINE Ledger / Mnemó
 Oferecer funções pequenas, best-effort e não bloqueantes para gravar eventos, referências e estados de revisão no Ledger.
 
 Há duas abordagens implementadas:
+
 1. `src/lib/kline-ledger.ts`: Adapter principal que utiliza o singleton de browser do Supabase (`@/integrations/supabase/client`). Não deve ser usado em contextos puramente backend/API como `chat.ts`.
 2. `src/lib/kline-ledger.server.ts`: Helper server-safe que exige injeção explícita de um client do Supabase (por exemplo, `supabaseAsUser`), isolando transações de segurança e garantindo o funcionamento em rotas de API server-side sem misturar tokens.
 

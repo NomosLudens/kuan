@@ -11,6 +11,7 @@ A Kuan-Yin neste repositório não é mais tratada como a "Kaline pessoal" ou um
 ## Whitelist pública
 
 A função `getGuardianPublicPage` implementa um payload rígido contendo exclusivamente os campos essenciais para o carregamento do frontend:
+
 - slug
 - name
 - type
@@ -25,6 +26,7 @@ A função `getGuardianPublicPage` implementa um payload rígido contendo exclus
 ## Campos proibidos
 
 Foi banido o vazamento dos seguintes campos na superfície pública:
+
 - user_id;
 - ids técnicos desnecessários (como id da tabela de guardian e businessContextId);
 - tokens;
@@ -35,7 +37,7 @@ Foi banido o vazamento dos seguintes campos na superfície pública:
 - regras_escalonamento;
 - objeto bruto do banco.
 
-*Nota:* O campo `pixKey` foi removido e também deve ser considerado proibido no estado atual, até que se forme uma decisão se essa chave pode ser exposta livremente ou apenas no momento do pagamento confirmado, protegendo a privacidade bancária do Guardião.
+_Nota:_ O campo `pixKey` foi removido e também deve ser considerado proibido no estado atual, até que se forme uma decisão se essa chave pode ser exposta livremente ou apenas no momento do pagamento confirmado, protegendo a privacidade bancária do Guardião.
 
 ## Regras duras
 
@@ -49,6 +51,7 @@ Foi banido o vazamento dos seguintes campos na superfície pública:
 ## Funções públicas auditadas
 
 Lista de funções auditadas em `src/lib/kuanyin-public.functions.ts` e seu estado de hardening:
+
 - **getGuardianPublicPage**: Restrita à whitelist, omitindo IDs internos, status de backend e chaves.
 - **getGuardianPublicConversation**: Recuperação de thread correta, dependente de keys e rate limits em memória.
 - **sendGuardianPublicMessage**: Atualizada para omitir `pixKey` (`pix_chave`) da string literal injetada via LLM (business context block) caso seja chamada pela API pública. Impede vazamento indireto.
