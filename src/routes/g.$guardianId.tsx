@@ -131,7 +131,8 @@ function GuardianPublicPage() {
   // Contact details stored in localStorage (retrieved ONLY if consent is given)
   const [visitorName, setVisitorName] = useState(() => {
     try {
-      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      const consent =
+        window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
       if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:name`) || "";
     } catch {
@@ -140,7 +141,8 @@ function GuardianPublicPage() {
   });
   const [visitorEmail, setVisitorEmail] = useState(() => {
     try {
-      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      const consent =
+        window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
       if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:email`) || "";
     } catch {
@@ -149,7 +151,8 @@ function GuardianPublicPage() {
   });
   const [visitorPhone, setVisitorPhone] = useState(() => {
     try {
-      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      const consent =
+        window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
       if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:phone`) || "";
     } catch {
@@ -179,7 +182,9 @@ function GuardianPublicPage() {
       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:name`);
       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:email`);
       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:phone`);
-    } catch {}
+    } catch (err) {
+      // Ignore errors when localStorage is unavailable
+    }
     setConsentChecked(false);
     setVisitorName("");
     setVisitorEmail("");
@@ -788,11 +793,23 @@ function GuardianPublicPage() {
                   try {
                     if (checked) {
                       window.localStorage.setItem(`kuan-public-chat:${guardianId}:consent`, "true");
-                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:name`, visitorName);
-                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:email`, visitorEmail);
-                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:phone`, visitorPhone);
+                      window.localStorage.setItem(
+                        `kuan-public-chat:${guardianId}:name`,
+                        visitorName,
+                      );
+                      window.localStorage.setItem(
+                        `kuan-public-chat:${guardianId}:email`,
+                        visitorEmail,
+                      );
+                      window.localStorage.setItem(
+                        `kuan-public-chat:${guardianId}:phone`,
+                        visitorPhone,
+                      );
                       if (visitorKey) {
-                        window.localStorage.setItem(`kuan-public-chat:${guardianId}:visitor`, visitorKey);
+                        window.localStorage.setItem(
+                          `kuan-public-chat:${guardianId}:visitor`,
+                          visitorKey,
+                        );
                       }
                     } else {
                       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:consent`);
@@ -801,12 +818,15 @@ function GuardianPublicPage() {
                       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:email`);
                       window.localStorage.removeItem(`kuan-public-chat:${guardianId}:phone`);
                     }
-                  } catch {}
+                  } catch (err) {
+                    // Ignore errors when localStorage is unavailable
+                  }
                 }}
                 className="mt-1 accent-[color:var(--gold)] rounded cursor-pointer"
               />
               <span className="text-xs text-[color:var(--ivory-dim)] group-hover:text-[color:var(--ivory)] transition-colors">
-                Lembrar minhas informações de contato e conversa neste navegador (opcional, salvo localmente).
+                Lembrar minhas informações de contato e conversa neste navegador (opcional, salvo
+                localmente).
               </span>
             </label>
             {(consentChecked || visitorName || visitorEmail || visitorPhone) && (

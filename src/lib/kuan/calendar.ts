@@ -9,7 +9,9 @@ export function parseLocalDateTimeInTimeZone(localDateTime: string, timeZone: st
     throw new Error("Data e horário inválidos.");
   }
 
-  const match = localDateTime.trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  const match = localDateTime
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (!match) {
     throw new Error("Formato de data e horário inválido. Use AAAA-MM-DDTHH:mm.");
   }
@@ -30,11 +32,16 @@ export function parseLocalDateTimeInTimeZone(localDateTime: string, timeZone: st
   const second = secStr ? parseInt(secStr, 10) : 0;
 
   if (
-    month < 0 || month > 11 ||
-    day < 1 || day > 31 ||
-    hour < 0 || hour > 23 ||
-    minute < 0 || minute > 59 ||
-    second < 0 || second > 59
+    month < 0 ||
+    month > 11 ||
+    day < 1 ||
+    day > 31 ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59 ||
+    second < 0 ||
+    second > 59
   ) {
     throw new Error("Horário impossível ou componentes de data inválidos.");
   }
@@ -95,7 +102,9 @@ export function formatGuardianDateTime(date: Date | string, timeZone: string): s
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(d).replace(",", " às");
+  })
+    .format(d)
+    .replace(",", " às");
 }
 
 /**
@@ -151,9 +160,9 @@ export function isAppointmentWithinAvailabilityRules(
       day: "numeric",
     });
     const parts = formatter.formatToParts(startsAt);
-    const y = parseInt(parts.find(p => p.type === "year")!.value, 10);
-    const m = parseInt(parts.find(p => p.type === "month")!.value, 10) - 1;
-    const d = parseInt(parts.find(p => p.type === "day")!.value, 10);
+    const y = parseInt(parts.find((p) => p.type === "year")!.value, 10);
+    const m = parseInt(parts.find((p) => p.type === "month")!.value, 10) - 1;
+    const d = parseInt(parts.find((p) => p.type === "day")!.value, 10);
     const localDate = new Date(Date.UTC(y, m, d));
     const day = localDate.getUTCDay();
 

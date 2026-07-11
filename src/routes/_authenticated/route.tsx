@@ -152,8 +152,8 @@ function AuthedLayout() {
           <div className="space-y-2">
             <h1 className="serif text-2xl text-[color:var(--ivory)]">Acesso Pendente</h1>
             <p className="text-sm leading-relaxed text-[color:var(--ivory-dim)]">
-              Sua conta ainda não está vinculada a nenhuma presença comercial de Guardião. 
-              Entre em contato com o administrador da plataforma para obter um convite e liberar seu acesso.
+              Sua conta ainda não está vinculada a nenhuma presença comercial de Guardião. Entre em
+              contato com o administrador da plataforma para obter um convite e liberar seu acesso.
             </p>
           </div>
           <div className="pt-2">

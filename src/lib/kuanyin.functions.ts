@@ -9,12 +9,20 @@ import {
   parseLocalDateTimeInTimeZone,
   isAppointmentWithinAvailabilityRules,
 } from "@/lib/kuan/calendar";
-import { requirePlatformAdmin, getCanonicalAppUrl, validateSafeRedirectUrl } from "@/lib/admin-security";
+import {
+  requirePlatformAdmin,
+  getCanonicalAppUrl,
+  validateSafeRedirectUrl,
+} from "@/lib/admin-security";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ─── ownership assertions ───────────────────────────────────────────────────
 
-async function assertOwnedClient(supabase: SupabaseClient, userId: string, clientId: string | null | undefined): Promise<void> {
+async function assertOwnedClient(
+  supabase: SupabaseClient,
+  userId: string,
+  clientId: string | null | undefined,
+): Promise<void> {
   if (!clientId) return;
   const { data, error } = await supabase
     .from("kuanyin_clients")
@@ -28,7 +36,11 @@ async function assertOwnedClient(supabase: SupabaseClient, userId: string, clien
   }
 }
 
-async function assertOwnedAppointment(supabase: SupabaseClient, userId: string, appointmentId: string | null | undefined): Promise<void> {
+async function assertOwnedAppointment(
+  supabase: SupabaseClient,
+  userId: string,
+  appointmentId: string | null | undefined,
+): Promise<void> {
   if (!appointmentId) return;
   const { data, error } = await supabase
     .from("kuanyin_appointments")
@@ -42,7 +54,11 @@ async function assertOwnedAppointment(supabase: SupabaseClient, userId: string, 
   }
 }
 
-async function assertOwnedOrder(supabase: SupabaseClient, userId: string, orderId: string | null | undefined): Promise<void> {
+async function assertOwnedOrder(
+  supabase: SupabaseClient,
+  userId: string,
+  orderId: string | null | undefined,
+): Promise<void> {
   if (!orderId) return;
   const { data, error } = await supabase
     .from("kuanyin_orders")
@@ -696,7 +712,9 @@ export const confirmAppointment = createServerFn({ method: "POST" })
       .limit(1);
 
     if (conflicts && conflicts.length > 0) {
-      throw new Error("Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.");
+      throw new Error(
+        "Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.",
+      );
     }
 
     // 4. Update status and ends_at
@@ -907,7 +925,9 @@ export const createManualAppointment = createServerFn({ method: "POST" })
 
     // Valida se o horário proposto está na janela permitida
     if (!isAppointmentWithinAvailabilityRules(startsAtDate, duration, rules, timeZone)) {
-      throw new Error(rules.unavailableMessage || "Horário fora da janela de atendimento configurada.");
+      throw new Error(
+        rules.unavailableMessage || "Horário fora da janela de atendimento configurada.",
+      );
     }
 
     // Valida antecedência mínima / se já passou
@@ -927,7 +947,9 @@ export const createManualAppointment = createServerFn({ method: "POST" })
 
     if (conflictError) throw new Error(conflictError.message);
     if (conflicts && conflicts.length > 0) {
-      throw new Error("Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.");
+      throw new Error(
+        "Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.",
+      );
     }
 
     // 3. Insert appointment directly as confirmed (pre-confirmed)
@@ -1071,7 +1093,9 @@ export const confirmOrder = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error || !row) {
-      throw new Error("O pedido precisa estar com status 'draft' ou 'proposed' para ser confirmado.");
+      throw new Error(
+        "O pedido precisa estar com status 'draft' ou 'proposed' para ser confirmado.",
+      );
     }
     await writeKuanIntegrityLog({
       supabase,
