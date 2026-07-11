@@ -210,13 +210,23 @@ function AgendaPage() {
     const dtEnd = formatDate(endsAt);
     const dtStamp = formatDate(new Date());
 
+    const escapeIcsValue = (val: string) => {
+      return val
+        .replace(/\\/g, "\\\\")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "");
+    };
+
     const clientName = appt.kuanyin_clients?.nome ?? "Cliente";
-    const title = `Kuan-Yin · ${appt.service_name} · ${clientName}`;
-    const description = appt.notes ? `Observacoes: ${appt.notes}` : "";
+    const title = escapeIcsValue(`Kuan-Yin · ${appt.service_name} · ${clientName}`);
+    const description = appt.notes ? escapeIcsValue(`Observações: ${appt.notes}`) : "";
 
     const icsLines = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
+      "CALSCALE:GREGORIAN",
       "PRODID:-//Kuan-Yin Calendar//NONSGML v1.0//PT",
       "BEGIN:VEVENT",
       `UID:${appt.id}`,

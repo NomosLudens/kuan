@@ -114,14 +114,14 @@ async function main() {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
     const method = req.method;
 
-    // Constrói Request object compatível com Workers
+    // Constrói Request object compatível com Workers (mantém como Buffer para segurança binária)
     const body =
       method === "GET" || method === "HEAD"
         ? null
         : await new Promise((resolve) => {
             const chunks = [];
             req.on("data", (chunk) => chunks.push(chunk));
-            req.on("end", () => resolve(Buffer.concat(chunks).toString()));
+            req.on("end", () => resolve(Buffer.concat(chunks)));
           });
 
     const workerRequest = new Request(url.toString(), {
@@ -140,8 +140,8 @@ async function main() {
       // tenta asset estático. Se nada, serve index.html (SPA fallback).
       if (response.status !== 404) {
         res.writeHead(response.status, Object.fromEntries(response.headers));
-        const text = await response.text();
-        res.end(text);
+        const arrayBuf = await response.arrayBuffer();
+        res.end(Buffer.from(arrayBuf));
         return;
       }
 
@@ -149,16 +149,16 @@ async function main() {
       const staticRes = await serveStatic(url.pathname);
       if (staticRes) {
         res.writeHead(staticRes.status, Object.fromEntries(staticRes.headers));
-        const text = await staticRes.text();
-        res.end(text);
+        const arrayBuf = await staticRes.arrayBuffer();
+        res.end(Buffer.from(arrayBuf));
         return;
       }
 
       // SPA fallback
       const indexRes = await serveIndex();
       res.writeHead(indexRes.status, Object.fromEntries(indexRes.headers));
-      const text = await indexRes.text();
-      res.end(text);
+      const arrayBuf = await indexRes.arrayBuffer();
+      res.end(Buffer.from(arrayBuf));
     } catch (err) {
       console.error("Erro no handler:", err);
       res.writeHead(500, { "content-type": "text/plain" });
