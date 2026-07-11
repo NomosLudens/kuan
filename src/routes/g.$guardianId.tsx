@@ -70,19 +70,25 @@ type PublicState =
   | { ok: false; reason: string }
   | null;
 
-function publicVisitorKey(slug: string): string {
+function publicVisitorKey(slug: string, consent: boolean): string {
   const storageKey = `kuan-public-chat:${slug}:visitor`;
+  const tempStorageKey = `kuan-public-chat:${slug}:temp-visitor`;
   try {
-    const existing = window.localStorage.getItem(storageKey);
-    if (existing) return existing;
-    const next =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem(storageKey, next);
-    return next;
+    if (consent) {
+      const existing = window.localStorage.getItem(storageKey);
+      if (existing) return existing;
+      const next = crypto.randomUUID();
+      window.localStorage.setItem(storageKey, next);
+      return next;
+    } else {
+      const tempExisting = window.sessionStorage.getItem(tempStorageKey);
+      if (tempExisting) return tempExisting;
+      const next = crypto.randomUUID();
+      window.sessionStorage.setItem(tempStorageKey, next);
+      return next;
+    }
   } catch {
-    return "anonymous";
+    return crypto.randomUUID();
   }
 }
 
@@ -113,9 +119,20 @@ function GuardianPublicPage() {
   const [isProofOpen, setIsProofOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
 
-  // Contact details stored in localStorage
+  // Privacy Opt-In state (opt-in only, default false)
+  const [consentChecked, setConsentChecked] = useState(() => {
+    try {
+      return window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  // Contact details stored in localStorage (retrieved ONLY if consent is given)
   const [visitorName, setVisitorName] = useState(() => {
     try {
+      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:name`) || "";
     } catch {
       return "";
@@ -123,6 +140,8 @@ function GuardianPublicPage() {
   });
   const [visitorEmail, setVisitorEmail] = useState(() => {
     try {
+      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:email`) || "";
     } catch {
       return "";
@@ -130,6 +149,8 @@ function GuardianPublicPage() {
   });
   const [visitorPhone, setVisitorPhone] = useState(() => {
     try {
+      const consent = window.localStorage.getItem(`kuan-public-chat:${guardianId}:consent`) === "true";
+      if (!consent) return "";
       return window.localStorage.getItem(`kuan-public-chat:${guardianId}:phone`) || "";
     } catch {
       return "";
@@ -137,13 +158,33 @@ function GuardianPublicPage() {
   });
 
   const saveContactInfo = (name: string, email: string, phone: string) => {
-    try {
-      window.localStorage.setItem(`kuan-public-chat:${guardianId}:name`, name);
-      window.localStorage.setItem(`kuan-public-chat:${guardianId}:email`, email);
-      window.localStorage.setItem(`kuan-public-chat:${guardianId}:phone`, phone);
-    } catch (e) {
-      console.error(e);
+    setVisitorName(name);
+    setVisitorEmail(email);
+    setVisitorPhone(phone);
+    if (consentChecked) {
+      try {
+        window.localStorage.setItem(`kuan-public-chat:${guardianId}:name`, name);
+        window.localStorage.setItem(`kuan-public-chat:${guardianId}:email`, email);
+        window.localStorage.setItem(`kuan-public-chat:${guardianId}:phone`, phone);
+      } catch (e) {
+        console.error(e);
+      }
     }
+  };
+
+  const handleClearSavedData = () => {
+    try {
+      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:consent`);
+      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:visitor`);
+      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:name`);
+      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:email`);
+      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:phone`);
+    } catch {}
+    setConsentChecked(false);
+    setVisitorName("");
+    setVisitorEmail("");
+    setVisitorPhone("");
+    setVisitorKey(crypto.randomUUID());
   };
 
   // Appointment Form States
@@ -217,7 +258,7 @@ function GuardianPublicPage() {
 
   useEffect(() => {
     if (!state?.ok) return;
-    const key = publicVisitorKey(state.guardian.slug);
+    const key = publicVisitorKey(state.guardian.slug, consentChecked);
     setVisitorKey(key);
     let active = true;
     setConversationLoading(true);
@@ -243,7 +284,7 @@ function GuardianPublicPage() {
     return () => {
       active = false;
     };
-  }, [getConversation, state]);
+  }, [getConversation, state, consentChecked]);
 
   const publicDataCount = useMemo(() => {
     if (!state?.ok) return 0;
@@ -734,6 +775,50 @@ function GuardianPublicPage() {
               </Button>
             </div>
           </form>
+
+          {/* Privacy Controls Panel */}
+          <div className="mt-6 border-t border-[color:var(--border)] pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setConsentChecked(checked);
+                  try {
+                    if (checked) {
+                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:consent`, "true");
+                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:name`, visitorName);
+                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:email`, visitorEmail);
+                      window.localStorage.setItem(`kuan-public-chat:${guardianId}:phone`, visitorPhone);
+                      if (visitorKey) {
+                        window.localStorage.setItem(`kuan-public-chat:${guardianId}:visitor`, visitorKey);
+                      }
+                    } else {
+                      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:consent`);
+                      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:visitor`);
+                      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:name`);
+                      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:email`);
+                      window.localStorage.removeItem(`kuan-public-chat:${guardianId}:phone`);
+                    }
+                  } catch {}
+                }}
+                className="mt-1 accent-[color:var(--gold)] rounded cursor-pointer"
+              />
+              <span className="text-xs text-[color:var(--ivory-dim)] group-hover:text-[color:var(--ivory)] transition-colors">
+                Lembrar minhas informações de contato e conversa neste navegador (opcional, salvo localmente).
+              </span>
+            </label>
+            {(consentChecked || visitorName || visitorEmail || visitorPhone) && (
+              <button
+                type="button"
+                onClick={handleClearSavedData}
+                className="text-xs text-red-400 hover:text-red-300 font-medium underline underline-offset-2 transition-colors cursor-pointer self-start sm:self-auto bg-transparent border-none p-0"
+              >
+                Limpar dados salvos
+              </button>
+            )}
+          </div>
         </div>
       </section>
 

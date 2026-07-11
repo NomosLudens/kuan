@@ -4,6 +4,57 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { writeKuanIntegrityLog } from "@/lib/kuanyin-integrity";
 import { z } from "zod";
+import { normalizeAvailabilityRules, isPastOrTooSoon } from "@/lib/kuan/availability-rules";
+import {
+  parseLocalDateTimeInTimeZone,
+  isAppointmentWithinAvailabilityRules,
+} from "@/lib/kuan/calendar";
+import { requirePlatformAdmin, getCanonicalAppUrl, validateSafeRedirectUrl } from "@/lib/admin-security";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+// ─── ownership assertions ───────────────────────────────────────────────────
+
+async function assertOwnedClient(supabase: SupabaseClient, userId: string, clientId: string | null | undefined): Promise<void> {
+  if (!clientId) return;
+  const { data, error } = await supabase
+    .from("kuanyin_clients")
+    .select("id")
+    .eq("id", clientId)
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) {
+    throw new Error("Acesso não autorizado ao cliente.");
+  }
+}
+
+async function assertOwnedAppointment(supabase: SupabaseClient, userId: string, appointmentId: string | null | undefined): Promise<void> {
+  if (!appointmentId) return;
+  const { data, error } = await supabase
+    .from("kuanyin_appointments")
+    .select("id")
+    .eq("id", appointmentId)
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) {
+    throw new Error("Acesso não autorizado ao agendamento.");
+  }
+}
+
+async function assertOwnedOrder(supabase: SupabaseClient, userId: string, orderId: string | null | undefined): Promise<void> {
+  if (!orderId) return;
+  const { data, error } = await supabase
+    .from("kuanyin_orders")
+    .select("id")
+    .eq("id", orderId)
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) {
+    throw new Error("Acesso não autorizado ao pedido.");
+  }
+}
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -283,7 +334,7 @@ export const listKuanYinGuardians = createServerFn({ method: "GET" })
   });
 
 export const updateKuanYinGuardianStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requirePlatformAdmin])
   .inputValidator((input: unknown) =>
     z.object({ id: z.string().uuid(), status: GuardianStatus }).parse(input),
   )
@@ -416,7 +467,7 @@ export const getKuanYinPublicConversation = createServerFn({ method: "POST" })
   });
 
 export const createKuanYinGuardianInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requirePlatformAdmin])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -432,6 +483,11 @@ export const createKuanYinGuardianInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // Validate Safe Redirect URL using getCanonicalAppUrl()
+    const appUrl = getCanonicalAppUrl();
+    const safeOrigin = validateSafeRedirectUrl(data.origin, appUrl);
+
     const token = genGuardianInviteToken();
     const { data: inv, error } = await supabase
       .from("workspace_invitations")
@@ -446,7 +502,7 @@ export const createKuanYinGuardianInvite = createServerFn({ method: "POST" })
       .single();
     if (error || !inv) throw new Error(error?.message ?? "Falha ao criar convite");
 
-    const acceptUrl = `${data.origin.replace(/\/$/, "")}/convite?token=${token}`;
+    const acceptUrl = `${safeOrigin.replace(/\/$/, "")}/convite?token=${token}`;
     let shareLink = acceptUrl;
     let emailSent = false;
     try {
@@ -575,6 +631,9 @@ export const proposeAppointment = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => AppointmentInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    if (data.client_id) {
+      await assertOwnedClient(supabase, userId, data.client_id);
+    }
     const { data: row, error } = await supabase
       .from("kuanyin_appointments")
       .insert({ ...data, status: "proposed", user_id: userId } as never)
@@ -589,15 +648,71 @@ export const confirmAppointment = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    // 1. update appointment status
-    const { data: appt, error } = await supabase
+
+    // 1. Fetch current appointment
+    const { data: targetAppt, error: findError } = await supabase
       .from("kuanyin_appointments")
-      .update({ status: "confirmed" } as never)
+      .select("*")
       .eq("id", data.id)
       .eq("user_id", userId)
+      .single();
+
+    if (findError || !targetAppt) {
+      throw new Error("Agendamento não encontrado.");
+    }
+
+    if (targetAppt.status === "confirmed") {
+      return targetAppt; // Idempotente
+    }
+
+    if (targetAppt.status !== "proposed") {
+      throw new Error("O agendamento precisa estar em status proposto para ser confirmado.");
+    }
+
+    // 2. Calcular ends_at caso esteja vazio
+    let endsAtStr = targetAppt.ends_at;
+    if (!endsAtStr) {
+      const { data: bContext } = await supabase
+        .from("business_contexts")
+        .select("regras_agenda")
+        .eq("id", targetAppt.business_context_id!)
+        .single();
+      const rules = normalizeAvailabilityRules(bContext?.regras_agenda);
+      const duration = rules.defaultDurationMinutes || 60;
+      const startsAtDate = new Date(targetAppt.starts_at);
+      const endsAtDate = new Date(startsAtDate.getTime() + duration * 60 * 1000);
+      endsAtStr = endsAtDate.toISOString();
+    }
+
+    // 3. Validar se há conflitos com agendamentos confirmados
+    const { data: conflicts } = await supabase
+      .from("kuanyin_appointments")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "confirmed")
+      .lt("starts_at", endsAtStr)
+      .gt("ends_at", targetAppt.starts_at)
+      .not("id", "eq", data.id)
+      .limit(1);
+
+    if (conflicts && conflicts.length > 0) {
+      throw new Error("Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.");
+    }
+
+    // 4. Update status and ends_at
+    const { data: appt, error } = await supabase
+      .from("kuanyin_appointments")
+      .update({ status: "confirmed", ends_at: endsAtStr } as never)
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .eq("status", "proposed")
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+
+    if (error) {
+      throw new Error("O agendamento precisa estar em status proposto para ser confirmado.");
+    }
+
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -605,6 +720,7 @@ export const confirmAppointment = createServerFn({ method: "POST" })
       note: "appointment status changed: proposed -> confirmed",
       excerpt: `appointment_id:${data.id}`,
     });
+
     // 2. mirror em eventos (calendário Kaline) — best-effort
     try {
       const a = appt as unknown as {
@@ -649,9 +765,12 @@ export const cancelAppointment = createServerFn({ method: "POST" })
       .update({ status: "cancelled" } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
+      .in("status", ["proposed", "confirmed"])
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error || !row) {
+      throw new Error("Apenas agendamentos propostos ou confirmados podem ser cancelados.");
+    }
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -715,6 +834,10 @@ export const createManualAppointment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    // Fetch the current business context ID for the logged-in user
+    const guardian = await getEditableGuardianForUser(userId);
+    const businessContextId = guardian?.business_context_id || null;
+
     // 1. Find or create client
     let clientId: string | null = null;
 
@@ -757,9 +880,55 @@ export const createManualAppointment = createServerFn({ method: "POST" })
       clientId = newClient.id;
     }
 
-    // 2. Fetch the current business context ID for the logged-in user
-    const guardian = await getEditableGuardianForUser(userId);
-    const businessContextId = guardian?.business_context_id || null;
+    if (!businessContextId) {
+      throw new Error("Guardião não possui um contexto comercial configurado.");
+    }
+
+    // Normalizar regras de agenda e timezone
+    const { data: bContext } = await supabase
+      .from("business_contexts")
+      .select("regras_agenda")
+      .eq("id", businessContextId)
+      .single();
+
+    const rules = normalizeAvailabilityRules(bContext?.regras_agenda);
+    const timeZone = rules.timezone || "America/Sao_Paulo";
+
+    // Converte e valida o fuso horário
+    let startsAtDate: Date;
+    try {
+      startsAtDate = parseLocalDateTimeInTimeZone(data.starts_at, timeZone);
+    } catch {
+      throw new Error("Não consegui interpretar esse horário. Escolha novamente a data e a hora.");
+    }
+
+    const duration = rules.defaultDurationMinutes || 60;
+    const endsAtDate = new Date(startsAtDate.getTime() + duration * 60 * 1000);
+
+    // Valida se o horário proposto está na janela permitida
+    if (!isAppointmentWithinAvailabilityRules(startsAtDate, duration, rules, timeZone)) {
+      throw new Error(rules.unavailableMessage || "Horário fora da janela de atendimento configurada.");
+    }
+
+    // Valida antecedência mínima / se já passou
+    if (isPastOrTooSoon(startsAtDate, rules)) {
+      throw new Error("Esse horário já passou ou está muito próximo.");
+    }
+
+    // Valida conflito de agenda no intervalo [starts_at, ends_at)
+    const { data: conflicts, error: conflictError } = await supabase
+      .from("kuanyin_appointments")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "confirmed")
+      .lt("starts_at", endsAtDate.toISOString())
+      .gt("ends_at", startsAtDate.toISOString())
+      .limit(1);
+
+    if (conflictError) throw new Error(conflictError.message);
+    if (conflicts && conflicts.length > 0) {
+      throw new Error("Esse horário já tem compromisso confirmado. Escolha outro horário ou envie uma observação.");
+    }
 
     // 3. Insert appointment directly as confirmed (pre-confirmed)
     const { data: appt, error: apptError } = await supabase
@@ -769,7 +938,8 @@ export const createManualAppointment = createServerFn({ method: "POST" })
         client_id: clientId,
         business_context_id: businessContextId,
         service_name: data.service_name,
-        starts_at: data.starts_at,
+        starts_at: startsAtDate.toISOString(),
+        ends_at: endsAtDate.toISOString(),
         status: "confirmed",
         notes: data.notes || null,
         metadata: {
@@ -830,14 +1000,34 @@ export const listAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase
+    const now = new Date().toISOString();
+
+    // 1. Futuros (starts_at >= now), asc
+    const { data: future, error: errorFuture } = await supabase
       .from("kuanyin_appointments")
       .select("*, kuanyin_clients(nome, telefone, email)")
       .eq("user_id", userId)
+      .gte("starts_at", now)
       .order("starts_at", { ascending: true })
-      .limit(500);
-    if (error) throw new Error(error.message);
-    return data ?? [];
+      .limit(200);
+
+    if (errorFuture) throw new Error(errorFuture.message);
+
+    // 2. Passados (starts_at < now), desc, limitado
+    const { data: past, error: errorPast } = await supabase
+      .from("kuanyin_appointments")
+      .select("*, kuanyin_clients(nome, telefone, email)")
+      .eq("user_id", userId)
+      .lt("starts_at", now)
+      .order("starts_at", { ascending: false })
+      .limit(50);
+
+    if (errorPast) throw new Error(errorPast.message);
+
+    const combined = [...(past ?? []), ...(future ?? [])];
+    combined.sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+
+    return combined;
   });
 
 // ─── kuanyin_orders ──────────────────────────────────────────────────────────
@@ -855,6 +1045,9 @@ export const proposeOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => OrderInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    if (data.client_id) {
+      await assertOwnedClient(supabase, userId, data.client_id);
+    }
     const { data: row, error } = await supabase
       .from("kuanyin_orders")
       .insert({ ...data, status: data.status ?? "proposed", user_id: userId } as never)
@@ -874,9 +1067,12 @@ export const confirmOrder = createServerFn({ method: "POST" })
       .update({ status: "confirmed" } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
+      .in("status", ["draft", "proposed"])
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error || !row) {
+      throw new Error("O pedido precisa estar com status 'draft' ou 'proposed' para ser confirmado.");
+    }
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -897,9 +1093,12 @@ export const cancelOrder = createServerFn({ method: "POST" })
       .update({ status: "cancelled" } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
+      .in("status", ["draft", "proposed", "confirmed"])
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error || !row) {
+      throw new Error("Apenas pedidos em rascunho, propostos ou confirmados podem ser cancelados.");
+    }
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -970,6 +1169,12 @@ export const registerProof = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ProofInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    if (data.order_id) {
+      await assertOwnedOrder(supabase, userId, data.order_id);
+    }
+    if (data.appointment_id) {
+      await assertOwnedAppointment(supabase, userId, data.appointment_id);
+    }
     const { data: row, error } = await supabase
       .from("kuanyin_payments")
       .insert({ ...data, status: "received_proof", user_id: userId } as never)
@@ -990,9 +1195,12 @@ export const verifyPayment = createServerFn({ method: "POST" })
       .update({ status: "verified" } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
+      .eq("status", "received_proof")
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error || !row) {
+      throw new Error("O pagamento precisa estar com status 'received_proof' para ser verificado.");
+    }
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -1015,9 +1223,12 @@ export const rejectPayment = createServerFn({ method: "POST" })
       .update({ status: "rejected", fraud_alert_note: data.note ?? null } as never)
       .eq("id", data.id)
       .eq("user_id", userId)
+      .eq("status", "received_proof")
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error || !row) {
+      throw new Error("O pagamento precisa estar com status 'received_proof' para ser rejeitado.");
+    }
     await writeKuanIntegrityLog({
       supabase,
       userId,
@@ -1057,6 +1268,12 @@ export const createPortalToken = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => TokenCreate.parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    if (data.scope === "appointment" && data.appointment_id) {
+      await assertOwnedAppointment(supabase, userId, data.appointment_id);
+    }
+    if (data.scope === "order" && data.order_id) {
+      await assertOwnedOrder(supabase, userId, data.order_id);
+    }
     const expires = new Date(Date.now() + (data.days_valid ?? 14) * 86400_000).toISOString();
     const payload = {
       user_id: userId,

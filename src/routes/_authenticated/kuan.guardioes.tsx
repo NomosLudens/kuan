@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 import { Copy, ExternalLink, Mail, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthz } from "@/lib/use-authz";
 
 export const Route = createFileRoute("/_authenticated/kuan/guardioes")({
   component: GuardioesPage,
@@ -84,6 +85,9 @@ const STATUS_HELP: Record<GuardianStatus, string> = {
 };
 
 function GuardioesPage() {
+  const authz = useAuthz();
+  const isAdmin = authz.isAdmin;
+
   const listFn = useServerFn(listKuanYinGuardians);
   const listConversationsFn = useServerFn(listKuanYinPublicConversations);
   const getConversationFn = useServerFn(getKuanYinPublicConversation);
@@ -198,46 +202,48 @@ function GuardioesPage() {
               {rows.length} Guardião(ões) encontrados · {publishedCount} publicado(s)
             </p>
           </div>
-          <div className="rounded-2xl border border-[color:var(--border)] bg-background/50 p-3 lg:w-80">
-            <div className="mb-2 flex items-center gap-2 text-sm text-[color:var(--ivory)]">
-              <Mail className="h-4 w-4 text-[color:var(--gold)]" aria-hidden />
-              Convite de Guardião
+          {isAdmin && (
+            <div className="rounded-2xl border border-[color:var(--border)] bg-background/50 p-3 lg:w-80">
+              <div className="mb-2 flex items-center gap-2 text-sm text-[color:var(--ivory)]">
+                <Mail className="h-4 w-4 text-[color:var(--gold)]" aria-hidden />
+                Convite de Guardião
+              </div>
+              <p className="mb-3 text-xs text-[color:var(--ivory-dim)]">
+                Envie este convite para a pessoa que vai configurar e operar o próprio negócio dentro
+                da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta operacional.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="guardiao@negocio.com"
+                />
+                <Button disabled={inviteBusy} onClick={createInvite}>
+                  {inviteBusy ? "..." : "Convidar"}
+                </Button>
+              </div>
+              {inviteLink && (
+                <button
+                  type="button"
+                  className="mt-2 w-full rounded-xl border border-[color:var(--border)] px-3 py-2 text-left text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)]"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(inviteLink);
+                      toast.success("Link de convite copiado.");
+                    } catch {
+                      toast.error(
+                        "Não consegui copiar automaticamente. Selecione e copie o link de convite.",
+                      );
+                    }
+                  }}
+                >
+                  <Copy className="mr-2 inline h-3.5 w-3.5" aria-hidden />
+                  Copiar link de convite
+                </button>
+              )}
             </div>
-            <p className="mb-3 text-xs text-[color:var(--ivory-dim)]">
-              Envie este convite para a pessoa que vai configurar e operar o próprio negócio dentro
-              da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta operacional.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="guardiao@negocio.com"
-              />
-              <Button disabled={inviteBusy} onClick={createInvite}>
-                {inviteBusy ? "..." : "Convidar"}
-              </Button>
-            </div>
-            {inviteLink && (
-              <button
-                type="button"
-                className="mt-2 w-full rounded-xl border border-[color:var(--border)] px-3 py-2 text-left text-xs text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)]"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(inviteLink);
-                    toast.success("Link de convite copiado.");
-                  } catch {
-                    toast.error(
-                      "Não consegui copiar automaticamente. Selecione e copie o link de convite.",
-                    );
-                  }
-                }}
-              >
-                <Copy className="mr-2 inline h-3.5 w-3.5" aria-hidden />
-                Copiar link de convite
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </section>
 
@@ -415,7 +421,7 @@ function GuardioesPage() {
                   ) : (
                     <Badge variant="secondary">Gerenciado pelo admin</Badge>
                   )}
-                  {(["draft", "published", "suspended", "archived"] as GuardianStatus[]).map(
+                  {isAdmin && (["draft", "published", "suspended", "archived"] as GuardianStatus[]).map(
                     (status) => (
                       <Button
                         key={status}

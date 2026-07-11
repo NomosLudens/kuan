@@ -19,6 +19,11 @@ import {
 } from "@/lib/kuan/conversation-policy";
 import { resolveRuntimeAudienceContext } from "@/lib/kuan/conversation-context";
 import { interpretCommercialContext } from "@/lib/kuan/commercial-context-interpreter";
+import { normalizeAvailabilityRules, isPastOrTooSoon } from "@/lib/kuan/availability-rules";
+import {
+  parseLocalDateTimeInTimeZone,
+  isAppointmentWithinAvailabilityRules,
+} from "@/lib/kuan/calendar";
 
 const GuardianInput = z.object({ guardianId: z.string().trim().min(2).max(120) });
 
@@ -737,46 +742,37 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     }
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
-    const startsAt = normalizePublicDateTime(data.starts_at);
-    if (!startsAt) {
-      return {
-        ok: false as const,
-        reason: "invalid_datetime",
-        message: "O formato da data ou horário é inválido. Escolha um horário válido.",
-        traceId,
-      };
-    }
-
-    const startsAtDate = new Date(startsAt);
-    if (isNaN(startsAtDate.getTime())) {
-      return {
-        ok: false as const,
-        reason: "invalid_datetime",
-        message: "O formato da data ou horário é inválido. Escolha um horário válido.",
-        traceId,
-      };
-    }
-
-    // Load and normalize availability rules
-    const {
-      normalizeAvailabilityRules,
-      isPastOrTooSoon,
-      isWithinAvailabilityRules,
-      getAvailabilityViolationMessage,
-    } = await import("./kuan/availability-rules");
     const rules = normalizeAvailabilityRules(ctx.regras_agenda);
+    const timeZone = rules.timezone || "America/Sao_Paulo";
+
+    let startsAtDate: Date;
+    try {
+      startsAtDate = parseLocalDateTimeInTimeZone(data.starts_at, timeZone);
+    } catch {
+      return {
+        ok: false as const,
+        reason: "invalid_datetime",
+        message: "Não consegui interpretar esse horário. Escolha novamente a data e a hora.",
+        traceId,
+      };
+    }
+
+    const duration = rules.defaultDurationMinutes || 60;
+    const endsAtDate = new Date(startsAtDate.getTime() + duration * 60 * 1000);
 
     // 1. Past or too soon check
     const now = new Date();
     if (isPastOrTooSoon(startsAtDate, rules, now)) {
       const isPast = startsAtDate.getTime() <= now.getTime();
       const reason = isPast ? "past" : "too_soon";
+      const { getAvailabilityViolationMessage } = await import("./kuan/availability-rules");
       const message = getAvailabilityViolationMessage(reason, rules);
       return { ok: false as const, reason, message, traceId };
     }
 
     // 2. Weekdays and hours check
-    if (!isWithinAvailabilityRules(startsAtDate, rules)) {
+    if (!isAppointmentWithinAvailabilityRules(startsAtDate, duration, rules, timeZone)) {
+      const { getAvailabilityViolationMessage } = await import("./kuan/availability-rules");
       const message = getAvailabilityViolationMessage("outside_availability", rules);
       return { ok: false as const, reason: "outside_availability", message, traceId };
     }
@@ -784,30 +780,21 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     // 3. Double-booking check for confirmed conflicts
     if (rules.blockConfirmedConflicts) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: existingAppts, error: queryError } = await supabaseAdmin
+      const { data: conflicts, error: queryError } = await supabaseAdmin
         .from("kuanyin_appointments")
-        .select("starts_at, ends_at")
-        .or(`business_context_id.eq.${ctx.id},user_id.eq.${ctx.user_id}`)
-        .eq("status", "confirmed");
+        .select("id")
+        .eq("business_context_id", ctx.id)
+        .eq("status", "confirmed")
+        .lt("starts_at", endsAtDate.toISOString())
+        .gt("ends_at", startsAtDate.toISOString())
+        .limit(1);
 
       if (queryError) {
         console.error("Error querying existing appointments for conflict check:", queryError);
-      } else if (existingAppts) {
-        const newStartMs = startsAtDate.getTime();
-        const newEndMs = newStartMs + rules.defaultDurationMinutes * 60 * 1000;
-
-        for (const appt of existingAppts) {
-          const extStartMs = new Date(appt.starts_at).getTime();
-          const extEndMs = appt.ends_at
-            ? new Date(appt.ends_at).getTime()
-            : extStartMs + rules.defaultDurationMinutes * 60 * 1000;
-
-          // Overlap condition: novo_inicio < existente_fim && novo_fim > existente_inicio
-          if (newStartMs < extEndMs && newEndMs > extStartMs) {
-            const message = getAvailabilityViolationMessage("conflict_confirmed", rules);
-            return { ok: false as const, reason: "conflict_confirmed", message, traceId };
-          }
-        }
+      } else if (conflicts && conflicts.length > 0) {
+        const { getAvailabilityViolationMessage } = await import("./kuan/availability-rules");
+        const message = getAvailabilityViolationMessage("conflict_confirmed", rules);
+        return { ok: false as const, reason: "conflict_confirmed", message, traceId };
       }
     }
 
@@ -826,8 +813,8 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
         business_context_id: ctx.id,
         client_id: client.clientId,
         service_name: data.service_name,
-        starts_at: startsAt,
-        ends_at: null,
+        starts_at: startsAtDate.toISOString(),
+        ends_at: endsAtDate.toISOString(),
         status,
         notes: data.notes || null,
         metadata: {

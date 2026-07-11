@@ -7,7 +7,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { canAccessPath, getAuthz, getDefaultPathForUser, resolveLegacyPath } from "@/lib/use-authz";
 import { isAuthSessionError, handleAuthSessionExpiry } from "@/lib/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ShieldAlert, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,14 +28,16 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: legacyTarget, replace: true });
     }
 
-    if (!canAccessPath(authz, path)) {
+    const isUnlinked = !authz.isAdmin && authz.allowedFacets.length === 0;
+
+    if (!isUnlinked && !canAccessPath(authz, path)) {
       const fallback = getDefaultPathForUser(authz);
       if (fallback !== path) {
         throw redirect({ to: fallback, replace: true });
       }
     }
 
-    return { user: data.session.user };
+    return { user: data.session.user, isUnlinked };
   },
   component: AuthedLayout,
 });
@@ -75,7 +78,7 @@ function KuanMobileSubHeader() {
   else if (path.includes("/inbox")) title = "Atendimentos";
   else if (path.includes("/showroom")) title = "Showroom";
   else if (path.includes("/revisao")) title = "Revisão";
-  else if (path.includes("/onboarding")) title = "Configuração";
+  else if (path.includes("/config")) title = "Configuração";
 
   return (
     <header
@@ -98,6 +101,7 @@ function KuanMobileSubHeader() {
 }
 
 function AuthedLayout() {
+  const { isUnlinked } = Route.useRouteContext();
   const isMobile = useIsMobile();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isKuan = path.startsWith("/kuan");
@@ -135,6 +139,40 @@ function AuthedLayout() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
+  if (isUnlinked) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background px-4">
+        <div className="max-w-md w-full rounded-3xl border border-[color:var(--border)] bg-card/60 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="rounded-full bg-[color:oklch(0.69_0.22_350/0.12)] p-4 border border-[color:oklch(0.69_0.22_350/0.3)]">
+              <ShieldAlert className="h-10 w-10 text-[color:var(--gold)]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="serif text-2xl text-[color:var(--ivory)]">Acesso Pendente</h1>
+            <p className="text-sm leading-relaxed text-[color:var(--ivory-dim)]">
+              Sua conta ainda não está vinculada a nenhuma presença comercial de Guardião. 
+              Entre em contato com o administrador da plataforma para obter um convite e liberar seu acesso.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/auth";
+              }}
+              variant="outline"
+              className="w-full h-11 rounded-xl hover:bg-[color:var(--ivory)]/[0.05]"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair da Conta
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // No mobile, se for rota Kuan, removemos a sidebar e a HeaderBar global
   // para deixar a experiência chat-first tela cheia.

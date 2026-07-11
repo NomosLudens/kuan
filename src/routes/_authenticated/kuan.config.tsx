@@ -214,6 +214,7 @@ function ConfigPage() {
               bloquear_conflito_confirmado: rules.blockConfirmedConflicts,
               mensagem_indisponivel: rules.unavailableMessage,
               observacoes: rules.notes,
+              timezone: rules.timezone || "America/Sao_Paulo",
             },
             overrides: (rules.overrides || []).filter((o) => o.startDate && o.endDate),
           } as any,
@@ -568,6 +569,32 @@ function ConfigPage() {
               value={rules.unavailableMessage}
               onChange={(e) => setRules({ ...rules, unavailableMessage: e.target.value })}
             />
+          </div>
+
+          {/* 9. Fuso Horário */}
+          <div className="space-y-1">
+            <Label
+              htmlFor="timezone"
+              className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+            >
+              Fuso Horário (Timezone)
+            </Label>
+            <select
+              id="timezone"
+              className="flex h-10 w-full rounded-md border border-[color:var(--border)] bg-card/40 px-3 py-2 text-sm text-[color:var(--ivory)] ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={rules.timezone || "America/Sao_Paulo"}
+              onChange={(e) => setRules({ ...rules, timezone: e.target.value })}
+            >
+              <option value="America/Sao_Paulo" className="bg-neutral-900 text-[color:var(--ivory)]">America/Sao_Paulo (Brasília)</option>
+              <option value="America/Manaus" className="bg-neutral-900 text-[color:var(--ivory)]">America/Manaus</option>
+              <option value="America/Fortaleza" className="bg-neutral-900 text-[color:var(--ivory)]">America/Fortaleza</option>
+              <option value="America/Recife" className="bg-neutral-900 text-[color:var(--ivory)]">America/Recife</option>
+              <option value="America/Denver" className="bg-neutral-900 text-[color:var(--ivory)]">America/Denver (Denver)</option>
+              <option value="America/New_York" className="bg-neutral-900 text-[color:var(--ivory)]">America/New_York (Nova York)</option>
+              <option value="Europe/London" className="bg-neutral-900 text-[color:var(--ivory)]">Europe/London (Londres)</option>
+              <option value="Europe/Paris" className="bg-neutral-900 text-[color:var(--ivory)]">Europe/Paris (Paris)</option>
+              <option value="UTC" className="bg-neutral-900 text-[color:var(--ivory)]">UTC (Tempo Universal Coordenado)</option>
+            </select>
           </div>
 
           {/* Exceção por período */}
