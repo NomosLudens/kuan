@@ -41,8 +41,13 @@ describe("PR #25 - Commercial Review & State Integrity - Unit Tests", () => {
     expect(res).toBe(true);
   });
 
-  it("2. appointment proposed → rejected permitido para guardian", () => {
-    const res = validateAppointmentTransition("proposed", "rejected", mockGuardian, "guardian-abc");
+  it("2. appointment proposed → cancelled permitido para guardian", () => {
+    const res = validateAppointmentTransition(
+      "proposed",
+      "cancelled",
+      mockGuardian,
+      "guardian-abc",
+    );
     expect(res).toBe(true);
   });
 
@@ -52,20 +57,20 @@ describe("PR #25 - Commercial Review & State Integrity - Unit Tests", () => {
     ).toThrow("Invalid appointment transition from 'confirmed' to 'proposed'.");
   });
 
-  it("4. order proposed → accepted permitido para guardian", () => {
-    const res = validateOrderTransition("proposed", "accepted", mockGuardian, "guardian-abc");
+  it("4. order proposed → confirmed permitido para guardian", () => {
+    const res = validateOrderTransition("proposed", "confirmed", mockGuardian, "guardian-abc");
     expect(res).toBe(true);
   });
 
-  it("5. order proposed → rejected permitido para guardian", () => {
-    const res = validateOrderTransition("proposed", "rejected", mockGuardian, "guardian-abc");
+  it("5. order proposed → cancelled permitido para guardian", () => {
+    const res = validateOrderTransition("proposed", "cancelled", mockGuardian, "guardian-abc");
     expect(res).toBe(true);
   });
 
-  it("6. order accepted → proposed proibido", () => {
+  it("6. order confirmed → proposed proibido", () => {
     expect(() =>
-      validateOrderTransition("accepted", "proposed", mockGuardian, "guardian-abc"),
-    ).toThrow("Invalid order transition from 'accepted' to 'proposed'.");
+      validateOrderTransition("confirmed", "proposed", mockGuardian, "guardian-abc"),
+    ).toThrow("Invalid order transition from 'confirmed' to 'proposed'.");
   });
 
   it("7. payment received_proof → verified permitido para guardian", () => {
@@ -100,7 +105,7 @@ describe("PR #25 - Commercial Review & State Integrity - Unit Tests", () => {
     ).toThrow("Public client or unauthenticated actor cannot make review decisions.");
 
     expect(() =>
-      validateOrderTransition("proposed", "accepted", mockPublicClient, "guardian-abc"),
+      validateOrderTransition("proposed", "confirmed", mockPublicClient, "guardian-abc"),
     ).toThrow("Public client or unauthenticated actor cannot make review decisions.");
 
     expect(() =>
@@ -114,7 +119,7 @@ describe("PR #25 - Commercial Review & State Integrity - Unit Tests", () => {
     ).toThrow("Admin acting without explicit guardian scope is not allowed.");
 
     expect(() =>
-      validateOrderTransition("proposed", "accepted", mockAdminNoScope, "guardian-abc"),
+      validateOrderTransition("proposed", "confirmed", mockAdminNoScope, "guardian-abc"),
     ).toThrow("Admin acting without explicit guardian scope is not allowed.");
 
     expect(() =>
