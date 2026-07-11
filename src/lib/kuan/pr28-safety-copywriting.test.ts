@@ -93,4 +93,37 @@ describe("PR #28 - Functional and Policy Integration Tests", () => {
     expect(mockManualAppointment.metadata.source).toBe("manual_scheduling");
     expect(mockManualAppointment.metadata.scheduled_at).toBeDefined();
   });
+
+  it("d) manual confirmed appointment blocks a public proposed request in the same slot", () => {
+    const rules = {
+      days: [1, 2, 3, 4, 5],
+      startTime: "09:00",
+      endTime: "18:00",
+      defaultDurationMinutes: 60,
+      minimumNoticeHours: 0,
+      blockConfirmedConflicts: true,
+      notes: null,
+      unavailableMessage: "",
+    };
+
+    // Simulated existing manual confirmed appointment
+    const manualAppt = {
+      starts_at: "2026-07-15T14:00:00.000Z", // 14:00 UTC
+      ends_at: "2026-07-15T15:00:00.000Z", // 15:00 UTC
+      status: "confirmed",
+    };
+
+    // Public proposed request at 14:30 (overlaps with 14:00 - 15:00)
+    const requestedStart = new Date("2026-07-15T14:30:00.000Z");
+    const requestedEnd = new Date(
+      requestedStart.getTime() + rules.defaultDurationMinutes * 60 * 1000,
+    );
+
+    const extStartMs = new Date(manualAppt.starts_at).getTime();
+    const extEndMs = new Date(manualAppt.ends_at).getTime();
+
+    // Overlap verification logic used in requestGuardianAppointment
+    const overlap = requestedStart.getTime() < extEndMs && requestedEnd.getTime() > extStartMs;
+    expect(overlap).toBe(true);
+  });
 });

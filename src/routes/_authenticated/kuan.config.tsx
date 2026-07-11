@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
+import { CanonicalRules, normalizeAvailabilityRules } from "@/lib/kuan/availability-rules";
 
 export const Route = createFileRoute("/_authenticated/kuan/config")({
   component: ConfigPage,
@@ -114,8 +115,26 @@ function ConfigPage() {
   const get = useServerFn(getBusinessContext);
   const upsert = useServerFn(upsertBusinessContext);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [rules, setRules] = useState<CanonicalRules>(normalizeAvailabilityRules(null));
   const [guardianMetadata, setGuardianMetadata] = useState<GuardianMetadata>({});
   const [loading, setLoading] = useState(true);
+
+  const activeOverride = rules.overrides?.[0] || {
+    startDate: "",
+    endDate: "",
+    days: [],
+    startTime: "",
+    endTime: "",
+    notes: "",
+  };
+
+  const updateOverride = (fields: Partial<typeof activeOverride>) => {
+    const updated = { ...activeOverride, ...fields };
+    setRules({
+      ...rules,
+      overrides: [updated],
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -153,6 +172,7 @@ function ConfigPage() {
             limites_decisao_text: jsonToText(ctx.limites_decisao),
             regras_escalonamento_text: jsonToText(ctx.regras_escalonamento),
           });
+          setRules(normalizeAvailabilityRules(ctx.regras_agenda));
           setGuardianMetadata(ctx.guardian_metadata ?? {});
         }
       } catch (e) {
@@ -184,7 +204,19 @@ function ConfigPage() {
           servicos: linesToArray(form.servicos_text),
           precos: textToJson(form.precos_text),
           formas_pagamento: linesToArray(form.formas_pagamento_text),
-          regras_agenda: textToJson(form.regras_agenda_text),
+          regras_agenda: {
+            default: {
+              dias_atendimento: rules.days,
+              hora_inicio: rules.startTime,
+              hora_fim: rules.endTime,
+              duracao_padrao_minutos: rules.defaultDurationMinutes,
+              antecedencia_minima_horas: rules.minimumNoticeHours,
+              bloquear_conflito_confirmado: rules.blockConfirmedConflicts,
+              mensagem_indisponivel: rules.unavailableMessage,
+              observacoes: rules.notes,
+            },
+            overrides: (rules.overrides || []).filter((o) => o.startDate && o.endDate),
+          } as any,
           limites_decisao: textToJson(form.limites_decisao_text),
           regras_escalonamento: textToJson(form.regras_escalonamento_text),
         },
@@ -361,15 +393,316 @@ function ConfigPage() {
             onChange={(e) => setForm({ ...form, pix_chave: e.target.value })}
           />
         </div>
-        <div className="space-y-1 sm:col-span-2">
-          <Label htmlFor="agenda">Regras de agenda (chave: valor, uma por linha)</Label>
-          <Textarea
-            id="agenda"
-            rows={3}
-            placeholder={"horario_inicio: 09:00\nhorario_fim: 18:00\ndias: seg-sex"}
-            value={form.regras_agenda_text}
-            onChange={(e) => setForm({ ...form, regras_agenda_text: e.target.value })}
-          />
+        <div className="space-y-4 sm:col-span-2 border border-[color:var(--border)] rounded-2xl p-5 bg-card/40 backdrop-blur-md">
+          <div>
+            <h3 className="text-sm font-semibold tracking-wider text-[color:var(--gold)] uppercase">
+              Regras de Agenda
+            </h3>
+            <p className="text-xs text-[color:var(--ivory-dim)] mt-1">
+              Essas regras orientam a página pública. O Guardião ainda confirma cada solicitação.
+            </p>
+          </div>
+
+          {/* 1. Dias de atendimento */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]">
+              Dias de atendimento
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Dom", value: 0 },
+                { label: "Seg", value: 1 },
+                { label: "Ter", value: 2 },
+                { label: "Qua", value: 3 },
+                { label: "Qui", value: 4 },
+                { label: "Sex", value: 5 },
+                { label: "Sáb", value: 6 },
+              ].map((day) => {
+                const checked = rules.days.includes(day.value);
+                return (
+                  <label
+                    key={day.value}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs cursor-pointer select-none transition-colors ${
+                      checked
+                        ? "bg-[color:var(--gold)]/20 border-[color:var(--gold)] text-[color:var(--gold)]"
+                        : "bg-transparent border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:border-[color:var(--ivory-dim)]/50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={checked}
+                      onChange={(e) => {
+                        const newDays = e.target.checked
+                          ? [...rules.days, day.value].sort((a, b) => a - b)
+                          : rules.days.filter((d) => d !== day.value);
+                        setRules({ ...rules, days: newDays });
+                      }}
+                    />
+                    <span>{day.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 2. Horário inicial */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="hora_inicio"
+                className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+              >
+                Horário inicial
+              </Label>
+              <Input
+                id="hora_inicio"
+                type="time"
+                value={rules.startTime ?? ""}
+                onChange={(e) => setRules({ ...rules, startTime: e.target.value || null })}
+              />
+            </div>
+
+            {/* 3. Horário final */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="hora_fim"
+                className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+              >
+                Horário final
+              </Label>
+              <Input
+                id="hora_fim"
+                type="time"
+                value={rules.endTime ?? ""}
+                onChange={(e) => setRules({ ...rules, endTime: e.target.value || null })}
+              />
+            </div>
+
+            {/* 4. Duração padrão */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="duracao"
+                className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+              >
+                Duração padrão (minutos)
+              </Label>
+              <Input
+                id="duracao"
+                type="number"
+                min={15}
+                step={15}
+                value={rules.defaultDurationMinutes}
+                onChange={(e) =>
+                  setRules({ ...rules, defaultDurationMinutes: parseInt(e.target.value) || 60 })
+                }
+              />
+            </div>
+
+            {/* 5. Antecedência mínima */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="antecedencia"
+                className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+              >
+                Antecedência mínima (horas)
+              </Label>
+              <Input
+                id="antecedencia"
+                type="number"
+                min={0}
+                value={rules.minimumNoticeHours}
+                onChange={(e) =>
+                  setRules({ ...rules, minimumNoticeHours: parseInt(e.target.value) || 0 })
+                }
+              />
+            </div>
+          </div>
+
+          {/* 6. Bloquear conflitos */}
+          <div className="flex items-center gap-2 py-2">
+            <input
+              id="bloquear_conflitos"
+              type="checkbox"
+              className="rounded border-[color:var(--border)] bg-transparent text-[color:var(--gold)] focus:ring-[color:var(--gold)] w-4 h-4 cursor-pointer"
+              checked={rules.blockConfirmedConflicts}
+              onChange={(e) => setRules({ ...rules, blockConfirmedConflicts: e.target.checked })}
+            />
+            <Label
+              htmlFor="bloquear_conflitos"
+              className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)] cursor-pointer"
+            >
+              Bloquear conflitos com horários confirmados
+            </Label>
+          </div>
+
+          {/* 7. Observações públicas */}
+          <div className="space-y-1">
+            <Label
+              htmlFor="obs_agenda"
+              className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+            >
+              Observações públicas (mostradas aos clientes)
+            </Label>
+            <Textarea
+              id="obs_agenda"
+              rows={2}
+              placeholder="Ex: Atendimentos mediante confirmação."
+              value={rules.notes ?? ""}
+              onChange={(e) => setRules({ ...rules, notes: e.target.value || null })}
+            />
+          </div>
+
+          {/* 8. Mensagem para horário indisponível */}
+          <div className="space-y-1">
+            <Label
+              htmlFor="msg_indisponivel"
+              className="text-xs font-semibold uppercase tracking-wider text-[color:var(--ivory-dim)]"
+            >
+              Mensagem para horário indisponível
+            </Label>
+            <Textarea
+              id="msg_indisponivel"
+              rows={2}
+              placeholder="Ex: Esse horário está fora das regras de atendimento do Guardião. Escolha outro horário ou envie uma observação."
+              value={rules.unavailableMessage}
+              onChange={(e) => setRules({ ...rules, unavailableMessage: e.target.value })}
+            />
+          </div>
+
+          {/* Exceção por período */}
+          <div className="border-t border-[color:var(--border)] pt-4 mt-4 space-y-4">
+            <div>
+              <h4 className="text-xs font-bold tracking-wider text-[color:var(--gold)] uppercase">
+                Exceção por período
+              </h4>
+              <p className="text-[11px] text-[color:var(--ivory-dim)] mt-1">
+                Defina um período específico com regras diferenciadas (ex: férias, feriados ou
+                plantão). Deixe as datas vazias se não quiser aplicar nenhuma exceção.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_inicio"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Data Inicial
+                </Label>
+                <Input
+                  id="exc_inicio"
+                  type="date"
+                  value={activeOverride.startDate || ""}
+                  onChange={(e) => updateOverride({ startDate: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_fim"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Data Final
+                </Label>
+                <Input
+                  id="exc_fim"
+                  type="date"
+                  value={activeOverride.endDate || ""}
+                  onChange={(e) => updateOverride({ endDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase">
+                Dias de atendimento na exceção
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Dom", value: 0 },
+                  { label: "Seg", value: 1 },
+                  { label: "Ter", value: 2 },
+                  { label: "Qua", value: 3 },
+                  { label: "Qui", value: 4 },
+                  { label: "Sex", value: 5 },
+                  { label: "Sáb", value: 6 },
+                ].map((day) => {
+                  const checked = activeOverride.days.includes(day.value);
+                  return (
+                    <label
+                      key={`exc-${day.value}`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs cursor-pointer select-none transition-colors ${
+                        checked
+                          ? "bg-[color:var(--gold)]/20 border-[color:var(--gold)] text-[color:var(--gold)]"
+                          : "bg-transparent border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:border-[color:var(--ivory-dim)]/50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={checked}
+                        onChange={(e) => {
+                          const newDays = e.target.checked
+                            ? [...activeOverride.days, day.value].sort((a, b) => a - b)
+                            : activeOverride.days.filter((d) => d !== day.value);
+                          updateOverride({ days: newDays });
+                        }}
+                      />
+                      <span>{day.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_hora_inicio"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Horário inicial na exceção
+                </Label>
+                <Input
+                  id="exc_hora_inicio"
+                  type="time"
+                  value={activeOverride.startTime ?? ""}
+                  onChange={(e) => updateOverride({ startTime: e.target.value || null })}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_hora_fim"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Horário final na exceção
+                </Label>
+                <Input
+                  id="exc_hora_fim"
+                  type="time"
+                  value={activeOverride.endTime ?? ""}
+                  onChange={(e) => updateOverride({ endTime: e.target.value || null })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="exc_observacao"
+                className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+              >
+                Observação / Motivo da exceção
+              </Label>
+              <Input
+                id="exc_observacao"
+                placeholder="Ex: recesso de fim de ano ou horário estendido temporário"
+                value={activeOverride.notes ?? ""}
+                onChange={(e) => updateOverride({ notes: e.target.value })}
+              />
+            </div>
+          </div>
         </div>
         <div className="space-y-1 sm:col-span-2">
           <Label htmlFor="lim">Limites de decisão (o que a IA pode resolver sozinha)</Label>
