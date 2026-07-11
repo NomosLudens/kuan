@@ -274,16 +274,36 @@ describe("Commercial Context Interpreter Pure Tests", () => {
       expect(result.intent).not.toBe("guardian_services_update");
     });
 
-    // 9. "Você prefere pizza de calabresa?" -> comportamento deve coincidir com o QA documentado.
-    it("should classify 'Você prefere pizza de calabresa?' as public_out_of_scope", () => {
+    // 9. "Quais pizzas de calabresa vocês têm?" não é out_of_scope.
+    it("should NOT classify 'Quais pizzas de calabresa vocês têm?' as public_out_of_scope", () => {
       const result = interpretCommercialContext({
         audience: "public_client",
-        message: "Você prefere pizza de calabresa?",
+        message: "Quais pizzas de calabresa vocês têm?",
       });
-      expect(result.intent).toBe("public_out_of_scope");
+      expect(result.intent).not.toBe("public_out_of_scope");
     });
 
-    // 10. Garantir que nenhum raw_text do usuário seja inserido no system prompt.
+    // 10. "Esse bolo é gostoso?" não é blocked_sensitive.
+    it("should NOT classify 'Esse bolo é gostoso?' as blocked_sensitive", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Esse bolo é gostoso?",
+      });
+      expect(result.intent).not.toBe("public_blocked_sensitive");
+    });
+
+    // 11. "Faço massagem terapêutica" não vira "massagem relaxante"
+    it("should extract 'massagem terapêutica' as-is and not invent 'massagem relaxante'", () => {
+      const result = interpretCommercialContext({
+        audience: "guardian_private",
+        message: "Faço massagem terapêutica.",
+      });
+      expect(result.intent).toBe("guardian_services_update");
+      expect(result.candidateUpdate?.patch.servicos).toContain("massagem terapêutica");
+      expect(result.candidateUpdate?.patch.servicos).not.toContain("massagem relaxante");
+    });
+
+    // 12. Garantir que nenhum raw_text do usuário seja inserido no system prompt.
     it("should NEVER expose raw_text in candidateUpdate patch", () => {
       const result = interpretCommercialContext({
         audience: "guardian_private",

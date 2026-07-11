@@ -515,24 +515,40 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     return null;
   }
 
-  // Check Payment/Proof
+  // Check Payment/Proof - exige sinal de pagamento realizado/comprovante
   const isPayment =
     norm.includes("comprovante") ||
     norm.includes("enviei o pix") ||
     norm.includes("comprovante do pix") ||
     norm.includes("paguei") ||
-    norm.includes("pagamento");
+    norm.includes("fiz a transferencia") ||
+    norm.includes("segue recibo") ||
+    norm.includes("enviei o comprovante") ||
+    norm.includes("segue o pix");
 
   // Check Appointment
   const isAppt =
     !isPayment &&
-    (norm.includes("horario") || norm.includes("agendamento") || norm.includes("agendar"));
+    (norm.includes("horario") ||
+      norm.includes("agendamento") ||
+      norm.includes("agendar") ||
+      norm.includes("marcar"));
 
-  // Check Order/Budget
+  // Check Order/Budget - exige intenção comercial explícita
   const isOrder =
     !isPayment &&
     !isAppt &&
-    (norm.includes("orcamento") || norm.includes("pedido") || norm.includes("pedir"));
+    (norm.includes("orcamento") ||
+      norm.includes("fazer um pedido") ||
+      norm.includes("fazer pedido") ||
+      norm.includes("comprar") ||
+      (norm.includes("pedido") && !norm.includes("pedir")) ||
+      (norm.includes("pedir") &&
+        (norm.includes("orcamento") ||
+          norm.includes("preco") ||
+          norm.includes("valor") ||
+          norm.includes("comprar") ||
+          norm.includes("servico"))));
 
   if (!isAppt && !isOrder && !isPayment) return null;
 
