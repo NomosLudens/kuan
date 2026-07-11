@@ -167,7 +167,7 @@ function ClientesPage() {
         {loading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando…</p>}
         {!loading && rows.length === 0 && (
           <p className="text-sm text-[color:var(--ivory-dim)]">
-            Nenhum cliente ainda. Cadastre o primeiro pelo botão acima ou peça no chat.
+            Nenhum cliente registrado ainda.
           </p>
         )}
         {rows.map((r) => (

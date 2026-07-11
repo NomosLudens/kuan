@@ -243,14 +243,9 @@ function GuardioesPage() {
 
       {loading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando…</p>}
       {!loading && rows.length === 0 && (
-        <section className="rounded-2xl border border-[color:var(--border)] bg-card/40 p-5">
-          <ShieldCheck className="mb-3 h-5 w-5 text-[color:var(--gold)]" aria-hidden />
-          <h2 className="serif text-xl text-[color:var(--ivory)]">Nenhum Guardião ainda</h2>
-          <p className="mt-2 text-sm text-[color:var(--ivory-dim)]">
-            Convide um Guardião. Depois que a pessoa aceitar o convite, ela configura o próprio
-            negócio em /kuan/config e a presença aparece aqui para gestão do admin.
-          </p>
-        </section>
+        <p className="text-sm text-[color:var(--ivory-dim)]">
+          Nenhum Guardião encontrado.
+        </p>
       )}
 
       <section className="rounded-2xl border border-[color:var(--border)] bg-card/40 p-4">
