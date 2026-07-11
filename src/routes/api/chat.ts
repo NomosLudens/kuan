@@ -364,6 +364,10 @@ export const Route = createFileRoute("/api/chat")({
             await import("@/lib/kuan/conversation-policy");
           const audienceCtx = await resolveRuntimeAudienceContext(supabaseAsUser, { userId });
 
+          if (audienceCtx.audience === "public_client") {
+            throw new Error("Expected authenticated audience context in private chat");
+          }
+
           let audienceRule = "";
           if (audienceCtx.audience === "platform_admin") {
             audienceRule =
