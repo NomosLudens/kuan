@@ -209,8 +209,9 @@ function GuardioesPage() {
                 Convite de Guardião
               </div>
               <p className="mb-3 text-xs text-[color:var(--ivory-dim)]">
-                Envie este convite para a pessoa que vai configurar e operar o próprio negócio dentro
-                da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta operacional.
+                Envie este convite para a pessoa que vai configurar e operar o próprio negócio
+                dentro da Kuan-Yin. Este link é para Guardião. Ele cria/vincula uma conta
+                operacional.
               </p>
               <div className="flex gap-2">
                 <Input
@@ -421,19 +422,20 @@ function GuardioesPage() {
                   ) : (
                     <Badge variant="secondary">Gerenciado pelo admin</Badge>
                   )}
-                  {isAdmin && (["draft", "published", "suspended", "archived"] as GuardianStatus[]).map(
-                    (status) => (
-                      <Button
-                        key={status}
-                        size="sm"
-                        variant={guardian.status === status ? "default" : "outline"}
-                        disabled={guardian.status === status}
-                        onClick={() => updateStatus(guardian.id, status)}
-                      >
-                        {STATUS_LABEL[status]}
-                      </Button>
-                    ),
-                  )}
+                  {isAdmin &&
+                    (["draft", "published", "suspended", "archived"] as GuardianStatus[]).map(
+                      (status) => (
+                        <Button
+                          key={status}
+                          size="sm"
+                          variant={guardian.status === status ? "default" : "outline"}
+                          disabled={guardian.status === status}
+                          onClick={() => updateStatus(guardian.id, status)}
+                        >
+                          {STATUS_LABEL[status]}
+                        </Button>
+                      ),
+                    )}
                 </div>
               </div>
             </article>

@@ -20,7 +20,9 @@ export const requirePlatformAdmin = createMiddleware({ type: "function" })
 
     if (error || !roleRow) {
       console.warn(`[Security] User ${userId} attempted admin action without admin role.`);
-      throw new Error("Acesso negado. Esta ação requer privilégios de administrador da plataforma.");
+      throw new Error(
+        "Acesso negado. Esta ação requer privilégios de administrador da plataforma.",
+      );
     }
 
     // Pass the context downstream
@@ -41,7 +43,11 @@ export function validateSafeRedirectUrl(targetUrl: string, expectedOrigin: strin
     const url = new URL(targetUrl);
 
     // Prevent scheme-based attacks
-    if (url.protocol === "javascript:" || url.protocol === "vbscript:" || url.protocol === "data:") {
+    if (
+      url.protocol === "javascript:" ||
+      url.protocol === "vbscript:" ||
+      url.protocol === "data:"
+    ) {
       throw new Error("Invalid URL protocol.");
     }
 

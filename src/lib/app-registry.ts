@@ -687,7 +687,9 @@ export function getAppById(id: string) {
   return APP_REGISTRY.find((app) => app.id === id);
 }
 export function getAppByPath(path: string) {
-  const matches = APP_REGISTRY.filter((app) => app.path === path || path.startsWith(app.path + "/"));
+  const matches = APP_REGISTRY.filter(
+    (app) => app.path === path || path.startsWith(app.path + "/"),
+  );
   if (matches.length === 0) return undefined;
   return matches.sort((a, b) => b.path.length - a.path.length)[0];
 }
