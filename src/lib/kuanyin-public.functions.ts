@@ -44,6 +44,8 @@ const AppointmentRequestInput = GuardianInput.extend({
   starts_at: z.string().trim().min(1).max(80),
   timezone: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(1200).optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const OrderRequestInput = GuardianInput.extend({
@@ -51,6 +53,8 @@ const OrderRequestInput = GuardianInput.extend({
   description: z.string().trim().min(3).max(2000),
   estimated_budget: z.string().trim().max(160).optional(),
   notes: z.string().trim().max(1200).optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const ProofInput = GuardianInput.extend({
@@ -61,6 +65,8 @@ const ProofInput = GuardianInput.extend({
   payer_note: z.string().trim().max(1000).optional(),
   appointment_id: z.string().uuid().optional(),
   order_id: z.string().uuid().optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const PublicChatInput = GuardianInput.extend({
@@ -436,6 +442,217 @@ export const getGuardianPublicPage = createServerFn({ method: "POST" })
     };
   });
 
+export function validatePublicAppointmentStatus(status: string): string {
+  if (status !== "proposed") {
+    throw new Error(
+      "Public clients can only create pending requests. Confirmation is guardian-only.",
+    );
+  }
+  return "proposed";
+}
+
+export function validatePublicOrderStatus(status: string): string {
+  if (status !== "proposed") {
+    throw new Error(
+      "Public clients can only create pending requests. Confirmation is guardian-only.",
+    );
+  }
+  return "proposed";
+}
+
+export function validatePublicPaymentStatus(status: string): string {
+  if (status !== "received_proof") {
+    throw new Error(
+      "Public clients can only create pending requests. Confirmation is guardian-only.",
+    );
+  }
+  return "received_proof";
+}
+
+export interface DeterministicPublicIntent {
+  type: "appointment" | "order" | "payment";
+  client_name?: string;
+  client_phone?: string;
+  client_email?: string;
+  service_name?: string;
+  starts_at?: string;
+  description?: string;
+  amount_cents?: number;
+  comprovante_ref?: string;
+  missingFields?: string[];
+}
+
+export function parseDeterministicPublicIntent(message: string): DeterministicPublicIntent | null {
+  const norm = message
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  // 1. Consultas não-operacionais legítimas de pagamento
+  if (
+    norm.includes("formas de pagamento") ||
+    norm.includes("formas de pagamentos") ||
+    norm.includes("quais formas") ||
+    norm.includes("como posso pagar") ||
+    norm.includes("como pagar")
+  ) {
+    return null;
+  }
+
+  // 2. Consultas não-operacionais legítimas de horários/agenda
+  if (
+    norm.includes("quais horarios") ||
+    norm.includes("quais horários") ||
+    norm.includes("horarios disponiveis") ||
+    norm.includes("horários disponíveis") ||
+    norm.includes("agenda livre") ||
+    norm.includes("tem vaga") ||
+    norm.includes("vagas disponiveis") ||
+    norm.includes("quais dias")
+  ) {
+    return null;
+  }
+
+  // Check Payment/Proof
+  const isPayment =
+    norm.includes("comprovante") ||
+    norm.includes("enviei o pix") ||
+    norm.includes("comprovante do pix") ||
+    norm.includes("paguei") ||
+    norm.includes("pagamento");
+
+  // Check Appointment
+  const isAppt =
+    !isPayment &&
+    (norm.includes("horario") || norm.includes("agendamento") || norm.includes("agendar"));
+
+  // Check Order/Budget
+  const isOrder =
+    !isPayment &&
+    !isAppt &&
+    (norm.includes("orcamento") || norm.includes("pedido") || norm.includes("pedir"));
+
+  if (!isAppt && !isOrder && !isPayment) return null;
+
+  // Helpers to extract contact fields
+  let client_name: string | undefined;
+  let client_phone: string | undefined;
+  let client_email: string | undefined;
+
+  // Extract Name
+  const nameMatch = message.match(
+    /(?:meu nome [eé]|me chamo|nome:|sou o|sou a)\s+([A-Za-zÀ-ÿ0-9\s]+?)(?:\.|,|\n|e meu|whatsapp|whats|celular|telefone|email|$)/i,
+  );
+  if (nameMatch) {
+    client_name = nameMatch[1].trim();
+  }
+
+  // Extract Phone/WhatsApp
+  const phoneMatch =
+    message.match(
+      /(?:whatsapp|whats|celular|telefone|contato)(?:\s+e|\s*:)?\s*([0-9\s()-]{8,15})/i,
+    ) || message.match(/\b(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9?\d{4}[-\s]?\d{4}\b/);
+  if (phoneMatch) {
+    client_phone = (phoneMatch[1] || phoneMatch[0]).replace(/[^0-9]/g, "");
+  }
+
+  // Extract Email
+  const emailMatch = message.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+  if (emailMatch) {
+    client_email = emailMatch[0];
+  }
+
+  const missingFields: string[] = [];
+  if (!client_phone && !client_email) {
+    missingFields.push("client_contact");
+  }
+
+  if (isAppt) {
+    let starts_at: string | undefined;
+    const dtMatch = message.match(/(?:para|as|em|dia)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i);
+    if (dtMatch && dtMatch[1].trim().toLowerCase() !== "agendar") {
+      starts_at = dtMatch[1].trim();
+    }
+
+    if (!starts_at) {
+      missingFields.push("starts_at");
+    }
+
+    return {
+      type: "appointment",
+      client_name,
+      client_phone,
+      client_email,
+      starts_at,
+      missingFields,
+    };
+  }
+
+  if (isOrder) {
+    let description: string | undefined;
+    const descMatch = message.match(
+      /(?:orcamento para|pedido de|sobre)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i,
+    );
+    if (descMatch) {
+      description = descMatch[1].trim();
+    } else {
+      description = message;
+    }
+
+    if (!description) {
+      missingFields.push("description");
+    }
+
+    return {
+      type: "order",
+      client_name,
+      client_phone,
+      client_email,
+      description,
+      missingFields,
+    };
+  }
+
+  if (isPayment) {
+    let amount_cents: number | undefined;
+    const amtMatch = message.match(/(?:R\$|R\s*|valor de)\s*([0-9.,]+)/i);
+    if (amtMatch) {
+      const parsedAmt = parseFloat(amtMatch[1].replace(/\./g, "").replace(",", "."));
+      if (!isNaN(parsedAmt)) {
+        amount_cents = Math.round(parsedAmt * 100);
+      }
+    }
+
+    if (!amount_cents) {
+      missingFields.push("amount_cents");
+    }
+
+    let comprovante_ref: string | undefined;
+    const refMatch = message.match(
+      /(?:ref|referencia|comprovante|pix|chave)\s*:?\s*([A-Za-z0-9-]+)/i,
+    );
+    if (refMatch) {
+      comprovante_ref = refMatch[1].trim();
+    }
+
+    if (!comprovante_ref) {
+      missingFields.push("comprovante_ref");
+    }
+
+    return {
+      type: "payment",
+      client_name,
+      client_phone,
+      client_email,
+      amount_cents,
+      comprovante_ref,
+      missingFields,
+    };
+  }
+
+  return null;
+}
+
 export const getGuardianPublicConversation = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PublicConversationInput.parse(input))
   .handler(async ({ data }) => {
@@ -485,6 +702,10 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     if (!startsAt) return { ok: false as const, reason: "invalid_datetime", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicAppointmentStatus("proposed");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: appointment, error: appointmentError } = await supabaseAdmin
@@ -496,7 +717,7 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
         service_name: data.service_name,
         starts_at: startsAt,
         ends_at: null,
-        status: "proposed",
+        status,
         notes: data.notes || null,
         metadata: {
           source: "public_guardian_page",
@@ -526,7 +747,29 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
         error: appointmentError?.message,
       },
     });
+
     if (appointmentError) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `📬 [Solicitação de Agendamento] Agendamento solicitado para o serviço "${data.service_name}" em ${data.starts_at}.`,
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          "Sua solicitação de agendamento foi registrada e enviada para o meu Guardião. Ela está pendente de aprovação e você será avisado assim que houver uma resposta!",
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for appointment request:", err);
+      }
+    }
+
     return { ok: true as const, appointment, traceId };
   });
 
@@ -550,6 +793,10 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicOrderStatus("proposed");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: order, error } = await supabaseAdmin
@@ -559,7 +806,7 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
         business_context_id: ctx.id,
         client_id: client.clientId,
         description: data.description,
-        status: "proposed",
+        status,
         metadata: {
           source: "public_guardian_page",
           guardian_slug: ctx.publicSlug,
@@ -583,7 +830,29 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
       route: `/g/${ctx.publicSlug}`,
       metadata: { orderId: (order as { id?: string } | null)?.id, error: error?.message },
     });
+
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `📝 [Solicitação de Orçamento/Pedido] Orçamento solicitado para: "${data.description}"`,
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          "Registrei a sua solicitação de orçamento/pedido. Meu Guardião analisará a descrição e os detalhes informados em breve.",
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for order request:", err);
+      }
+    }
+
     return { ok: true as const, order, traceId };
   });
 
@@ -607,6 +876,10 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicPaymentStatus("received_proof");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { error } = await supabaseAdmin.from("kuanyin_payments").insert({
@@ -616,7 +889,7 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
       amount_cents: data.amount_cents,
       method: data.method || null,
       comprovante_ref: data.comprovante_ref || null,
-      status: "received_proof",
+      status,
       metadata: {
         source: "public_guardian_page",
         guardian_slug: ctx.publicSlug,
@@ -638,10 +911,78 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
       userId: ctx.user_id,
       guardianId: ctx.guardianId,
       route: `/g/${ctx.publicSlug}`,
-      metadata: { error: error?.message, status: "received_proof" },
+      metadata: { error: error?.message, status },
     });
+
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        const formattedAmount = (data.amount_cents / 100).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `💵 [Envio de Comprovante] Comprovante de pagamento enviado no valor de ${formattedAmount}.${data.comprovante_ref ? ` Referência: ${data.comprovante_ref}` : ""}`,
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          `Recebi o comprovante de ${formattedAmount}. Ele já foi encaminhado para a conferência e conciliação do meu Guardião.`,
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for proof submission:", err);
+      }
+    }
+
     return { ok: true as const, traceId };
+  });
+
+export const submitGuardianPublicContact = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    GuardianInput.extend({
+      ...ContactFields,
+      threadId: z.string().uuid().optional(),
+      visitorKey: z.string().trim().max(120).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const traceId = createTraceId();
+    if (data.honeypot) return { ok: false as const, reason: "spam_detected", traceId };
+
+    const ctx = await loadBusinessContext(data.guardianId);
+    if (!ctx) return { ok: false as const, reason: "not_found", traceId };
+
+    if (!data.visitorKey) {
+      return { ok: false as const, reason: "no_visitor_key", traceId };
+    }
+
+    try {
+      const thread = await resolvePublicChatThread(ctx, {
+        threadId: data.threadId,
+        visitorKey: data.visitorKey,
+        visitorName: data.client_name,
+      });
+
+      // Public clients can only create pending requests. Confirmation is guardian-only.
+      const formattedMsg = `📬 [Contato deixado] Nome: ${data.client_name}.${data.client_phone ? ` Telefone: ${data.client_phone}.` : ""}${data.client_email ? ` E-mail: ${data.client_email}.` : ""}`;
+
+      await appendPublicChatMessage(ctx, thread.id, "visitor", formattedMsg);
+
+      const replyMsg =
+        "Recebi seu contato e deixei registrado nesta conversa para o Guardião revisar.";
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMsg);
+
+      return { ok: true as const, threadId: thread.id, traceId };
+    } catch (err) {
+      console.error("Failed to submit guardian public contact to thread:", err);
+      return { ok: false as const, reason: "thread_error", traceId };
+    }
   });
 
 export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
@@ -666,6 +1007,25 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       const answer = getPublicClientOutOfScopeReply(ctx.nome, blockCheck.sexual);
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
       return { ok: true as const, threadId: thread.id, answer };
+    }
+
+    // 2. Deterministic Text Intent Parser
+    const parsedIntent = parseDeterministicPublicIntent(data.message);
+    if (parsedIntent) {
+      let replyMessage = "";
+      if (parsedIntent.type === "appointment") {
+        replyMessage =
+          "Posso registrar isso como solicitação pendente. Use o botão “Agendar Horário” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "order") {
+        replyMessage =
+          "Posso deixar isso como pedido pendente para o Guardião analisar. Use o botão “Pedir Orçamento” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "payment") {
+        replyMessage =
+          "Comprovante informado não é pagamento confirmado. Use o botão “Enviar Comprovante” para registrar os dados para conferência do Guardião.";
+      }
+
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMessage);
+      return { ok: true as const, threadId: thread.id, answer: replyMessage };
     }
 
     if (await isGuardianDailyCapExceeded(ctx.guardianId)) {

@@ -610,7 +610,12 @@
 
           if (msg.action === "revisao:candidatos-ready") {
             candidatos = p.candidatos || [];
-            if (editingId && !candidatos.find(function (c) { return c.id === editingId; })) {
+            if (
+              editingId &&
+              !candidatos.find(function (c) {
+                return c.id === editingId;
+              })
+            ) {
               fecharEdicao();
             }
             renderCandidatos();

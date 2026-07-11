@@ -87,28 +87,28 @@ Não foi possível verificar PRs remotos/issues do GitHub a partir do estado loc
 
 ## 4. Mapa de domínios
 
-| Domínio | Função correta | Estado real no repo | Diagnóstico |
-|---|---|---|---|
-| Kaline | shell pessoal, presença, hub, memória, organização | `/home`, `/chat`, `/kaline-presente`, Registro/Jardim/Revisão | Base real, mas Home ainda é cockpit admin e não hub modular por domínio. |
-| Klio | estudo, acessibilidade, Modo Fala, Códice | `/klio`, `/modo-fala` redirect, `/klio/codice` | Domínio existe, mas chat de Klio usa `kharis`, gerando confusão de faceta. |
-| Códice | leitura/e-reader/acervo/fichamento/margem | HTML + Host + rotas + schema + legado `/livros` | Melhor candidato de microapp; integração de motor ainda parcial. |
-| Câmara do Eco | reuniões/transcrição/ata/decisões | HTML mock + Host + rota nova + rota legada real `/camara` | Boa separação visual/motor, mas ainda bifurcada. |
-| Kuan-Yin | produto comercial vendável | várias rotas, tabelas, portal público, showroom externo | Mais próximo de produto, mas fluxo vendável ainda fragmentado. |
-| Kháris | cuidado/acompanhamento | `/kharis`, prompts, chat | Existe como faceta; escopo se mistura com Klio no motor. |
-| Drive | mobilidade exclusiva | `/drive`, funções de drive | Não é faceta em `use-authz`; aparece dentro de “Corpo · Khora”. |
-| Registro/Jardim/Mnemósine | memória, revisão, registro vivo | `/registro-vivo`, `/jardim`, `/revisao`, funções | Base real; precisa ritual explícito para candidatos vindos de microapps. |
+| Domínio                   | Função correta                                     | Estado real no repo                                           | Diagnóstico                                                                |
+| ------------------------- | -------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Kaline                    | shell pessoal, presença, hub, memória, organização | `/home`, `/chat`, `/kaline-presente`, Registro/Jardim/Revisão | Base real, mas Home ainda é cockpit admin e não hub modular por domínio.   |
+| Klio                      | estudo, acessibilidade, Modo Fala, Códice          | `/klio`, `/modo-fala` redirect, `/klio/codice`                | Domínio existe, mas chat de Klio usa `kharis`, gerando confusão de faceta. |
+| Códice                    | leitura/e-reader/acervo/fichamento/margem          | HTML + Host + rotas + schema + legado `/livros`               | Melhor candidato de microapp; integração de motor ainda parcial.           |
+| Câmara do Eco             | reuniões/transcrição/ata/decisões                  | HTML mock + Host + rota nova + rota legada real `/camara`     | Boa separação visual/motor, mas ainda bifurcada.                           |
+| Kuan-Yin                  | produto comercial vendável                         | várias rotas, tabelas, portal público, showroom externo       | Mais próximo de produto, mas fluxo vendável ainda fragmentado.             |
+| Kháris                    | cuidado/acompanhamento                             | `/kharis`, prompts, chat                                      | Existe como faceta; escopo se mistura com Klio no motor.                   |
+| Drive                     | mobilidade exclusiva                               | `/drive`, funções de drive                                    | Não é faceta em `use-authz`; aparece dentro de “Corpo · Khora”.            |
+| Registro/Jardim/Mnemósine | memória, revisão, registro vivo                    | `/registro-vivo`, `/jardim`, `/revisao`, funções              | Base real; precisa ritual explícito para candidatos vindos de microapps.   |
 
 ## 5. Mapa de microapps HTML
 
-| Microapp | HTML público | Rota autenticada | Host React | Domínio/faceta | Status | Motor associado | Riscos | Próximo passo |
-|---|---|---|---|---|---|---|---|---|
-| Códice | `/codice/index.html` | `/klio/codice` | `CodiceHost` | Klio | integrado visualmente; motor parcial | `LegacyLivrosEngine`, rotas Códice, tabelas `livros`, `codice_margens` | HTML recebe acervo via postMessage; contrato ainda ad hoc | padronizar host, integrar upload/acervo/margem/fichamento por ações. |
-| Modo Fala Klio | `/modo-fala-klio/index.html` | `/klio`; `/modo-fala` redirect | não há host dedicado | Klio/Kháris | HTML existente, não integrado como host | `KlioVoiceView`, chat/transcribe/TTS | duplicidade entre HTML e React real | decidir: manter React real e arquivar HTML como protótipo ou criar host. |
-| Câmara do Eco | `/camara-do-eco/index.html` | `/camara-do-eco` | `CamaraDoEcoHost` | Kaline/reuniões | mockado integrado | `/camara`, `camara.functions`, `/api/camara-transcribe-segment` | host não valida origin; motor real fica em rota separada | integrar motor em PR posterior sem apagar `/camara`. |
-| Kaline Presente | `/kaline-presente/index.html` | `/kaline-presente` | não há host; rota usa `KalinePresenteView` | Kaline/admin | React real + HTML não integrado | chat/TTS/transcrição | dois conceitos com mesmo nome | decidir se HTML vira skin visual do React ou se permanece protótipo. |
-| Kuan-Yin Showroom | externo `https://showroom.nomosludens.ia.br` | `/kuan-yin/showroom` | iframe inline | Kuan-Yin | integrado como iframe externo | motor comercial interno separado | dependência externa, CSP/X-Frame pode bloquear | criar fallback e, se virar produto, trazer host/contrato próprio. |
-| Registro Vivo | inexistente como HTML | `/registro-vivo` | não há | Kaline/memória | React interno real | `registro-vivo.functions` | não precisa virar HTML agora | manter interno; priorizar ritual de memória. |
-| Futuras superfícies | inexistente | variam | inexistente | variam | planejado | variam | risco de copiar hosts ad hoc | criar registry antes da proliferação. |
+| Microapp            | HTML público                                 | Rota autenticada               | Host React                                 | Domínio/faceta  | Status                                  | Motor associado                                                        | Riscos                                                    | Próximo passo                                                            |
+| ------------------- | -------------------------------------------- | ------------------------------ | ------------------------------------------ | --------------- | --------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Códice              | `/codice/index.html`                         | `/klio/codice`                 | `CodiceHost`                               | Klio            | integrado visualmente; motor parcial    | `LegacyLivrosEngine`, rotas Códice, tabelas `livros`, `codice_margens` | HTML recebe acervo via postMessage; contrato ainda ad hoc | padronizar host, integrar upload/acervo/margem/fichamento por ações.     |
+| Modo Fala Klio      | `/modo-fala-klio/index.html`                 | `/klio`; `/modo-fala` redirect | não há host dedicado                       | Klio/Kháris     | HTML existente, não integrado como host | `KlioVoiceView`, chat/transcribe/TTS                                   | duplicidade entre HTML e React real                       | decidir: manter React real e arquivar HTML como protótipo ou criar host. |
+| Câmara do Eco       | `/camara-do-eco/index.html`                  | `/camara-do-eco`               | `CamaraDoEcoHost`                          | Kaline/reuniões | mockado integrado                       | `/camara`, `camara.functions`, `/api/camara-transcribe-segment`        | host não valida origin; motor real fica em rota separada  | integrar motor em PR posterior sem apagar `/camara`.                     |
+| Kaline Presente     | `/kaline-presente/index.html`                | `/kaline-presente`             | não há host; rota usa `KalinePresenteView` | Kaline/admin    | React real + HTML não integrado         | chat/TTS/transcrição                                                   | dois conceitos com mesmo nome                             | decidir se HTML vira skin visual do React ou se permanece protótipo.     |
+| Kuan-Yin Showroom   | externo `https://showroom.nomosludens.ia.br` | `/kuan-yin/showroom`           | iframe inline                              | Kuan-Yin        | integrado como iframe externo           | motor comercial interno separado                                       | dependência externa, CSP/X-Frame pode bloquear            | criar fallback e, se virar produto, trazer host/contrato próprio.        |
+| Registro Vivo       | inexistente como HTML                        | `/registro-vivo`               | não há                                     | Kaline/memória  | React interno real                      | `registro-vivo.functions`                                              | não precisa virar HTML agora                              | manter interno; priorizar ritual de memória.                             |
+| Futuras superfícies | inexistente                                  | variam                         | inexistente                                | variam          | planejado                               | variam                                                                 | risco de copiar hosts ad hoc                              | criar registry antes da proliferação.                                    |
 
 Classificação rápida:
 
@@ -123,13 +123,13 @@ Classificação rápida:
 
 ## 6. Mapa de hosts React
 
-| Host | Existe? | Src | Sandbox | postMessage | Fallback | Diagnóstico |
-|---|---:|---|---|---|---|---|
-| `CodiceHost` | sim | `/codice/index.html?embedded=1` | `allow-scripts allow-same-origin allow-forms allow-downloads` | valida `origin` e shape; não valida `source` do iframe | não | Bom começo; precisa fallback, timeout e validação de source. |
-| `CamaraDoEcoHost` | sim | `/camara-do-eco/index.html?embedded=1` | mesmo sandbox | valida `source` da janela e shape; não valida `origin` | não | Bom mock host; precisa origin e contrato de ações sensíveis. |
-| `MicroappHost` | não | n/a | n/a | n/a | n/a | Deve ser criado como padrão, mas não neste PR documental. |
-| `KlioModoFalaHost` | não | n/a | n/a | n/a | n/a | Necessário somente se HTML de Modo Fala for produto, não protótipo. |
-| `ShowroomHost` | não | showroom externo | sem sandbox | sem postMessage | texto orienta nova aba | Pode virar host genérico externo com fallback. |
+| Host               | Existe? | Src                                    | Sandbox                                                       | postMessage                                            | Fallback               | Diagnóstico                                                         |
+| ------------------ | ------: | -------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------ | ---------------------- | ------------------------------------------------------------------- |
+| `CodiceHost`       |     sim | `/codice/index.html?embedded=1`        | `allow-scripts allow-same-origin allow-forms allow-downloads` | valida `origin` e shape; não valida `source` do iframe | não                    | Bom começo; precisa fallback, timeout e validação de source.        |
+| `CamaraDoEcoHost`  |     sim | `/camara-do-eco/index.html?embedded=1` | mesmo sandbox                                                 | valida `source` da janela e shape; não valida `origin` | não                    | Bom mock host; precisa origin e contrato de ações sensíveis.        |
+| `MicroappHost`     |     não | n/a                                    | n/a                                                           | n/a                                                    | n/a                    | Deve ser criado como padrão, mas não neste PR documental.           |
+| `KlioModoFalaHost` |     não | n/a                                    | n/a                                                           | n/a                                                    | n/a                    | Necessário somente se HTML de Modo Fala for produto, não protótipo. |
+| `ShowroomHost`     |     não | showroom externo                       | sem sandbox                                                   | sem postMessage                                        | texto orienta nova aba | Pode virar host genérico externo com fallback.                      |
 
 Padrão recomendado para PR futuro:
 
@@ -160,25 +160,25 @@ Regras obrigatórias do padrão:
 
 ## 7. Mapa de rotas
 
-| Rota | Existe? | Pública/autenticada | Quem acessa hoje | Estado vazio/erro | Diagnóstico |
-|---|---:|---|---|---|---|
-| `/` | sim | pública/entrada | redireciona/landing conforme rota index | não auditado visualmente | precisa ser consistente com PWA `start_url`. |
-| `/auth` | sim | pública | login | não auditado | base auth. |
-| `/chat` | sim | autenticada | admin e faceta Kaline, mas autorização tem exceções | ChatView | rota real de Kaline conversa. |
-| `/klio` | sim | autenticada | admin e usuário `klio`, mas loader cria thread `kharis` | KlioVoiceView | conflito conceitual Klio/Kháris. |
-| `/modo-fala` | sim | autenticada | redirect para `/klio` | n/a | legado saudável se documentado. |
-| `/kaline-presente` | sim | autenticada admin-only | admin | route boundary | React real, HTML homônimo não integrado. |
-| `/klio/codice` | sim | autenticada | admin; `klio` pode sofrer bloqueio por regra global | route boundary | rota preferencial correta. |
-| `/livros` | sim | autenticada | redirect para `/klio/codice` | n/a | compatibilidade correta, mas Home ainda rotula Livros. |
-| `/camara-do-eco` | sim | autenticada | aparece na sidebar geral | route boundary | nova rota visual/mock. |
-| `/camara` | sim | autenticada | admin; Home aponta para ela | estados internos | motor real legado; precisa ser rotulada como motor/legado. |
-| `/kuan-yin` | sim | autenticada | faceta Kuan-Yin/admin | ChatView | produto comercial interno. |
-| `/kuan-yin/*` | sim | autenticada | admin em sidebar; rotas internas | variado | clientes/guardioes/config/agendamentos/pagamentos/pedidos. |
-| `/g/$guardianId` | sim | pública | cliente final | não auditado por execução | base para página pública sem login. |
-| `/portal/$token` | sim | pública | cliente com token | não auditado por execução | base portal restrito. |
-| `/kharis` | sim | autenticada | faceta Kháris/admin | ChatView provável | domínio de cuidado. |
-| `/drive` | sim | autenticada | admin por sidebar; não faceta | variado | falta faceta `drive` em authz. |
-| `/registro-vivo`, `/jardim`, `/revisao` | sim | autenticadas | admin atualmente | states parciais | memória existe, mas precisa ritual de candidatos. |
+| Rota                                    | Existe? | Pública/autenticada    | Quem acessa hoje                                        | Estado vazio/erro         | Diagnóstico                                                |
+| --------------------------------------- | ------: | ---------------------- | ------------------------------------------------------- | ------------------------- | ---------------------------------------------------------- |
+| `/`                                     |     sim | pública/entrada        | redireciona/landing conforme rota index                 | não auditado visualmente  | precisa ser consistente com PWA `start_url`.               |
+| `/auth`                                 |     sim | pública                | login                                                   | não auditado              | base auth.                                                 |
+| `/chat`                                 |     sim | autenticada            | admin e faceta Kaline, mas autorização tem exceções     | ChatView                  | rota real de Kaline conversa.                              |
+| `/klio`                                 |     sim | autenticada            | admin e usuário `klio`, mas loader cria thread `kharis` | KlioVoiceView             | conflito conceitual Klio/Kháris.                           |
+| `/modo-fala`                            |     sim | autenticada            | redirect para `/klio`                                   | n/a                       | legado saudável se documentado.                            |
+| `/kaline-presente`                      |     sim | autenticada admin-only | admin                                                   | route boundary            | React real, HTML homônimo não integrado.                   |
+| `/klio/codice`                          |     sim | autenticada            | admin; `klio` pode sofrer bloqueio por regra global     | route boundary            | rota preferencial correta.                                 |
+| `/livros`                               |     sim | autenticada            | redirect para `/klio/codice`                            | n/a                       | compatibilidade correta, mas Home ainda rotula Livros.     |
+| `/camara-do-eco`                        |     sim | autenticada            | aparece na sidebar geral                                | route boundary            | nova rota visual/mock.                                     |
+| `/camara`                               |     sim | autenticada            | admin; Home aponta para ela                             | estados internos          | motor real legado; precisa ser rotulada como motor/legado. |
+| `/kuan-yin`                             |     sim | autenticada            | faceta Kuan-Yin/admin                                   | ChatView                  | produto comercial interno.                                 |
+| `/kuan-yin/*`                           |     sim | autenticada            | admin em sidebar; rotas internas                        | variado                   | clientes/guardioes/config/agendamentos/pagamentos/pedidos. |
+| `/g/$guardianId`                        |     sim | pública                | cliente final                                           | não auditado por execução | base para página pública sem login.                        |
+| `/portal/$token`                        |     sim | pública                | cliente com token                                       | não auditado por execução | base portal restrito.                                      |
+| `/kharis`                               |     sim | autenticada            | faceta Kháris/admin                                     | ChatView provável         | domínio de cuidado.                                        |
+| `/drive`                                |     sim | autenticada            | admin por sidebar; não faceta                           | variado                   | falta faceta `drive` em authz.                             |
+| `/registro-vivo`, `/jardim`, `/revisao` |     sim | autenticadas           | admin atualmente                                        | states parciais           | memória existe, mas precisa ritual de candidatos.          |
 
 Problema de autorização central: a rota global `_authenticated` redireciona usuários comuns por faceta. Para `klio`, `allowedPrefixes` permite `/klio`, mas `adminRoutes` também contém `/klio`, então a intenção fica contraditória e pode bloquear o usuário comum dependendo do fluxo. Além disso, `getChatRouteForFacet('kaline')` retorna `/home`, enquanto `allowedPrefixes.kaline` é `/chat`.
 
@@ -352,15 +352,15 @@ Estado real:
 
 Fluxo vendável mapeado:
 
-| Etapa | Estado |
-|---|---|
-| admin cadastra guardião | existe base de guardiões/admin controls |
-| guardião configura negócio | existe config/business context |
-| cliente final acessa página pública | existe `/g/$guardianId` |
-| cliente conversa com Kuan-Yin | provável via funções públicas, precisa teste manual |
-| cliente agenda | tabelas/rotas existem |
-| guardião recebe calendário | agendamentos existem, integração precisa validação |
-| comprovantes/pagamento | tabelas/rotas existem, fluxo precisa validação |
+| Etapa                               | Estado                                              |
+| ----------------------------------- | --------------------------------------------------- |
+| admin cadastra guardião             | existe base de guardiões/admin controls             |
+| guardião configura negócio          | existe config/business context                      |
+| cliente final acessa página pública | existe `/g/$guardianId`                             |
+| cliente conversa com Kuan-Yin       | provável via funções públicas, precisa teste manual |
+| cliente agenda                      | tabelas/rotas existem                               |
+| guardião recebe calendário          | agendamentos existem, integração precisa validação  |
+| comprovantes/pagamento              | tabelas/rotas existem, fluxo precisa validação      |
 
 Principal lacuna: falta uma narrativa de produto e critérios de aceite ponta-a-ponta. Kuan-Yin já tem muito backend, mas precisa ser testado como funil vendável real.
 
@@ -456,142 +456,162 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 ## 21. Problemas priorizados
 
 ## [CRÍTICO] Service worker possui `CACHE_VERSION` duplicado
+
 **Área:** PWA / Código  
 **Status:** quebrado  
 **Arquivos envolvidos:**
+
 - `public/sw.js`
-**Sintoma:** PWA pode falhar ao registrar/ativar service worker, deixando app instalado preso em cache antigo ou sem offline/update confiável.  
-**Causa provável:** merge incremental de versões de Códice e Câmara declarou `const CACHE_VERSION` duas vezes.  
-**Impacto:** quebra atualização do app instalado e mina confiança em microapps HTML.  
-**Correção recomendada:** consolidar uma única versão de cache, limpar comentários duplicados e testar registro/update.  
-**Risco da correção:** Baixo  
-**Prioridade:** P0
+  **Sintoma:** PWA pode falhar ao registrar/ativar service worker, deixando app instalado preso em cache antigo ou sem offline/update confiável.  
+  **Causa provável:** merge incremental de versões de Códice e Câmara declarou `const CACHE_VERSION` duas vezes.  
+  **Impacto:** quebra atualização do app instalado e mina confiança em microapps HTML.  
+  **Correção recomendada:** consolidar uma única versão de cache, limpar comentários duplicados e testar registro/update.  
+  **Risco da correção:** Baixo  
+  **Prioridade:** P0
 
 ## [ALTO] Faceta Klio está conceitualmente separada, mas motor de chat usa Kháris
+
 **Área:** Auth / Produto / Código  
 **Status:** legado/confuso  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/klio.tsx`
 - `src/routes/api/chat.ts`
 - `src/lib/use-authz.ts`
-**Sintoma:** Klio aparece como domínio de estudo, mas conversas são criadas como `kharis`; API de chat não aceita `klio`.  
-**Causa provável:** renomeações históricas de Kalisto/Klio/Kháris e absorção parcial de Klio.  
-**Impacto:** permissões, prompts, histórico e UX podem misturar cuidado com estudo.  
-**Correção recomendada:** decidir oficialmente se Klio terá facet de chat própria ou se é superfície de Kháris; ajustar API, prompts e docs.  
-**Risco da correção:** Médio  
-**Prioridade:** P0
+  **Sintoma:** Klio aparece como domínio de estudo, mas conversas são criadas como `kharis`; API de chat não aceita `klio`.  
+  **Causa provável:** renomeações históricas de Kalisto/Klio/Kháris e absorção parcial de Klio.  
+  **Impacto:** permissões, prompts, histórico e UX podem misturar cuidado com estudo.  
+  **Correção recomendada:** decidir oficialmente se Klio terá facet de chat própria ou se é superfície de Kháris; ajustar API, prompts e docs.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P0
 
 ## [ALTO] Matriz de autorização bloqueia ou expõe rotas de forma contraditória
+
 **Área:** Auth / UX  
 **Status:** implementado/confuso  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/route.tsx`
 - `src/lib/use-authz.ts`
 - `src/components/app-sidebar.tsx`
-**Sintoma:** Usuários comuns por faceta podem ser redirecionados de rotas que deveriam acessar; sidebar e beforeLoad não têm a mesma matriz.  
-**Causa provável:** regras hardcoded em arrays separados.  
-**Impacto:** usuário Klio pode não acessar Códice; Drive não é facet; admin/user têm experiências inconsistentes.  
-**Correção recomendada:** criar matriz central de rotas por facet e usar no beforeLoad/sidebar/Home.  
-**Risco da correção:** Médio  
-**Prioridade:** P0
+  **Sintoma:** Usuários comuns por faceta podem ser redirecionados de rotas que deveriam acessar; sidebar e beforeLoad não têm a mesma matriz.  
+  **Causa provável:** regras hardcoded em arrays separados.  
+  **Impacto:** usuário Klio pode não acessar Códice; Drive não é facet; admin/user têm experiências inconsistentes.  
+  **Correção recomendada:** criar matriz central de rotas por facet e usar no beforeLoad/sidebar/Home.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P0
 
 ## [ALTO] Home e sidebar ainda apontam para rotas/nomes legados
+
 **Área:** UX / Produto  
 **Status:** legado  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/home.tsx`
 - `src/components/app-sidebar.tsx`
-**Sintoma:** Home mostra “Livros” e `/camara`, enquanto arquitetura nova usa Códice e Câmara do Eco.  
-**Causa provável:** migração visual incompleta.  
-**Impacto:** usuário não entende o hub; mock e motor real se confundem.  
-**Correção recomendada:** Home com cards de microapps/domínios e status real/mock/legado; sidebar alinhada.  
-**Risco da correção:** Médio  
-**Prioridade:** P1
+  **Sintoma:** Home mostra “Livros” e `/camara`, enquanto arquitetura nova usa Códice e Câmara do Eco.  
+  **Causa provável:** migração visual incompleta.  
+  **Impacto:** usuário não entende o hub; mock e motor real se confundem.  
+  **Correção recomendada:** Home com cards de microapps/domínios e status real/mock/legado; sidebar alinhada.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P1
 
 ## [ALTO] Hosts de microapp não seguem contrato único
+
 **Área:** Microapp / Host / Segurança  
 **Status:** implementado parcial  
 **Arquivos envolvidos:**
+
 - `src/components/CodiceHost.tsx`
 - `src/components/microapps/CamaraDoEcoHost.tsx`
-**Sintoma:** Cada host valida mensagens e layout de forma diferente; fallback inexistente.  
-**Causa provável:** evolução orgânica por microapp.  
-**Impacto:** risco de segurança, bugs de iframe, scroll duplo e ações sensíveis inconsistentes.  
-**Correção recomendada:** PR para `MicroappHost`/registry com validação `origin/source/action`, fallback e loading.  
-**Risco da correção:** Médio  
-**Prioridade:** P1
+  **Sintoma:** Cada host valida mensagens e layout de forma diferente; fallback inexistente.  
+  **Causa provável:** evolução orgânica por microapp.  
+  **Impacto:** risco de segurança, bugs de iframe, scroll duplo e ações sensíveis inconsistentes.  
+  **Correção recomendada:** PR para `MicroappHost`/registry com validação `origin/source/action`, fallback e loading.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P1
 
 ## [MÉDIO] Câmara do Eco tem superfície mockada e motor real separados
+
 **Área:** Microapp / Produto  
 **Status:** mockado + legado real  
 **Arquivos envolvidos:**
+
 - `public/camara-do-eco/index.html`
 - `src/components/microapps/CamaraDoEcoHost.tsx`
 - `src/routes/_authenticated/camara.tsx`
 - `src/routes/api/camara-transcribe-segment.ts`
-**Sintoma:** usuário pode abrir Câmara visual sem motor real ou rota antiga com motor sem visual novo.  
-**Causa provável:** migração correta em duas etapas, ainda não finalizada.  
-**Impacto:** expectativa falsa de feature pronta.  
-**Correção recomendada:** rotular claramente mock; depois integrar texto/upload/transcrição por ações.  
-**Risco da correção:** Médio  
-**Prioridade:** P1
+  **Sintoma:** usuário pode abrir Câmara visual sem motor real ou rota antiga com motor sem visual novo.  
+  **Causa provável:** migração correta em duas etapas, ainda não finalizada.  
+  **Impacto:** expectativa falsa de feature pronta.  
+  **Correção recomendada:** rotular claramente mock; depois integrar texto/upload/transcrição por ações.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P1
 
 ## [MÉDIO] Kaline Presente e Modo Fala têm HTML público não integrado
+
 **Área:** Microapp / UX  
 **Status:** mockado/duplicado  
 **Arquivos envolvidos:**
+
 - `public/modo-fala-klio/index.html`
 - `public/kaline-presente/index.html`
 - `src/routes/_authenticated/klio.tsx`
 - `src/routes/_authenticated/kaline-presente.tsx`
-**Sintoma:** existem superfícies HTML, mas rotas usam React real.  
-**Causa provável:** protótipos visuais convivem com motores reais.  
-**Impacto:** manutenção duplicada e decisões de produto pouco claras.  
-**Correção recomendada:** decidir por microapp HTML, híbrido ou React; documentar.  
-**Risco da correção:** Baixo  
-**Prioridade:** P2
+  **Sintoma:** existem superfícies HTML, mas rotas usam React real.  
+  **Causa provável:** protótipos visuais convivem com motores reais.  
+  **Impacto:** manutenção duplicada e decisões de produto pouco claras.  
+  **Correção recomendada:** decidir por microapp HTML, híbrido ou React; documentar.  
+  **Risco da correção:** Baixo  
+  **Prioridade:** P2
 
 ## [MÉDIO] Kuan-Yin tem base rica, mas falta teste de fluxo vendável ponta-a-ponta
+
 **Área:** Produto / Supabase / UX  
 **Status:** implementado parcial  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/kuan-yin.*.tsx`
 - `src/routes/g.$guardianId.tsx`
 - `src/routes/portal.$token.tsx`
 - `supabase/migrations/*kuanyin*.sql`
-**Sintoma:** há muitas peças comerciais, mas não há checklist claro de venda real.  
-**Causa provável:** implementação por módulos sem narrativa final única.  
-**Impacto:** produto difícil de vender/demonstrar.  
-**Correção recomendada:** criar fluxo de aceite: guardião → página pública → conversa → agendamento → calendário → comprovante.  
-**Risco da correção:** Médio  
-**Prioridade:** P1
+  **Sintoma:** há muitas peças comerciais, mas não há checklist claro de venda real.  
+  **Causa provável:** implementação por módulos sem narrativa final única.  
+  **Impacto:** produto difícil de vender/demonstrar.  
+  **Correção recomendada:** criar fluxo de aceite: guardião → página pública → conversa → agendamento → calendário → comprovante.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P1
 
 ## [MÉDIO] Memória precisa ritual formal de candidatos
+
 **Área:** Memória / Segurança / Produto  
 **Status:** implementado parcial  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/revisao.tsx`
 - `src/routes/_authenticated/jardim.tsx`
 - `src/lib/jardim.functions.ts`
 - `src/lib/sedimentar.functions.ts`
-**Sintoma:** microapps podem gerar conteúdos importantes sem fluxo explícito de aprovação.  
-**Causa provável:** Registro/Jardim existem antes da padronização dos microapps.  
-**Impacto:** risco de memória falsa, privada ou prematura.  
-**Correção recomendada:** criar candidatos à memória com revisão humana obrigatória.  
-**Risco da correção:** Médio  
-**Prioridade:** P1
+  **Sintoma:** microapps podem gerar conteúdos importantes sem fluxo explícito de aprovação.  
+  **Causa provável:** Registro/Jardim existem antes da padronização dos microapps.  
+  **Impacto:** risco de memória falsa, privada ou prematura.  
+  **Correção recomendada:** criar candidatos à memória com revisão humana obrigatória.  
+  **Risco da correção:** Médio  
+  **Prioridade:** P1
 
 ## [BAIXO] Showroom Kuan-Yin externo não tem host/fallback padronizado
+
 **Área:** Microapp / UX  
 **Status:** implementado parcial  
 **Arquivos envolvidos:**
+
 - `src/routes/_authenticated/kuan-yin.showroom.tsx`
-**Sintoma:** iframe externo pode falhar por política do site/WebView.  
-**Causa provável:** integração direta sem host genérico.  
-**Impacto:** demo comercial pode quebrar.  
-**Correção recomendada:** usar padrão de host externo com fallback e health check visual.  
-**Risco da correção:** Baixo  
-**Prioridade:** P2
+  **Sintoma:** iframe externo pode falhar por política do site/WebView.  
+  **Causa provável:** integração direta sem host genérico.  
+  **Impacto:** demo comercial pode quebrar.  
+  **Correção recomendada:** usar padrão de host externo com fallback e health check visual.  
+  **Risco da correção:** Baixo  
+  **Prioridade:** P2
 
 ## 22. Roadmap em fases
 
@@ -659,6 +679,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 ## 24. PRs recomendados
 
 ### PR 1 — auditoria documental
+
 **Objetivo:** registrar esta varredura mestra como base de decisão.  
 **Arquivos prováveis:** `docs/kaline-totalidade-auditoria-mestra.md`.  
 **Risco:** baixo.  
@@ -666,6 +687,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** `npm run build`, `npm run typecheck`, `npm run test`, `npm run lint`.
 
 ### PR 2 — corrigir PWA/cache e compatibilidade de app instalado
+
 **Objetivo:** consertar service worker, versão única de cache e fallback offline.  
 **Arquivos prováveis:** `public/sw.js`, talvez `public/manifest.webmanifest`.  
 **Risco:** baixo.  
@@ -673,6 +695,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** build, install/update manual, DevTools Application.
 
 ### PR 3 — matriz de rotas/facetas do shell
+
 **Objetivo:** centralizar autorização e visibilidade por domínio.  
 **Arquivos prováveis:** `src/lib/use-authz.ts`, novo `src/lib/app-registry.ts`, `src/routes/_authenticated/route.tsx`, `src/components/app-sidebar.tsx`.  
 **Risco:** médio.  
@@ -680,6 +703,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** typecheck, testes manuais por perfis.
 
 ### PR 4 — padrão `MicroappHost`
+
 **Objetivo:** criar host genérico com validação de origin/source/action, fallback e loading.  
 **Arquivos prováveis:** `src/components/microapps/MicroappHost.tsx`, migração leve de Códice/Câmara.  
 **Risco:** médio.  
@@ -687,6 +711,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** typecheck, testes manuais de postMessage.
 
 ### PR 5 — limpar Home/sidebar para arquitetura de hub
+
 **Objetivo:** alinhar nomes, grupos e links à arquitetura real.  
 **Arquivos prováveis:** `src/routes/_authenticated/home.tsx`, `src/components/app-sidebar.tsx`.  
 **Risco:** médio.  
@@ -694,6 +719,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** build, navegação manual mobile/desktop.
 
 ### PR 6 — concluir Códice por contrato de ações
+
 **Objetivo:** integrar upload/acervo/margem/fichamento com host sem Supabase direto no HTML.  
 **Arquivos prováveis:** `CodiceHost`, rotas `klio.codice.*`, `LegacyLivrosEngine`, libs de Códice.  
 **Risco:** médio/alto.  
@@ -701,6 +727,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** upload PDF/texto, leitura, offline/local-first.
 
 ### PR 7 — integrar motor real da Câmara do Eco
+
 **Objetivo:** conectar HTML mockado a motor de texto/upload/transcrição/ata.  
 **Arquivos prováveis:** `CamaraDoEcoHost`, `/camara`, `camara.functions`, API de transcrição, novas actions.  
 **Risco:** alto.  
@@ -708,6 +735,7 @@ Recomendação: medir bundle com `vite build` + análise posterior. PR de perfor
 **Testes:** transcrição curta, texto colado, erro sem OpenRouter.
 
 ### PR 8 — Kuan-Yin vendável ponta-a-ponta
+
 **Objetivo:** validar fluxo guardião→cliente→agenda→comprovante.  
 **Arquivos prováveis:** rotas `kuan-yin.*`, `g.$guardianId`, `portal.$token`, funções públicas.  
 **Risco:** médio/alto.  
