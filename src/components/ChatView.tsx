@@ -32,6 +32,8 @@ import { isSTTModel, STT_FALLBACK_MODEL_KEY, STT_MODEL_KEY } from "@/lib/stt-mod
 import { KuanyinActionCard } from "@/components/KuanyinActionCard";
 import { extractActions } from "@/lib/kuanyin-action";
 import { sanitizeAssistantOutput } from "@/lib/sanitize-assistant-output";
+import { authedFetch } from "@/lib/authed-fetch";
+import { calculateAudioRMS } from "@/lib/voice/use-voice-interaction";
 
 // Faceta "kharis" = superfície de cuidado neurodivergente (antigo valor de enum 'klio',
 // renomeado em 20260626010000).
@@ -448,10 +450,7 @@ export function ChatView({ threadId }: ChatViewProps) {
         api: "/api/chat",
         body: { facet, threadId, chatModel: activeChatModel },
         fetch: async (input, init) => {
-          const { data } = await supabase.auth.getSession();
-          const token = data.session?.access_token;
           const headers = new Headers(init?.headers);
-          if (token) headers.set("Authorization", `Bearer ${token}`);
 
           let body = init?.body;
           if (typeof body === "string") {
@@ -476,7 +475,12 @@ export function ChatView({ threadId }: ChatViewProps) {
           const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
           try {
-            const res = await fetch(input, { ...init, headers, body, signal: controller.signal });
+            const res = await authedFetch(input, {
+              ...init,
+              headers,
+              body,
+              signal: controller.signal,
+            });
             if (!res.ok) {
               const detail = await res.text().catch(() => "");
               throw new Error(detail || `Falha ao enviar (HTTP ${res.status})`);
@@ -752,6 +756,7 @@ export function ChatView({ threadId }: ChatViewProps) {
         return;
       }
 
+      const startTime = Date.now();
       const rec = new MediaRecorder(stream, { mimeType });
       recChunksRef.current = [];
       rec.ondataavailable = (e) => {
@@ -760,10 +765,19 @@ export function ChatView({ threadId }: ChatViewProps) {
       rec.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         const blob = new Blob(recChunksRef.current, { type: rec.mimeType });
-        if (blob.size < 1024) {
+        const duration = Date.now() - startTime;
+        if (duration < 1000 || blob.size < 4000) {
           setMicState("idle");
           setKittPulse("voice", null);
-          toast.error("Gravação muito curta — tente de novo.");
+          toast.error("Não ouvi áudio suficiente para transcrever.");
+          return;
+        }
+
+        const rms = await calculateAudioRMS(blob);
+        if (rms <= 0.005) {
+          setMicState("idle");
+          setKittPulse("voice", null);
+          toast.error("Não ouvi áudio suficiente para transcrever.");
           return;
         }
 
@@ -777,7 +791,6 @@ export function ChatView({ threadId }: ChatViewProps) {
               rec.mimeType.split(";")[0]
             ] ?? "webm";
           fd.append("file", blob, `recording.${ext}`);
-          fd.append("revise", "1"); // pede revisão por LLM no servidor (só no chat)
           // Respeita a escolha de STT do Guardião (mesmo padrão do modo fala).
           const sttModel =
             typeof localStorage === "undefined" ? null : localStorage.getItem(STT_MODEL_KEY);
@@ -787,11 +800,9 @@ export function ChatView({ threadId }: ChatViewProps) {
               ? null
               : localStorage.getItem(STT_FALLBACK_MODEL_KEY);
           if (isSTTModel(sttFallbackModel)) fd.append("sttFallbackModel", sttFallbackModel);
-          const { data } = await supabase.auth.getSession();
-          const token = data.session?.access_token;
-          const res = await fetch("/api/transcribe", {
+
+          const res = await authedFetch("/api/transcribe", {
             method: "POST",
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
             body: fd,
           });
           if (!res.ok) throw new Error(await res.text());
@@ -799,10 +810,13 @@ export function ChatView({ threadId }: ChatViewProps) {
           const text = (parsed.text ?? "").trim();
           setMicState("idle");
           if (text) {
-            // Envia direto: combina o que já estava digitado com a transcrição.
             const digitado = (composerRef.current?.value ?? "").trim();
-            const combinado = quickReview(digitado ? `${digitado} ${text}` : text);
-            enviar(combinado, attachmentsRef.current);
+            const combinado = digitado ? `${digitado} ${text}` : text;
+            if (composerRef.current) {
+              composerRef.current.value = combinado;
+              composerRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+              composerRef.current.focus();
+            }
           }
         } catch (error) {
           toast.error(error instanceof Error ? error.message : "Falha na transcrição.");

@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireUser } from "@/lib/require-user.server";
 import { rateLimit } from "@/lib/rate-limit";
-import {
-  isAllowedAudioType,
-  transcribeAudioBlob,
-  revisarTranscricaoTexto,
-} from "@/lib/transcribe.server";
+import { isAllowedAudioType, transcribeAudioBlob } from "@/lib/transcribe.server";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024; // 25MB
 
@@ -36,8 +32,7 @@ export const Route = createFileRoute("/api/transcribe")({
           );
           // Revisão por LLM só quando o cliente pede (chat). A Câmara usa outro
           // endpoint e não passa por aqui.
-          const revise = inForm.get("revise") === "1";
-          const finalText = revise && text.trim() ? await revisarTranscricaoTexto(text) : text;
+          const finalText = text;
           return Response.json({ text: finalText });
         } catch (err) {
           if (err instanceof Error && err.name === "TranscriptionNotConfiguredError") {

@@ -265,7 +265,7 @@ export async function reviewKuanAppointmentImpl(
     throw new Error("Não foi possível verificar a propriedade do agendamento.");
   }
 
-  const targetStatus = data.action === "confirm" ? "confirmed" : "rejected";
+  const targetStatus = data.action === "confirm" ? "confirmed" : "cancelled";
 
   // Validate transition
   validateAppointmentTransition(entity.status, targetStatus, actor, entityGuardian.id);
@@ -281,7 +281,7 @@ export async function reviewKuanAppointmentImpl(
     review_note: data.note || null,
   };
 
-  const { data: updated, error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from("kuanyin_appointments")
     .update({
       status: targetStatus,
@@ -289,12 +289,17 @@ export async function reviewKuanAppointmentImpl(
       updated_at: new Date().toISOString(),
     } as never)
     .eq("id", data.id)
-    .select("id, status")
-    .single();
+    .eq("user_id", entity.user_id)
+    .eq("business_context_id", entity.business_context_id)
+    .eq("status", entity.status)
+    .select("id, status");
 
-  if (updateError || !updated) {
-    throw new Error("Falha ao atualizar o status do agendamento.");
+  if (updateError || !updatedRows || updatedRows.length === 0) {
+    throw new Error(
+      "Conflito de concorrência ou registro não encontrado durante a atualização do agendamento.",
+    );
   }
+  const updated = updatedRows[0];
 
   // Write integrity log
   const logPayload = {
@@ -402,7 +407,7 @@ export async function reviewKuanOrderImpl(
     throw new Error("Não foi possível verificar a propriedade do pedido.");
   }
 
-  const targetStatus = data.action === "accept" ? "accepted" : "rejected";
+  const targetStatus = data.action === "accept" ? "confirmed" : "cancelled";
 
   // Validate transition
   validateOrderTransition(entity.status, targetStatus, actor, entityGuardian.id);
@@ -418,7 +423,7 @@ export async function reviewKuanOrderImpl(
     review_note: data.note || null,
   };
 
-  const { data: updated, error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from("kuanyin_orders")
     .update({
       status: targetStatus,
@@ -426,12 +431,17 @@ export async function reviewKuanOrderImpl(
       updated_at: new Date().toISOString(),
     } as never)
     .eq("id", data.id)
-    .select("id, status")
-    .single();
+    .eq("user_id", entity.user_id)
+    .eq("business_context_id", entity.business_context_id)
+    .eq("status", entity.status)
+    .select("id, status");
 
-  if (updateError || !updated) {
-    throw new Error("Falha ao atualizar o status do pedido.");
+  if (updateError || !updatedRows || updatedRows.length === 0) {
+    throw new Error(
+      "Conflito de concorrência ou registro não encontrado durante a atualização do pedido.",
+    );
   }
+  const updated = updatedRows[0];
 
   // Write integrity log
   const logPayload = {
@@ -555,7 +565,7 @@ export async function reviewKuanPaymentImpl(
     review_note: data.note || null,
   };
 
-  const { data: updated, error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from("kuanyin_payments")
     .update({
       status: targetStatus,
@@ -563,12 +573,16 @@ export async function reviewKuanPaymentImpl(
       updated_at: new Date().toISOString(),
     } as never)
     .eq("id", data.id)
-    .select("id, status")
-    .single();
+    .eq("user_id", entity.user_id)
+    .eq("status", entity.status)
+    .select("id, status");
 
-  if (updateError || !updated) {
-    throw new Error("Falha ao atualizar o status do comprovante.");
+  if (updateError || !updatedRows || updatedRows.length === 0) {
+    throw new Error(
+      "Conflito de concorrência ou registro não encontrado durante a atualização do comprovante.",
+    );
   }
+  const updated = updatedRows[0];
 
   // Write integrity log
   const logPayload = {
@@ -672,19 +686,20 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
-    const defaultNewStatus = data.action === "confirm" ? "confirmed" : "rejected";
 
     let updated: { id: string; status: string } | null = null;
     let error: any = null;
 
     switch (data.type) {
       case "kuanyin.client.review": {
+        const targetClientStatus = data.action === "confirm" ? "confirmed" : "archived";
         // Try updating in client table first
         const clientRes = await supabase
           .from("kuanyin_clients")
-          .update({ status: defaultNewStatus, updated_at: new Date().toISOString() })
+          .update({ status: targetClientStatus, updated_at: new Date().toISOString() })
           .eq("user_id", userId)
           .eq("id", data.id)
+          .eq("status", "prospect")
           .select("id, status");
 
         if (clientRes.data && clientRes.data.length > 0) {
@@ -700,7 +715,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
             .maybeSingle();
 
           if (msgRow) {
-            updated = { id: data.id, status: defaultNewStatus };
+            updated = { id: data.id, status: targetClientStatus };
           } else {
             error = new Error("Registro de contato não encontrado.");
           }

@@ -62,6 +62,13 @@ export function VoiceFirstChatView({
     if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [voice.messages, chatOpen]);
 
+  useEffect(() => {
+    if (voice.transcript) {
+      setChatInput(voice.transcript);
+      setChatOpen(true);
+    }
+  }, [voice.transcript]);
+
   async function handlePrimaryAction() {
     if (voice.state === "recording") {
       await voice.stop();
