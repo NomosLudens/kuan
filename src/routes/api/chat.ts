@@ -362,10 +362,35 @@ export const Route = createFileRoute("/api/chat")({
           const { resolveRuntimeAudienceContext } = await import("@/lib/kuan/conversation-context");
           const { buildKuanConversationSafetyRules } =
             await import("@/lib/kuan/conversation-policy");
+          const { interpretCommercialContext } =
+            await import("@/lib/kuan/commercial-context-interpreter");
           const audienceCtx = await resolveRuntimeAudienceContext(supabaseAsUser, { userId });
 
           if (audienceCtx.audience === "public_client") {
             throw new Error("Expected authenticated audience context in private chat");
+          }
+
+          const interpretation = interpretCommercialContext({
+            audience: audienceCtx.audience,
+            message: latestUserText,
+            businessName:
+              audienceCtx.audience === "guardian_private" ? audienceCtx.businessName : undefined,
+          });
+
+          let candidateUpdateBlock = "";
+          if (interpretation.candidateUpdate) {
+            candidateUpdateBlock = `
+=== DRAFT CANDIDATE UPDATE DETECTED ===
+Target: ${interpretation.candidateUpdate.target}
+Requires Confirmation: ${interpretation.candidateUpdate.requiresConfirmation}
+Proposed Patch: ${JSON.stringify(interpretation.candidateUpdate.patch, null, 2)}
+
+INSTRUCTION FOR CANDIDATE UPDATE:
+The user has expressed a desire to update their business information or preferences.
+IMPORTANT: You MUST present this as a clear, friendly textual proposal to the user (e.g., "Entendi como preferência de atendimento: tom mais informal. Posso guardar isso para você?").
+DO NOT state that the change is already saved or active in the database. Always ask for explicit confirmation.
+DO NOT claim the database has been modified.
+`;
           }
 
           let audienceRule = "";
@@ -387,6 +412,16 @@ Actor User ID: ${audienceCtx.actorUserId}
 Actor Display Name: ${audienceCtx.actorDisplayName}
 Safety Scope: ${audienceCtx.safetyScope}
 ${audienceCtx.audience === "guardian_private" ? `Guardian ID: ${audienceCtx.guardianId}\nBusiness Context ID: ${audienceCtx.businessContextId}\nBusiness Name: ${audienceCtx.businessName}\nGuardian Slug: ${audienceCtx.guardianSlug}` : ""}
+
+=== KUAN COMMERCIAL CONTEXT INTERPRETATION ===
+Audience: ${interpretation.audience}
+Intent: ${interpretation.intent}
+Boundary: ${interpretation.boundary}
+Summary: ${interpretation.summary}
+Safe reply hint: ${interpretation.safeReplyHint}
+Suggested next step: ${interpretation.suggestedNextStep}
+Forbidden actions: ${interpretation.forbiddenActions.join(", ")}
+${candidateUpdateBlock}
 
 AUDIENCE RULE:
 ${audienceRule}
