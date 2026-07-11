@@ -324,8 +324,8 @@ export async function reviewKuanAppointmentImpl(
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const feedbackMsg =
         targetStatus === "confirmed"
-          ? "Seu horário foi confirmado pelo Guardião."
-          : "O Guardião não conseguiu confirmar esse horário. Você pode solicitar outro horário.";
+          ? "Horário confirmado pelo Guardião."
+          : "Solicitação rejeitada pelo Guardião.";
 
       await supabaseAdmin.from("kuanyin_public_chat_messages").insert({
         thread_id: threadId,
