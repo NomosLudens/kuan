@@ -105,4 +105,61 @@ describe("PR #24 - Public Client Requests MVP State Invariants and Parser Tests"
     const msg = "Recebi seu contato e deixei registrado nesta conversa para o Guardião revisar.";
     expect(msg).toContain("registrado nesta conversa para o Guardião revisar");
   });
+
+  // Flow tests (PR #30 Blockers Update)
+  it("19. 'Como funciona o pagamento?' deve retornar null no parser determinístico", () => {
+    const intent = parseDeterministicPublicIntent("Como funciona o pagamento?");
+    expect(intent).toBeNull();
+  });
+
+  it("20. 'Posso pedir uma informação?' deve retornar null no parser determinístico", () => {
+    const intent = parseDeterministicPublicIntent("Posso pedir uma informação?");
+    expect(intent).toBeNull();
+  });
+
+  it("21. 'Esse bolo é gostoso?' não deve ser considerado blocked_sensitive pelo detectPublicClientBlockedIntent", () => {
+    const blockCheck = detectPublicClientBlockedIntent("Esse bolo é gostoso?");
+    expect(blockCheck.blocked).toBe(false);
+  });
+
+  // Stricter operational appointment & order parser tests (PR #30 Blockers Update)
+  it("22. 'Qual o horário de funcionamento?' deve retornar null", () => {
+    const intent = parseDeterministicPublicIntent("Qual o horário de funcionamento?");
+    expect(intent).toBeNull();
+  });
+
+  it("23. 'Como funciona o agendamento?' deve retornar null", () => {
+    const intent = parseDeterministicPublicIntent("Como funciona o agendamento?");
+    expect(intent).toBeNull();
+  });
+
+  it("24. 'Vocês atendem hoje?' deve retornar null", () => {
+    const intent = parseDeterministicPublicIntent("Vocês atendem hoje?");
+    expect(intent).toBeNull();
+  });
+
+  it("25. 'Qual o status do meu pedido?' deve retornar null", () => {
+    const intent = parseDeterministicPublicIntent("Qual o status do meu pedido?");
+    expect(intent).toBeNull();
+  });
+
+  it("26. 'Quer acompanhar meu pedido.' deve retornar null", () => {
+    const intent = parseDeterministicPublicIntent("Quero acompanhar meu pedido.");
+    expect(intent).toBeNull();
+  });
+
+  it("27. 'horario' ou 'agendamento' isoladamente não devem disparar intenção operacional", () => {
+    expect(parseDeterministicPublicIntent("horario")).toBeNull();
+    expect(parseDeterministicPublicIntent("agendamento")).toBeNull();
+  });
+
+  it("28. deve agendar com intenção explícita como 'quero agendar' ou 'agendamento para'", () => {
+    const intent1 = parseDeterministicPublicIntent("quero agendar");
+    expect(intent1).not.toBeNull();
+    expect(intent1?.type).toBe("appointment");
+
+    const intent2 = parseDeterministicPublicIntent("agendamento para amanhã");
+    expect(intent2).not.toBeNull();
+    expect(intent2?.type).toBe("appointment");
+  });
 });

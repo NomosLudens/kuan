@@ -123,8 +123,6 @@ const NORMALIZED_SEXUAL_PHRASES = [
   "sexo",
   "sensual",
   "final feliz",
-  "gostosa",
-  "gostoso",
   "nude",
   "nudez",
   "foto intima",

@@ -18,6 +18,7 @@ import {
   buildKuanConversationSafetyRules,
 } from "@/lib/kuan/conversation-policy";
 import { resolveRuntimeAudienceContext } from "@/lib/kuan/conversation-context";
+import { interpretCommercialContext } from "@/lib/kuan/commercial-context-interpreter";
 
 const GuardianInput = z.object({ guardianId: z.string().trim().min(2).max(120) });
 
@@ -509,29 +510,66 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     norm.includes("agenda livre") ||
     norm.includes("tem vaga") ||
     norm.includes("vagas disponiveis") ||
-    norm.includes("quais dias")
+    norm.includes("quais dias") ||
+    norm.includes("horario de funcionamento") ||
+    norm.includes("horário de funcionamento") ||
+    norm.includes("como funciona o agendamento") ||
+    norm.includes("atendem hoje") ||
+    norm.includes("atende hoje")
   ) {
     return null;
   }
 
-  // Check Payment/Proof
+  // 3. Consultas não-operacionais de status de pedidos anteriores
+  if (
+    norm.includes("status do meu pedido") ||
+    norm.includes("status de pedido") ||
+    norm.includes("acompanhar meu pedido") ||
+    norm.includes("acompanhar pedido")
+  ) {
+    return null;
+  }
+
+  // Check Payment/Proof - exige sinal de pagamento realizado/comprovante
   const isPayment =
     norm.includes("comprovante") ||
     norm.includes("enviei o pix") ||
     norm.includes("comprovante do pix") ||
     norm.includes("paguei") ||
-    norm.includes("pagamento");
+    norm.includes("fiz a transferencia") ||
+    norm.includes("segue recibo") ||
+    norm.includes("enviei o comprovante") ||
+    norm.includes("segue o pix");
 
-  // Check Appointment
+  // Check Appointment - exige intenção explícita
   const isAppt =
     !isPayment &&
-    (norm.includes("horario") || norm.includes("agendamento") || norm.includes("agendar"));
+    (norm.includes("quero agendar") ||
+      norm.includes("quero marcar") ||
+      norm.includes("gostaria de reservar") ||
+      norm.includes("marcar para") ||
+      norm.includes("agendamento para") ||
+      norm.includes("gostaria de agendar") ||
+      norm.includes("gostaria de marcar"));
 
-  // Check Order/Budget
+  // Check Order/Budget - exige intenção comercial explícita
   const isOrder =
     !isPayment &&
     !isAppt &&
-    (norm.includes("orcamento") || norm.includes("pedido") || norm.includes("pedir"));
+    (norm.includes("orcamento") ||
+      norm.includes("orçamento") ||
+      norm.includes("fazer um pedido") ||
+      norm.includes("fazer pedido") ||
+      norm.includes("comprar") ||
+      (norm.includes("pedir") &&
+        (norm.includes("orcamento") ||
+          norm.includes("orçamento") ||
+          norm.includes("preco") ||
+          norm.includes("preço") ||
+          norm.includes("valor") ||
+          norm.includes("comprar") ||
+          norm.includes("servico") ||
+          norm.includes("serviço"))));
 
   if (!isAppt && !isOrder && !isPayment) return null;
 
@@ -1104,6 +1142,27 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       return { ok: true as const, threadId: thread.id, answer: replyMessage };
     }
 
+    // 3. Call pure Commercial Context Interpreter
+    const interpretation = interpretCommercialContext({
+      audience: "public_client",
+      message: data.message,
+      businessName: ctx.nome,
+    });
+
+    const bypassIntents = [
+      "public_blocked_sensitive",
+      "public_out_of_scope",
+      "public_payment_proof",
+      "public_appointment_request",
+      "public_order_request",
+    ];
+
+    if (bypassIntents.includes(interpretation.intent)) {
+      const answer = interpretation.safeReplyHint;
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
+      return { ok: true as const, threadId: thread.id, answer };
+    }
+
     if (await isGuardianDailyCapExceeded(ctx.guardianId)) {
       const answer =
         "A Kuan-Yin deste guardião atingiu o limite de atendimentos automáticos por hoje. Deixe sua mensagem que o Guardião responde pessoalmente em breve.";
@@ -1175,6 +1234,13 @@ Business Name: ${audienceCtx.businessName}
 Guardian Slug: ${audienceCtx.guardianSlug}
 Visitor Key: ${audienceCtx.visitorKey}
 Client Display Name: ${audienceCtx.clientDisplayName}
+
+=== KUAN COMMERCIAL CONTEXT INTERPRETATION ===
+Audience: ${interpretation.audience}
+Intent: ${interpretation.intent}
+Boundary: ${interpretation.boundary}
+Forbidden Actions: ${interpretation.forbiddenActions.join(", ")}
+Safe Reply Hint: ${interpretation.safeReplyHint}
 
 AUDIENCE RULE:
 ${audienceRule}
