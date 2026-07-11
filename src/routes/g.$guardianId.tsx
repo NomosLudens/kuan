@@ -8,6 +8,7 @@ import {
   requestGuardianAppointment,
   requestGuardianOrder,
   submitGuardianPublicProof,
+  submitGuardianPublicContact,
 } from "@/lib/kuanyin-public.functions";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +89,7 @@ function GuardianPublicPage() {
   const requestAppointment = useServerFn(requestGuardianAppointment);
   const requestOrder = useServerFn(requestGuardianOrder);
   const submitProof = useServerFn(submitGuardianPublicProof);
+  const submitContact = useServerFn(submitGuardianPublicContact);
 
   const [state, setState] = useState<PublicState>(null);
   const [loading, setLoading] = useState(true);
@@ -340,11 +342,15 @@ function GuardianPublicPage() {
           if (conversation.ok) setMessages(conversation.messages as PublicMessage[]);
         }
       } else {
-        setChatError("Falha ao registrar a solicitação de agendamento.");
+        setChatError(
+          "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+        );
       }
     } catch (err) {
       console.error(err);
-      setChatError("Erro ao solicitar agendamento.");
+      setChatError(
+        "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+      );
     } finally {
       setIsApptSubmitting(false);
     }
@@ -397,11 +403,15 @@ function GuardianPublicPage() {
           if (conversation.ok) setMessages(conversation.messages as PublicMessage[]);
         }
       } else {
-        setChatError("Falha ao registrar a solicitação de orçamento.");
+        setChatError(
+          "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+        );
       }
     } catch (err) {
       console.error(err);
-      setChatError("Erro ao solicitar orçamento.");
+      setChatError(
+        "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+      );
     } finally {
       setIsOrderSubmitting(false);
     }
@@ -454,7 +464,7 @@ function GuardianPublicPage() {
         setProofPayerNote("");
 
         setSuccessMessage(
-          "Comprovante enviado com sucesso! Ele está pendente de conferência pelo Guardião.",
+          "Recebi as informações do comprovante e deixei registrado para conferência do Guardião. Isso ainda não confirma o pagamento.",
         );
 
         // Refresh conversation
@@ -465,28 +475,71 @@ function GuardianPublicPage() {
           if (conversation.ok) setMessages(conversation.messages as PublicMessage[]);
         }
       } else {
-        setChatError("Falha ao enviar comprovante.");
+        setChatError(
+          "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+        );
       }
     } catch (err) {
       console.error(err);
-      setChatError("Erro ao enviar comprovante.");
+      setChatError(
+        "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+      );
     } finally {
       setIsProofSubmitting(false);
     }
   };
 
-  const handleSaveContact = (e: React.FormEvent) => {
+  const handleSaveContact = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName || (!contactPhone && !contactEmail)) {
       setChatError("Por favor, preencha seu nome e pelo menos um meio de contato.");
       return;
     }
+
+    setChatError(null);
+    setSuccessMessage(null);
+
+    // Save locally
     setVisitorName(contactName);
     setVisitorEmail(contactEmail);
     setVisitorPhone(contactPhone);
     saveContactInfo(contactName, contactEmail, contactPhone);
+
+    if (state?.ok && visitorKey) {
+      try {
+        const res = await submitContact({
+          data: {
+            guardianId: state.guardian.slug,
+            visitorKey,
+            threadId: threadId ?? undefined,
+            client_name: contactName,
+            client_phone: contactPhone || undefined,
+            client_email: contactEmail || undefined,
+          },
+        });
+
+        if (res.ok) {
+          setIsContactOpen(false);
+          setSuccessMessage(
+            "Recebi seu contato e deixei registrado nesta conversa para o Guardião revisar.",
+          );
+          if (res.threadId) {
+            setThreadId(res.threadId);
+            const conversation = await getConversation({
+              data: { guardianId: state.guardian.slug, visitorKey, threadId: res.threadId },
+            });
+            if (conversation.ok) setMessages(conversation.messages as PublicMessage[]);
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to submit public contact to thread:", err);
+      }
+    }
+
+    // Fallback if visitorKey or thread fails
     setIsContactOpen(false);
-    setSuccessMessage("Dados de contato salvos localmente com sucesso!");
+    setSuccessMessage("Contato salvo neste navegador para preencher solicitações futuras.");
   };
 
   if (loading) {
