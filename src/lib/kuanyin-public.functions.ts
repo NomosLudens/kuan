@@ -18,6 +18,7 @@ import {
   buildKuanConversationSafetyRules,
 } from "@/lib/kuan/conversation-policy";
 import { resolveRuntimeAudienceContext } from "@/lib/kuan/conversation-context";
+import { interpretCommercialContext } from "@/lib/kuan/commercial-context-interpreter";
 
 const GuardianInput = z.object({ guardianId: z.string().trim().min(2).max(120) });
 
@@ -1077,7 +1078,28 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
 
     await appendPublicChatMessage(ctx, thread.id, "visitor", data.message);
 
-    // 1. Deterministic Blocked Intent Check (Prompt Injection or Sexual Content)
+    // Call pure Commercial Context Interpreter
+    const interpretation = interpretCommercialContext({
+      audience: "public_client",
+      message: data.message,
+      businessName: ctx.nome,
+    });
+
+    const bypassIntents = [
+      "public_blocked_sensitive",
+      "public_out_of_scope",
+      "public_payment_proof",
+      "public_appointment_request",
+      "public_order_request",
+    ];
+
+    if (bypassIntents.includes(interpretation.intent)) {
+      const answer = interpretation.safeReplyHint;
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
+      return { ok: true as const, threadId: thread.id, answer };
+    }
+
+    // 1. Deterministic Blocked Intent Check (Prompt Injection or Sexual Content) - Fallback
     const blockCheck = detectPublicClientBlockedIntent(data.message);
     if (blockCheck.blocked) {
       const answer = getPublicClientOutOfScopeReply(ctx.nome, blockCheck.sexual);
@@ -1085,7 +1107,7 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       return { ok: true as const, threadId: thread.id, answer };
     }
 
-    // 2. Deterministic Text Intent Parser
+    // 2. Deterministic Text Intent Parser - Fallback
     const parsedIntent = parseDeterministicPublicIntent(data.message);
     if (parsedIntent) {
       let replyMessage = "";
@@ -1175,6 +1197,13 @@ Business Name: ${audienceCtx.businessName}
 Guardian Slug: ${audienceCtx.guardianSlug}
 Visitor Key: ${audienceCtx.visitorKey}
 Client Display Name: ${audienceCtx.clientDisplayName}
+
+=== KUAN COMMERCIAL CONTEXT INTERPRETATION ===
+Audience: ${interpretation.audience}
+Intent: ${interpretation.intent}
+Boundary: ${interpretation.boundary}
+Forbidden Actions: ${interpretation.forbiddenActions.join(", ")}
+Safe Reply Hint: ${interpretation.safeReplyHint}
 
 AUDIENCE RULE:
 ${audienceRule}
