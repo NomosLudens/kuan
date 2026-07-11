@@ -757,12 +757,17 @@ export const createManualAppointment = createServerFn({ method: "POST" })
       clientId = newClient.id;
     }
 
-    // 2. Insert appointment directly as confirmed (pre-confirmed)
+    // 2. Fetch the current business context ID for the logged-in user
+    const guardian = await getEditableGuardianForUser(userId);
+    const businessContextId = guardian?.business_context_id || null;
+
+    // 3. Insert appointment directly as confirmed (pre-confirmed)
     const { data: appt, error: apptError } = await supabase
       .from("kuanyin_appointments")
       .insert({
         user_id: userId,
         client_id: clientId,
+        business_context_id: businessContextId,
         service_name: data.service_name,
         starts_at: data.starts_at,
         status: "confirmed",
