@@ -186,90 +186,12 @@ export const revokeInvite = createServerFn({ method: "POST" })
 export const acceptInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ token: z.string().min(20).max(80) }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-    const userEmail = (claims.email as string | undefined)?.toLowerCase();
-
-    // Lê o convite usando service role (token só é válido se a pessoa o conhece)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invite, error } = await supabaseAdmin
-      .from("workspace_invitations")
-      .select("id, owner_id, email, modules, status, expires_at")
-      .eq("token", data.token)
-      .maybeSingle();
-    if (error || !invite) throw new Error("Convite inválido.");
-    if (invite.status !== "pending") throw new Error("Convite já usado ou cancelado.");
-    if (new Date(invite.expires_at).getTime() < Date.now()) {
-      await supabaseAdmin
-        .from("workspace_invitations")
-        .update({ status: "expired" })
-        .eq("id", invite.id);
-      throw new Error("Convite expirado.");
+  .handler(async ({ data }) => {
+    const result = await acceptGuardianInvitation({ data: { token: data.token } });
+    if ("error" in result) {
+      throw new Error(result.error);
     }
-    if (userEmail && invite.email.toLowerCase() !== userEmail) {
-      throw new Error(
-        "Este convite foi enviado para outro e-mail. Faça login com a conta correta.",
-      );
-    }
-    if (invite.owner_id === userId) {
-      throw new Error("Você é o próprio admin deste workspace — convide outra pessoa.");
-    }
-
-    // Cria/atualiza vínculo sem depender de UNIQUE(member_id) no schema.
-    const { data: existingMember, error: existingMemberError } = await supabaseAdmin
-      .from("workspace_members")
-      .select("id")
-      .eq("owner_id", invite.owner_id)
-      .eq("member_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (existingMemberError) throw new Error(existingMemberError.message);
-
-    const memberPayload = {
-      owner_id: invite.owner_id,
-      member_id: userId,
-      modules: invite.modules,
-    } as never;
-    const { error: linkErr } = existingMember
-      ? await supabaseAdmin
-          .from("workspace_members")
-          .update(memberPayload)
-          .eq("id", (existingMember as { id: string }).id)
-      : await supabaseAdmin.from("workspace_members").insert(memberPayload);
-    if (linkErr) throw new Error(linkErr.message);
-
-    // Marca convite como aceito + rebaixa user para member
-    await supabaseAdmin
-      .from("workspace_invitations")
-      .update({ status: "accepted", accepted_by: userId, accepted_at: new Date().toISOString() })
-      .eq("id", invite.id);
-
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "member" }, { onConflict: "user_id,role" });
-
-    // Seta assigned_facet no profile baseado nos módulos do convite
-    const modules = invite.modules as string[];
-    let assignedFacet: string | null = null;
-    if (modules.includes("kuanyin")) assignedFacet = "kuanyin";
-    else if (modules.includes("kharis")) assignedFacet = "kharis";
-    else assignedFacet = "kaline";
-
-    await supabaseAdmin
-      .from("profiles")
-      .update({ role: "user", assigned_facet: assignedFacet })
-      .eq("id", userId);
-
-    if (modules.includes("kuanyin")) {
-      await createKuanYinGuardianLink({
-        adminUserId: invite.owner_id,
-        guardianUserId: userId,
-        email: invite.email,
-      });
-    }
-
-    return { owner_id: invite.owner_id, modules: invite.modules };
+    return result;
   });
 
 export const updateMemberModules = createServerFn({ method: "POST" })

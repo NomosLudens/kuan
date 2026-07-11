@@ -157,7 +157,7 @@ function ConvitePage() {
 
       const modules = (result.modules as string[]) || [];
       let redirectTo = "/chat";
-      if (modules.includes("kuanyin")) redirectTo = "/kuan-yin";
+      if (modules.includes("kuanyin")) redirectTo = "/kuan";
       else if (modules.includes("kharis")) redirectTo = "/kharis";
 
       setTimeout(() => {
@@ -171,7 +171,7 @@ function ConvitePage() {
 
   const handleGoToEnvironment = () => {
     let redirectTo = "/chat";
-    if (isKuanYin) redirectTo = "/kuan-yin";
+    if (isKuanYin) redirectTo = "/kuan";
     window.location.href = redirectTo;
   };
 

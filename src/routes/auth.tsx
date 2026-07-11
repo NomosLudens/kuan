@@ -72,7 +72,7 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) {
       toast.error(error.message || "Erro Apple");

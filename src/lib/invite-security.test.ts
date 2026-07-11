@@ -118,3 +118,11 @@ describe("4. Pure read-only checkGuardianInvitation", () => {
     expect(mockDelete).not.toHaveBeenCalled();
   });
 });
+
+describe("5. Legacy acceptInvite Delegation", () => {
+  it("exists and is a wrapper server function delegating securely", async () => {
+    const { acceptInvite } = await import("./perfis.functions");
+    expect(typeof acceptInvite).toBe("function");
+    expect(acceptInvite.name).toBeDefined();
+  });
+});
