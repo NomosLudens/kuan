@@ -1078,7 +1078,34 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
 
     await appendPublicChatMessage(ctx, thread.id, "visitor", data.message);
 
-    // Call pure Commercial Context Interpreter
+    // 1. Deterministic Blocked Intent Check (Prompt Injection or Sexual Content)
+    const blockCheck = detectPublicClientBlockedIntent(data.message);
+    if (blockCheck.blocked) {
+      const answer = getPublicClientOutOfScopeReply(ctx.nome, blockCheck.sexual);
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
+      return { ok: true as const, threadId: thread.id, answer };
+    }
+
+    // 2. Deterministic Text Intent Parser
+    const parsedIntent = parseDeterministicPublicIntent(data.message);
+    if (parsedIntent) {
+      let replyMessage = "";
+      if (parsedIntent.type === "appointment") {
+        replyMessage =
+          "Posso registrar isso como solicitação pendente. Use o botão “Agendar Horário” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "order") {
+        replyMessage =
+          "Posso deixar isso como pedido pendente para o Guardião analisar. Use o botão “Pedir Orçamento” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "payment") {
+        replyMessage =
+          "Comprovante informado não é pagamento confirmado. Use o botão “Enviar Comprovante” para registrar os dados para conferência do Guardião.";
+      }
+
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMessage);
+      return { ok: true as const, threadId: thread.id, answer: replyMessage };
+    }
+
+    // 3. Call pure Commercial Context Interpreter
     const interpretation = interpretCommercialContext({
       audience: "public_client",
       message: data.message,
@@ -1097,33 +1124,6 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       const answer = interpretation.safeReplyHint;
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
       return { ok: true as const, threadId: thread.id, answer };
-    }
-
-    // 1. Deterministic Blocked Intent Check (Prompt Injection or Sexual Content) - Fallback
-    const blockCheck = detectPublicClientBlockedIntent(data.message);
-    if (blockCheck.blocked) {
-      const answer = getPublicClientOutOfScopeReply(ctx.nome, blockCheck.sexual);
-      await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
-      return { ok: true as const, threadId: thread.id, answer };
-    }
-
-    // 2. Deterministic Text Intent Parser - Fallback
-    const parsedIntent = parseDeterministicPublicIntent(data.message);
-    if (parsedIntent) {
-      let replyMessage = "";
-      if (parsedIntent.type === "appointment") {
-        replyMessage =
-          "Posso registrar isso como solicitação pendente. Use o botão “Agendar Horário” para preencher os dados necessários.";
-      } else if (parsedIntent.type === "order") {
-        replyMessage =
-          "Posso deixar isso como pedido pendente para o Guardião analisar. Use o botão “Pedir Orçamento” para preencher os dados necessários.";
-      } else if (parsedIntent.type === "payment") {
-        replyMessage =
-          "Comprovante informado não é pagamento confirmado. Use o botão “Enviar Comprovante” para registrar os dados para conferência do Guardião.";
-      }
-
-      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMessage);
-      return { ok: true as const, threadId: thread.id, answer: replyMessage };
     }
 
     if (await isGuardianDailyCapExceeded(ctx.guardianId)) {

@@ -191,4 +191,105 @@ describe("Commercial Context Interpreter Pure Tests", () => {
     expect(cResult.forbiddenActions).toContain("publish_public_page");
     expect(cResult.forbiddenActions).toContain("update_business_context");
   });
+
+  // NEGATIVE TEST CASES (PR #30 Blockers)
+  describe("PR #30 Blocker Negative Test Cases", () => {
+    // 1. "Vocês têm programa de fidelidade?" -> não blocked_sensitive.
+    it("should NOT classify 'Vocês têm programa de fidelidade?' as blocked_sensitive", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Vocês têm programa de fidelidade?",
+      });
+      expect(result.intent).not.toBe("public_blocked_sensitive");
+    });
+
+    // 2. "Qual o valor da consulta?" -> public_price_question.
+    it("should classify 'Qual o valor da consulta?' as public_price_question", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Qual o valor da consulta?",
+      });
+      expect(result.intent).toBe("public_price_question");
+    });
+
+    // 3. "Como funciona o pagamento?" -> não public_payment_proof.
+    it("should NOT classify 'Como funciona o pagamento?' as public_payment_proof", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Como funciona o pagamento?",
+      });
+      expect(result.intent).not.toBe("public_payment_proof");
+    });
+
+    // 4. "Já paguei, segue comprovante." -> public_payment_proof.
+    it("should classify 'Já paguei, segue comprovante.' as public_payment_proof", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Já paguei, segue comprovante.",
+      });
+      expect(result.intent).toBe("public_payment_proof");
+    });
+
+    // 5. "Posso pedir uma informação?" -> não public_order_request.
+    it("should NOT classify 'Posso pedir uma informação?' as public_order_request", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Posso pedir uma informação?",
+      });
+      expect(result.intent).not.toBe("public_order_request");
+    });
+
+    // 6. "Quero mudar minha agenda." -> não inventa dias nem horários; needs_clarification true.
+    it("should handle 'Quero mudar minha agenda.' with needs_clarification: true and no fallback defaults", () => {
+      const result = interpretCommercialContext({
+        audience: "guardian_private",
+        message: "Quero mudar minha agenda.",
+      });
+      expect(result.intent).toBe("guardian_availability_rule");
+      expect(result.candidateUpdate).toBeDefined();
+      expect(result.candidateUpdate?.patch.kind).toBe("unknown");
+      expect(result.candidateUpdate?.patch.days_hint).toEqual([]);
+      expect(result.candidateUpdate?.patch.start_time_hint).toBeNull();
+      expect(result.candidateUpdate?.patch.end_time_hint).toBeNull();
+      expect(result.candidateUpdate?.patch.needs_clarification).toBe(true);
+    });
+
+    // 7. "Minha preferência é uma página escura." -> guardian_public_page_request; não tone_preference formal.
+    it("should classify 'Minha preferência é uma página escura.' as guardian_public_page_request and NOT tone_preference", () => {
+      const result = interpretCommercialContext({
+        audience: "guardian_private",
+        message: "Minha preferência é uma página escura.",
+      });
+      expect(result.intent).toBe("guardian_public_page_request");
+      expect(result.intent).not.toBe("guardian_tone_preference");
+    });
+
+    // 8. "Faço atendimentos terça e quinta." -> disponibilidade, não services_update.
+    it("should classify 'Faço atendimentos terça e quinta.' as availability, NOT services_update", () => {
+      const result = interpretCommercialContext({
+        audience: "guardian_private",
+        message: "Faço atendimentos terça e quinta.",
+      });
+      expect(result.intent).toBe("guardian_availability_rule");
+      expect(result.intent).not.toBe("guardian_services_update");
+    });
+
+    // 9. "Você prefere pizza de calabresa?" -> comportamento deve coincidir com o QA documentado.
+    it("should classify 'Você prefere pizza de calabresa?' as public_out_of_scope", () => {
+      const result = interpretCommercialContext({
+        audience: "public_client",
+        message: "Você prefere pizza de calabresa?",
+      });
+      expect(result.intent).toBe("public_out_of_scope");
+    });
+
+    // 10. Garantir que nenhum raw_text do usuário seja inserido no system prompt.
+    it("should NEVER expose raw_text in candidateUpdate patch", () => {
+      const result = interpretCommercialContext({
+        audience: "guardian_private",
+        message: "Toda semana atendo terça e quinta das 9h às 17h.",
+      });
+      expect(result.candidateUpdate?.patch.raw_text).toBeUndefined();
+    });
+  });
 });

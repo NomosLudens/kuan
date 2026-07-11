@@ -93,14 +93,13 @@ export function interpretCommercialContext(
     intent: "public_unknown",
     boundary: "answer_only",
     confidence: 0.8,
-    summary: input.message,
+    summary: "Mensagem do usuário para análise.",
     safeReplyHint: "",
     forbiddenActions: [],
   };
 
   // 1. PUBLIC CLIENT AUDIENCE
   if (resolvedAudience === "public_client") {
-    // Populate public client default forbidden actions
     result.forbiddenActions = [
       "confirm_appointment",
       "confirm_payment",
@@ -108,7 +107,7 @@ export function interpretCommercialContext(
       "update_business_context",
     ];
 
-    // Check for blocked/sensitive content first
+    // Check for blocked/sensitive content first (excluding "programa")
     const isSexual =
       norm.includes("sexo") ||
       norm.includes("sensual") ||
@@ -119,14 +118,13 @@ export function interpretCommercialContext(
       norm.includes("nudez") ||
       norm.includes("foto intima") ||
       norm.includes("fetiche") ||
-      norm.includes("massagem sensual") ||
-      norm.includes("programa");
+      norm.includes("massagem sensual");
 
     if (isSexual) {
       result.intent = "public_blocked_sensitive";
       result.boundary = "block_and_redirect";
       result.safeReplyHint = `Este atendimento é apenas para assuntos comerciais de ${businessName}: serviços, horários, pedidos, pagamento e orientações do atendimento. Não consigo continuar conversa sexual ou íntima.`;
-      result.summary = "Mensagem bloqueada por conter conteúdo sensível ou de teor inadequado.";
+      result.summary = "Mensagem contendo conteúdo inadequado.";
       return result;
     }
 
@@ -135,59 +133,70 @@ export function interpretCommercialContext(
       norm.includes("outro assunto") ||
       norm.includes("outros assuntos") ||
       norm.includes("falar de outra coisa") ||
-      norm.includes("outro tema")
+      norm.includes("outro tema") ||
+      norm.includes("pizza") ||
+      norm.includes("calabresa") ||
+      norm.includes("fisica") ||
+      norm.includes("quantica") ||
+      norm.includes("futebol") ||
+      norm.includes("politica")
     ) {
       result.intent = "public_out_of_scope";
       result.boundary = "block_and_redirect";
       result.safeReplyHint = `Eu só consigo ajudar com assuntos de ${businessName}: serviços, horários, pedidos, pagamento ou atendimento.`;
-      result.summary = "Solicitação de diálogo fora do escopo comercial do negócio.";
+      result.summary = "Solicitação fora do escopo.";
       return result;
     }
 
-    // Check for payment/proof
-    if (
+    // Check for payment/proof with strict signals
+    const isPaymentProof =
       norm.includes("paguei") ||
       norm.includes("comprovante") ||
       norm.includes("enviei o pix") ||
-      norm.includes("pagamento") ||
-      norm.includes("transferencia")
-    ) {
+      norm.includes("fiz a transferencia") ||
+      norm.includes("segue recibo");
+
+    if (isPaymentProof) {
       result.intent = "public_payment_proof";
       result.boundary = "route_to_existing_button";
       result.safeReplyHint =
         "Comprovante informado não é pagamento confirmado. O Guardião precisa conferir.";
-      result.summary = "Cliente enviou ou mencionou o envio de comprovante de pagamento.";
+      result.summary = "Envio de comprovante de pagamento.";
       return result;
     }
 
-    // Check for appointment/scheduling
-    if (
+    // Check for appointment/scheduling with explicit verbs/intents
+    const isAppointmentRequest =
+      norm.includes("quero agendar") ||
+      norm.includes("quero marcar") ||
+      norm.includes("tem horario") ||
+      norm.includes("gostaria de reservar") ||
+      norm.includes("existe vaga") ||
       norm.includes("agendar") ||
-      norm.includes("agenda") ||
-      norm.includes("horario") ||
-      norm.includes("marcar") ||
-      norm.includes("consulta") ||
-      norm.includes("vaga")
-    ) {
+      norm.includes("marcar");
+
+    if (isAppointmentRequest) {
       result.intent = "public_appointment_request";
-      result.boundary = "route_to_existing_button"; // or create_pending_request_allowed
+      result.boundary = "route_to_existing_button";
       result.safeReplyHint =
         "Posso registrar isso como solicitação para o Guardião analisar. O horário ainda não fica reservado.";
-      result.summary = "Cliente demonstrou interesse em agendar um horário.";
+      result.summary = "Solicitação de agendamento.";
       return result;
     }
 
-    // Check for orders
-    if (
+    // Check for orders (excluding "pedir" alone)
+    const isOrderRequest =
       norm.includes("pedido") ||
       norm.includes("orcamento") ||
-      norm.includes("pedir") ||
-      norm.includes("comprar")
-    ) {
+      norm.includes("comprar") ||
+      norm.includes("fazer um pedido") ||
+      norm.includes("pedir orcamento");
+
+    if (isOrderRequest) {
       result.intent = "public_order_request";
       result.boundary = "route_to_existing_button";
       result.safeReplyHint = "Posso deixar isso como pedido pendente para o Guardião analisar.";
-      result.summary = "Cliente solicitou um orçamento ou a criação de um pedido pendente.";
+      result.summary = "Solicitação de pedido ou orçamento.";
       return result;
     }
 
@@ -224,13 +233,12 @@ export function interpretCommercialContext(
   if (resolvedAudience === "platform_admin") {
     result.intent = "admin_unknown";
     result.boundary = "suggest_next_step";
-    result.safeReplyHint =
-      "Como gestor da plataforma, você pode consultar relatórios ou convidar novos Guardiões.";
+    result.safeReplyHint = "Como gestor da plataforma, você pode convidar novos Guardiões.";
 
     if (norm.includes("convid") || norm.includes("convite") || norm.includes("invite")) {
       result.intent = "admin_invite_management";
       result.boundary = "suggest_next_step";
-      result.summary = "Solicitação de convite ou gerenciamento de acessos de Guardiões.";
+      result.summary = "Gerenciamento de acessos de Guardiões.";
       return result;
     }
 
@@ -241,7 +249,9 @@ export function interpretCommercialContext(
       norm.includes("status")
     ) {
       result.intent = "admin_platform_status";
-      result.boundary = "answer_only";
+      result.boundary = "suggest_next_step";
+      result.safeReplyHint =
+        "Para verificar a contagem de Guardiões e o status detalhado da plataforma, acesse o painel administrativo existente.";
       result.summary = "Consulta ao status geral da plataforma e contagem de Guardiões.";
       return result;
     }
@@ -256,43 +266,148 @@ export function interpretCommercialContext(
     result.safeReplyHint =
       "Como Guardião, você pode atualizar suas preferências, serviços e regras de agenda.";
 
-    // a. Tone Preference
-    if (
-      norm.includes("tom") ||
-      norm.includes("gostam de") ||
-      norm.includes("informal") ||
-      norm.includes("formal") ||
-      norm.includes("linguagem") ||
-      norm.includes("preferen")
-    ) {
-      result.intent = "guardian_tone_preference";
-      result.boundary = "propose_draft_update";
-      result.summary = "Atualização de tom de voz ou preferência de atendimento da Kuan.";
+    // Order of execution strictly respects priorities and fallback rules.
 
-      const toneValue = norm.includes("informal") ? "informal" : "formal";
-      result.candidateUpdate = {
-        target: "guardian_preferences",
-        patch: {
-          tone_preference: toneValue,
-        },
-        requiresConfirmation: true,
-      };
+    // 3.1 Availability Rule (checks days/dates/agenda)
+    const isAvailability =
+      norm.includes("atendo") ||
+      norm.includes("disponib") ||
+      norm.includes("agenda") ||
+      norm.includes("quinta") ||
+      norm.includes("terca") ||
+      norm.includes("quarta") ||
+      norm.includes("sexta") ||
+      norm.includes("sabado") ||
+      norm.includes("domingo") ||
+      norm.includes("segunda");
+
+    if (isAvailability) {
+      result.intent = "guardian_availability_rule";
+      result.boundary = "propose_draft_update";
+      result.summary = "Solicitação de atualização de regras de disponibilidade.";
+
+      const isRecurring =
+        norm.includes("toda semana") || norm.includes("sempre") || norm.includes("recorrente");
+      const isPeriod =
+        norm.includes("essa semana") ||
+        norm.includes("nesta semana") ||
+        /\b\d{1,2}\/\d{1,2}\b/.test(norm) ||
+        norm.includes("periodo") ||
+        norm.includes("ate o dia") ||
+        norm.includes("entre o dia") ||
+        norm.includes("partir do dia");
+
+      const kind = isRecurring ? "recurring_default" : isPeriod ? "period_override" : "unknown";
+
+      const daysHint: string[] = [];
+      if (norm.includes("segunda")) daysHint.push("segunda");
+      if (norm.includes("terca")) daysHint.push("terça");
+      if (norm.includes("quarta")) daysHint.push("quarta");
+      if (norm.includes("quinta")) daysHint.push("quinta");
+      if (norm.includes("sexta")) daysHint.push("sexta");
+      if (norm.includes("sabado")) daysHint.push("sábado");
+      if (norm.includes("domingo")) daysHint.push("domingo");
+
+      let startTimeHint: string | null = null;
+      let endTimeHint: string | null = null;
+
+      const timeMatch =
+        norm.match(/das\s+(\d+)(?:h|:00)?\s+as\s+(\d+)(?:h|:00)?/) ||
+        norm.match(/das\s+(\d+)(?:h|:00)?\s+ate\s+as\s+(\d+)(?:h|:00)?/);
+      if (timeMatch) {
+        const start = parseInt(timeMatch[1], 10);
+        const end = parseInt(timeMatch[2], 10);
+        startTimeHint = `${start.toString().padStart(2, "0")}:00`;
+        endTimeHint = `${end.toString().padStart(2, "0")}:00`;
+      }
+
+      const needsClarification = kind === "unknown" || daysHint.length === 0 || !startTimeHint;
+
+      if (needsClarification) {
+        result.boundary = "suggest_next_step";
+        result.safeReplyHint =
+          "Pode me informar os dias da semana e horários específicos que deseja configurar?";
+        result.candidateUpdate = {
+          target: "availability_rules",
+          patch: {
+            kind: "unknown",
+            days_hint: [],
+            start_time_hint: null,
+            end_time_hint: null,
+            needs_clarification: true,
+          },
+          requiresConfirmation: true,
+        };
+      } else {
+        result.candidateUpdate = {
+          target: "availability_rules",
+          patch: {
+            kind,
+            days_hint: daysHint,
+            start_time_hint: startTimeHint,
+            end_time_hint: endTimeHint,
+            needs_clarification: false,
+          },
+          requiresConfirmation: true,
+        };
+      }
       return result;
     }
 
-    // b. Services Update
-    if (
+    // 3.2 Tone Preference
+    const isToneWord =
+      norm.includes("tom") ||
+      norm.includes("linguagem") ||
+      norm.includes("comunicacao") ||
+      norm.includes("formal") ||
+      norm.includes("informal") ||
+      norm.includes("acolhedor") ||
+      norm.includes("direto") ||
+      norm.includes("tecnico") ||
+      norm.includes("casual");
+
+    if (isToneWord) {
+      let toneValue: string | null = null;
+      if (norm.includes("informal")) toneValue = "informal";
+      else if (norm.includes("formal")) toneValue = "formal";
+      else if (norm.includes("acolhedor")) toneValue = "acolhedor";
+      else if (norm.includes("direto")) toneValue = "direto";
+      else if (norm.includes("tecnico")) toneValue = "tecnico";
+      else if (norm.includes("casual")) toneValue = "casual";
+
+      if (toneValue) {
+        result.intent = "guardian_tone_preference";
+        result.boundary = "propose_draft_update";
+        result.summary = "Atualização de tom de voz ou preferência de atendimento.";
+        result.candidateUpdate = {
+          target: "guardian_preferences",
+          patch: {
+            tone_preference: toneValue,
+          },
+          requiresConfirmation: true,
+        };
+      } else {
+        result.intent = "guardian_tone_preference";
+        result.boundary = "suggest_next_step";
+        result.safeReplyHint =
+          "Pode esclarecer qual tom de voz ou estilo de comunicação você prefere que a Kuan utilize?";
+      }
+      return result;
+    }
+
+    // 3.3 Services Update
+    const isServices =
       norm.includes("faco") ||
       norm.includes("servico") ||
       norm.includes("massagem") ||
       norm.includes("drenagem") ||
-      norm.includes("ofereco")
-    ) {
+      norm.includes("ofereco");
+
+    if (isServices) {
       result.intent = "guardian_services_update";
       result.boundary = "propose_draft_update";
-      result.summary = "Atualização de serviços oferecidos no contexto de negócio.";
+      result.summary = "Atualização de serviços oferecidos.";
 
-      // Basic extraction of services from message if helpful
       const extractedServices: string[] = [];
       if (norm.includes("massagem")) extractedServices.push("massagem relaxante");
       if (norm.includes("drenagem")) extractedServices.push("drenagem");
@@ -307,82 +422,22 @@ export function interpretCommercialContext(
       return result;
     }
 
-    // c. Availability Rule (Recurring / Period Override)
-    if (
-      norm.includes("atendo") ||
-      norm.includes("disponib") ||
-      norm.includes("agenda") ||
-      norm.includes("quinta") ||
-      norm.includes("terca") ||
-      norm.includes("quarta") ||
-      norm.includes("sexta") ||
-      norm.includes("sabado") ||
-      norm.includes("domingo") ||
-      norm.includes("segunda")
-    ) {
-      result.intent = "guardian_availability_rule";
-      result.boundary = "propose_draft_update";
-      result.summary = "Atualização de regras de disponibilidade ou agenda.";
-
-      const isRecurring =
-        norm.includes("toda semana") || norm.includes("sempre") || norm.includes("recorrente");
-      const kind = isRecurring ? "recurring_default" : "period_override";
-
-      // Detect days
-      const daysHint: string[] = [];
-      if (norm.includes("segunda")) daysHint.push("segunda");
-      if (norm.includes("terca")) daysHint.push("terça");
-      if (norm.includes("quarta")) daysHint.push("quarta");
-      if (norm.includes("quinta")) daysHint.push("quinta");
-      if (norm.includes("sexta")) daysHint.push("sexta");
-      if (norm.includes("sabado")) daysHint.push("sábado");
-      if (norm.includes("domingo")) daysHint.push("domingo");
-
-      // Extract hours hint (e.g. "9h às 17h", "09:00", etc.)
-      let startTimeHint = "09:00";
-      let endTimeHint = "17:00";
-
-      const timeMatch =
-        norm.match(/das\s+(\d+)(?:h|:00)?\s+as\s+(\d+)(?:h|:00)?/) ||
-        norm.match(/das\s+(\d+)(?:h|:00)?\s+ate\s+as\s+(\d+)(?:h|:00)?/);
-      if (timeMatch) {
-        const start = parseInt(timeMatch[1], 10);
-        const end = parseInt(timeMatch[2], 10);
-        startTimeHint = `${start.toString().padStart(2, "0")}:00`;
-        endTimeHint = `${end.toString().padStart(2, "0")}:00`;
-      }
-
-      result.candidateUpdate = {
-        target: "availability_rules",
-        patch: {
-          kind,
-          raw_text: input.message,
-          days_hint: daysHint.length > 0 ? daysHint : ["terça", "quinta"],
-          start_time_hint: startTimeHint,
-          end_time_hint: endTimeHint,
-          requires_human_confirmation: true,
-        },
-        requiresConfirmation: true,
-      };
-      return result;
-    }
-
-    // d. Pricing Update
+    // 3.4 Pricing Update
     if (norm.includes("preco") || norm.includes("custa") || norm.includes("valor")) {
       result.intent = "guardian_pricing_update";
       result.boundary = "propose_draft_update";
-      result.summary = "Atualização de preços de serviços no contexto de negócio.";
+      result.summary = "Atualização de preços de serviços.";
       result.candidateUpdate = {
         target: "business_context",
         patch: {
-          precos: { info: input.message },
+          precos: { update_requested: true },
         },
         requiresConfirmation: true,
       };
       return result;
     }
 
-    // e. Public Page Request (Visual Style)
+    // 3.5 Public Page Request (Visual Style)
     if (
       norm.includes("pagina") ||
       norm.includes("visual") ||
@@ -393,7 +448,7 @@ export function interpretCommercialContext(
     ) {
       result.intent = "guardian_public_page_request";
       result.boundary = "propose_draft_update";
-      result.summary = "Atualização visual ou estilo da página pública do Guardião.";
+      result.summary = "Atualização de estilo da página pública.";
 
       let visualStyle = "default";
       if (norm.includes("escura") && norm.includes("elegante")) {
