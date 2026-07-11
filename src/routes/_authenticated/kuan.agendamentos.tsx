@@ -273,7 +273,9 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
 
   const countNext7Days = rows.filter((r) => {
     const d = new Date(r.starts_at);
-    return (r.status === "confirmed" || r.status === "proposed") && d >= todayStart && d < next7DaysEnd;
+    return (
+      (r.status === "confirmed" || r.status === "proposed") && d >= todayStart && d < next7DaysEnd
+    );
   }).length;
 
   // Filtered Items
@@ -354,7 +356,7 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
                 <span>📅 Agendar Manualmente</span>
               </DialogTitle>
               <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-                Crie um agendamento direto. Ele nascerá pré-confirmado no banco de dados e sincronizado no calendário Kaline.
+                Crie um agendamento direto. Ele nascerá como confirmado na Agenda do Guardião.
               </DialogDescription>
             </DialogHeader>
 
@@ -503,7 +505,9 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
             <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
               Próximos 7 Dias
             </span>
-            <div className="serif text-3xl font-light text-[color:var(--ivory)]">{countNext7Days}</div>
+            <div className="serif text-3xl font-light text-[color:var(--ivory)]">
+              {countNext7Days}
+            </div>
           </div>
           <div className="p-2 bg-white/5 rounded-lg text-[color:var(--ivory-dim)]">
             <Calendar className="h-5 w-5" />
@@ -541,7 +545,9 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
       <div className="space-y-6">
         {loading && (
           <div className="text-center py-10 space-y-2">
-            <p className="text-sm text-[color:var(--ivory-dim)] animate-pulse">Carregando agendamentos…</p>
+            <p className="text-sm text-[color:var(--ivory-dim)] animate-pulse">
+              Carregando agendamentos…
+            </p>
           </div>
         )}
 
@@ -563,7 +569,10 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
                   {getDayLabel(dateStr)}
                 </h3>
                 <span className="text-[10px] text-[color:var(--ivory-dim)] font-mono">
-                  · {new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", { dateStyle: "short" })}
+                  ·{" "}
+                  {new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+                    dateStyle: "short",
+                  })}
                 </span>
               </div>
 
