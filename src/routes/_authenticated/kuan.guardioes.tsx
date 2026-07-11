@@ -243,9 +243,7 @@ function GuardioesPage() {
 
       {loading && <p className="text-sm text-[color:var(--ivory-dim)]">Carregando…</p>}
       {!loading && rows.length === 0 && (
-        <p className="text-sm text-[color:var(--ivory-dim)]">
-          Nenhum Guardião encontrado.
-        </p>
+        <p className="text-sm text-[color:var(--ivory-dim)]">Nenhum Guardião encontrado.</p>
       )}
 
       <section className="rounded-2xl border border-[color:var(--border)] bg-card/40 p-4">
