@@ -10,6 +10,10 @@ import {
   submitGuardianPublicProof,
   submitGuardianPublicContact,
 } from "@/lib/kuanyin-public.functions";
+import {
+  normalizeAvailabilityRules,
+  formatAvailabilitySummary,
+} from "@/lib/kuan/availability-rules";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +62,7 @@ type PublicState =
         prices: string[];
         paymentMethods: string[];
         scheduleRules: string[];
+        regras_agenda?: any;
         notes: string | null;
         canonicalPath: string;
       };
@@ -343,7 +348,8 @@ function GuardianPublicPage() {
         }
       } else {
         setChatError(
-          "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
+          (res as any).message ||
+            "Não consegui registrar isso agora. Nenhuma confirmação foi feita. Tente novamente em instantes ou fale diretamente com o Guardião.",
         );
       }
     } catch (err) {
@@ -613,7 +619,20 @@ function GuardianPublicPage() {
             />
           </InfoCard>
           <InfoCard title="Agenda">
-            <List values={guardian.scheduleRules} empty="Regras de agenda ainda não publicadas." />
+            {(() => {
+              const rules = normalizeAvailabilityRules(guardian.regras_agenda);
+              const summaryText = formatAvailabilitySummary(rules);
+              return (
+                <div className="space-y-2 text-sm leading-relaxed text-[color:var(--ivory-dim)]">
+                  <p>{summaryText}</p>
+                  {rules.notes && (
+                    <p className="mt-2 text-xs italic text-[color:var(--ivory-dim)]/70 border-t border-[color:var(--border)] pt-2">
+                      {rules.notes}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </InfoCard>
         </div>
 
@@ -727,12 +746,17 @@ function GuardianPublicPage() {
               <span>📅 Solicitar Agendamento</span>
             </DialogTitle>
             <DialogDescription className="text-[color:var(--ivory-dim)] text-xs">
-              Deixe sua solicitação de horário. Ela ficará pendente de aprovação e confirmação
-              manual do Guardião.
+              Escolha uma preferência de horário. O Guardião ainda precisa confirmar antes de
+              reservar.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleRequestAppointment} className="space-y-4 mt-2">
+            {chatError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs font-medium">
+                {chatError}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="appt-name" className="text-xs text-[color:var(--ivory-dim)]">
@@ -801,6 +825,9 @@ function GuardianPublicPage() {
                   required
                   className="bg-background/50 border-[color:var(--border)] text-sm"
                 />
+                <p className="text-[10px] text-[color:var(--gold)] mt-0.5 font-medium">
+                  Esta é uma solicitação, não uma confirmação.
+                </p>
               </div>
             </div>
 

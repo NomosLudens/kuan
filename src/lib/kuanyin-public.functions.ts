@@ -436,6 +436,7 @@ export const getGuardianPublicPage = createServerFn({ method: "POST" })
         prices: renderKeyValueList(ctx.precos),
         paymentMethods: asArray(ctx.formas_pagamento),
         scheduleRules: renderKeyValueList(ctx.regras_agenda),
+        regras_agenda: ctx.regras_agenda as any,
         notes: ctx.observacoes,
         canonicalPath: `/g/${ctx.publicSlug}`,
       },
@@ -699,7 +700,79 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
     const startsAt = normalizePublicDateTime(data.starts_at);
-    if (!startsAt) return { ok: false as const, reason: "invalid_datetime", traceId };
+    if (!startsAt) {
+      return {
+        ok: false as const,
+        reason: "invalid_datetime",
+        message: "O formato da data ou horário é inválido. Escolha um horário válido.",
+        traceId,
+      };
+    }
+
+    const startsAtDate = new Date(startsAt);
+    if (isNaN(startsAtDate.getTime())) {
+      return {
+        ok: false as const,
+        reason: "invalid_datetime",
+        message: "O formato da data ou horário é inválido. Escolha um horário válido.",
+        traceId,
+      };
+    }
+
+    // Load and normalize availability rules
+    const {
+      normalizeAvailabilityRules,
+      isPastOrTooSoon,
+      isWithinAvailabilityRules,
+      getAvailabilityViolationMessage,
+    } = await import("./kuan/availability-rules");
+    const rules = normalizeAvailabilityRules(ctx.regras_agenda);
+
+    // 1. Past or too soon check
+    const now = new Date();
+    if (isPastOrTooSoon(startsAtDate, rules, now)) {
+      const isPast = startsAtDate.getTime() <= now.getTime();
+      const reason = isPast ? "past" : "too_soon";
+      const message = getAvailabilityViolationMessage(reason, rules);
+      return { ok: false as const, reason, message, traceId };
+    }
+
+    // 2. Weekdays and hours check
+    if (!isWithinAvailabilityRules(startsAtDate, rules)) {
+      const message = getAvailabilityViolationMessage("outside_availability", rules);
+      return { ok: false as const, reason: "outside_availability", message, traceId };
+    }
+
+    // 3. Double-booking check for confirmed conflicts
+    if (rules.blockConfirmedConflicts) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: existingAppts, error: queryError } = await supabaseAdmin
+        .from("kuanyin_appointments")
+        .select("starts_at, ends_at")
+        .or(`business_context_id.eq.${ctx.id},user_id.eq.${ctx.user_id}`)
+        .eq("status", "confirmed");
+
+      if (queryError) {
+        console.error("Error querying existing appointments for conflict check:", queryError);
+      } else if (existingAppts) {
+        const newStartMs = startsAtDate.getTime();
+        const newEndMs = newStartMs + rules.defaultDurationMinutes * 60 * 1000;
+
+        for (const appt of existingAppts) {
+          const extStartMs = new Date(appt.starts_at).getTime();
+          const extEndMs = appt.ends_at
+            ? new Date(appt.ends_at).getTime()
+            : extStartMs + rules.defaultDurationMinutes * 60 * 1000;
+
+          // Overlap condition: novo_inicio < existente_fim && novo_fim > existente_inicio
+          if (newStartMs < extEndMs && newEndMs > extStartMs) {
+            const message = getAvailabilityViolationMessage("conflict_confirmed", rules);
+            return { ok: false as const, reason: "conflict_confirmed", message, traceId };
+          }
+        }
+      }
+    }
+
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
 

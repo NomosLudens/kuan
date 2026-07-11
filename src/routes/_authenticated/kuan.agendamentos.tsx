@@ -7,8 +7,13 @@ import {
   completeAppointment,
   createPortalToken,
   createManualAppointment,
+  getBusinessContext,
 } from "@/lib/kuanyin.functions";
 import { reviewKuanAppointment } from "@/lib/kuanyin-review.functions";
+import {
+  normalizeAvailabilityRules,
+  formatAvailabilitySummary,
+} from "@/lib/kuan/availability-rules";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,8 +78,10 @@ function AgendaPage() {
   const complete = useServerFn(completeAppointment);
   const mkToken = useServerFn(createPortalToken);
   const createManual = useServerFn(createManualAppointment);
+  const getContext = useServerFn(getBusinessContext);
 
   const [rows, setRows] = useState<Row[]>([]);
+  const [context, setContext] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
 
@@ -107,12 +114,14 @@ function AgendaPage() {
     setLoading(true);
     try {
       setRows((await list()) as unknown as Row[]);
+      const ctx = await getContext();
+      setContext(ctx);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao carregar agendamentos.");
     } finally {
       setLoading(false);
     }
-  }, [list]);
+  }, [list, getContext]);
 
   useEffect(() => {
     void reload();
@@ -340,8 +349,6 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
             Solicitações e horários confirmados. Nada é confirmado sem revisão humana.
           </p>
         </div>
-
-        {/* Manual Scheduling Form Trigger */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button className="bg-[color:var(--gold)]/90 hover:bg-[color:var(--gold)] text-black font-semibold rounded-full px-5 transition-all duration-200 shadow-md flex items-center gap-1.5 self-start md:self-auto">
@@ -468,6 +475,35 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Active Rules Banner */}
+      {context && (
+        <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-[color:var(--gold)]/10 rounded-lg text-[color:var(--gold)] mt-0.5">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-[color:var(--ivory)]">
+                Regras Ativas de Disponibilidade
+              </h4>
+              <p className="text-xs text-[color:var(--ivory-dim)] mt-1">
+                {(() => {
+                  const rules = normalizeAvailabilityRules(context.regras_agenda);
+                  return formatAvailabilitySummary(rules);
+                })()}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/kuan/config"
+            className="text-xs font-semibold text-[color:var(--gold)] hover:underline flex items-center gap-1 shrink-0 md:border-l border-[color:var(--border)] md:pl-4"
+          >
+            <span>Configurar Regras</span>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
