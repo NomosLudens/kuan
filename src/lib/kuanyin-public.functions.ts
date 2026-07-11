@@ -718,6 +718,10 @@ Seja claro, curto e comercialmente cuidadoso.
         clientDisplayName: data.visitorName,
       });
 
+      if (audienceCtx.audience !== "public_client") {
+        throw new Error("Expected public_client context in public chatbot");
+      }
+
       const audienceRule =
         "Você está falando com um cliente público sem login da página do Guardião. A conversa é exclusivamente comercial sobre este negócio. Não responda assuntos fora do negócio. Não faça conversa sexual, íntima, flerte ou roleplay. Não confirme pagamento, agenda ou pedido. Registre/encaminhe como pendente quando existir ação.";
 
