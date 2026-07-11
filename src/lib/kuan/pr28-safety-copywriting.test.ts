@@ -60,8 +60,8 @@ describe("PR #28 - Functional and Policy Integration Tests", () => {
     const canConfirm = validateAppointmentTransition("proposed", "confirmed", actor, "guard_456");
     expect(canConfirm).toBe(true);
 
-    // proposed -> rejected (Válido)
-    const canReject = validateAppointmentTransition("proposed", "rejected", actor, "guard_456");
+    // proposed -> cancelled (Válido)
+    const canReject = validateAppointmentTransition("proposed", "cancelled", actor, "guard_456");
     expect(canReject).toBe(true);
 
     // confirmed -> proposed (Inválido)

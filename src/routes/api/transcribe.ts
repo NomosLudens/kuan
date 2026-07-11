@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireUser } from "@/lib/require-user.server";
 import { rateLimit } from "@/lib/rate-limit";
-import {
-  isAllowedAudioType,
-  transcribeAudioBlob,
-  revisarTranscricaoTexto,
-} from "@/lib/transcribe.server";
+import { isAllowedAudioType, transcribeAudioBlob } from "@/lib/transcribe.server";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024; // 25MB
 

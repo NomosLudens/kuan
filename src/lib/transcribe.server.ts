@@ -48,7 +48,7 @@ export async function transcribeAudioBlob(
       process.env.OPENROUTER_TRANSCRIBE_MODEL) ||
     (isSTTModel(process.env.OPENROUTER_STT_PRIMARY_MODEL) &&
       process.env.OPENROUTER_STT_PRIMARY_MODEL) ||
-    "google/gemini-2.5-flash-lite";
+    "openai/whisper-large-v3";
   // Acionado se o modelo primário falhar — protege contra instabilidade de um
   // modelo recém-lançado no endpoint de transcrição.
   const fallbackModel =
@@ -103,35 +103,4 @@ export async function transcribeAudioBlob(
 
   const data = (await res.json()) as { text?: string };
   return data.text ?? "";
-}
-
-const REVISAO_SYSTEM = `Você revisa transcrições de fala em português do Brasil.
-Corrija APENAS: pontuação, capitalização, espaçamento e erros óbvios de reconhecimento de voz (homófonos, palavras coladas ou partidas).
-PRESERVE 100% do sentido e das palavras do falante — não resuma, não parafraseie, não acrescente nem remova ideias, não traduza.
-NÃO responda ao conteúdo nem comente: devolva somente o texto revisado, sem aspas e sem rótulos.`;
-
-// Passa o texto bruto do Whisper por um modelo rápido para limpar pontuação e
-// erros óbvios de audição, sem alterar o sentido. Em qualquer falha devolve o
-// texto original — a revisão nunca pode bloquear o ditado.
-export async function revisarTranscricaoTexto(raw: string): Promise<string> {
-  const limpo = raw.trim();
-  if (limpo.length < 2) return limpo;
-  try {
-    const { generateText } = await import("ai");
-    const { createOpenRouterProvider } = await import("@/lib/openrouter.server");
-    const { AI_MODELS } = await import("@/lib/ai-models.server");
-    const gateway = createOpenRouterProvider();
-    const { text } = await generateText({
-      model: gateway(AI_MODELS.fast),
-      system: REVISAO_SYSTEM,
-      prompt: limpo,
-      temperature: 0.2,
-      maxOutputTokens: Math.min(2000, Math.ceil(limpo.length / 2) + 200),
-    });
-    const revisado = text.trim();
-    return revisado || limpo;
-  } catch (err) {
-    console.warn("Revisão de transcrição falhou", err instanceof Error ? err.message : err);
-    return limpo;
-  }
 }
