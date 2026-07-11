@@ -479,6 +479,7 @@ export interface DeterministicPublicIntent {
   description?: string;
   amount_cents?: number;
   comprovante_ref?: string;
+  missingFields?: string[];
 }
 
 export function parseDeterministicPublicIntent(message: string): DeterministicPublicIntent | null {
@@ -487,7 +488,32 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-  // 1. Check Payment/Proof
+  // 1. Consultas não-operacionais legítimas de pagamento
+  if (
+    norm.includes("formas de pagamento") ||
+    norm.includes("formas de pagamentos") ||
+    norm.includes("quais formas") ||
+    norm.includes("como posso pagar") ||
+    norm.includes("como pagar")
+  ) {
+    return null;
+  }
+
+  // 2. Consultas não-operacionais legítimas de horários/agenda
+  if (
+    norm.includes("quais horarios") ||
+    norm.includes("quais horários") ||
+    norm.includes("horarios disponiveis") ||
+    norm.includes("horários disponíveis") ||
+    norm.includes("agenda livre") ||
+    norm.includes("tem vaga") ||
+    norm.includes("vagas disponiveis") ||
+    norm.includes("quais dias")
+  ) {
+    return null;
+  }
+
+  // Check Payment/Proof
   const isPayment =
     norm.includes("comprovante") ||
     norm.includes("enviei o pix") ||
@@ -495,12 +521,12 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     norm.includes("paguei") ||
     norm.includes("pagamento");
 
-  // 2. Check Appointment
+  // Check Appointment
   const isAppt =
     !isPayment &&
     (norm.includes("horario") || norm.includes("agendamento") || norm.includes("agendar"));
 
-  // 3. Check Order/Budget
+  // Check Order/Budget
   const isOrder =
     !isPayment &&
     !isAppt &&
@@ -513,7 +539,7 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
   let client_phone: string | undefined;
   let client_email: string | undefined;
 
-  // Extract Name: "meu nome é Ana", "nome: Ana", "me chamo Ana", "sou o Ana"
+  // Extract Name
   const nameMatch = message.match(
     /(?:meu nome [eé]|me chamo|nome:|sou o|sou a)\s+([A-Za-zÀ-ÿ0-9\s]+?)(?:\.|,|\n|e meu|whatsapp|whats|celular|telefone|email|$)/i,
   );
@@ -521,8 +547,7 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     client_name = nameMatch[1].trim();
   }
 
-  // Extract Phone/WhatsApp: "whatsapp é 11999999999", "celular é ...", "telefone: ..."
-  // or a general sequence of 8-11 digits
+  // Extract Phone/WhatsApp
   const phoneMatch =
     message.match(
       /(?:whatsapp|whats|celular|telefone|contato)(?:\s+e|\s*:)?\s*([0-9\s()-]{8,15})/i,
@@ -537,14 +562,20 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     client_email = emailMatch[0];
   }
 
+  const missingFields: string[] = [];
+  if (!client_phone && !client_email) {
+    missingFields.push("client_contact");
+  }
+
   if (isAppt) {
-    // Extract Starts At: look for "amanhã às 14h", or similar date-time expression
     let starts_at: string | undefined;
     const dtMatch = message.match(/(?:para|as|em|dia)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i);
-    if (dtMatch) {
+    if (dtMatch && dtMatch[1].trim().toLowerCase() !== "agendar") {
       starts_at = dtMatch[1].trim();
-    } else {
-      starts_at = "Amanhã às 14h"; // reasonable default
+    }
+
+    if (!starts_at) {
+      missingFields.push("starts_at");
     }
 
     return {
@@ -552,13 +583,12 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
       client_name,
       client_phone,
       client_email,
-      service_name: "Atendimento",
       starts_at,
+      missingFields,
     };
   }
 
   if (isOrder) {
-    // Extract description: everything after "orçamento para" or similar, or the whole message
     let description: string | undefined;
     const descMatch = message.match(
       /(?:orcamento para|pedido de|sobre)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i,
@@ -569,18 +599,22 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
       description = message;
     }
 
+    if (!description) {
+      missingFields.push("description");
+    }
+
     return {
       type: "order",
       client_name,
       client_phone,
       client_email,
       description,
+      missingFields,
     };
   }
 
   if (isPayment) {
-    // Extract amount if any
-    let amount_cents = 1000; // default to 10.00 R$ if not specified
+    let amount_cents: number | undefined;
     const amtMatch = message.match(/(?:R\$|R\s*|valor de)\s*([0-9.,]+)/i);
     if (amtMatch) {
       const parsedAmt = parseFloat(amtMatch[1].replace(/\./g, "").replace(",", "."));
@@ -589,13 +623,30 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
       }
     }
 
+    if (!amount_cents) {
+      missingFields.push("amount_cents");
+    }
+
+    let comprovante_ref: string | undefined;
+    const refMatch = message.match(
+      /(?:ref|referencia|comprovante|pix|chave)\s*:?\s*([A-Za-z0-9-]+)/i,
+    );
+    if (refMatch) {
+      comprovante_ref = refMatch[1].trim();
+    }
+
+    if (!comprovante_ref) {
+      missingFields.push("comprovante_ref");
+    }
+
     return {
       type: "payment",
       client_name,
       client_phone,
       client_email,
       amount_cents,
-      comprovante_ref: "Texto informativo de comprovante",
+      comprovante_ref,
+      missingFields,
     };
   }
 
@@ -892,6 +943,48 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
     return { ok: true as const, traceId };
   });
 
+export const submitGuardianPublicContact = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    GuardianInput.extend({
+      ...ContactFields,
+      threadId: z.string().uuid().optional(),
+      visitorKey: z.string().trim().max(120).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const traceId = createTraceId();
+    if (data.honeypot) return { ok: false as const, reason: "spam_detected", traceId };
+
+    const ctx = await loadBusinessContext(data.guardianId);
+    if (!ctx) return { ok: false as const, reason: "not_found", traceId };
+
+    if (!data.visitorKey) {
+      return { ok: false as const, reason: "no_visitor_key", traceId };
+    }
+
+    try {
+      const thread = await resolvePublicChatThread(ctx, {
+        threadId: data.threadId,
+        visitorKey: data.visitorKey,
+        visitorName: data.client_name,
+      });
+
+      // Public clients can only create pending requests. Confirmation is guardian-only.
+      const formattedMsg = `📬 [Contato deixado] Nome: ${data.client_name}.${data.client_phone ? ` Telefone: ${data.client_phone}.` : ""}${data.client_email ? ` E-mail: ${data.client_email}.` : ""}`;
+
+      await appendPublicChatMessage(ctx, thread.id, "visitor", formattedMsg);
+
+      const replyMsg =
+        "Recebi seu contato e deixei registrado nesta conversa para o Guardião revisar.";
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMsg);
+
+      return { ok: true as const, threadId: thread.id, traceId };
+    } catch (err) {
+      console.error("Failed to submit guardian public contact to thread:", err);
+      return { ok: false as const, reason: "thread_error", traceId };
+    }
+  });
+
 export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PublicChatInput.parse(input))
   .handler(async ({ data }) => {
@@ -919,74 +1012,16 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
     // 2. Deterministic Text Intent Parser
     const parsedIntent = parseDeterministicPublicIntent(data.message);
     if (parsedIntent) {
-      let replyMessage = "Entendi perfeitamente!";
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-      // Auto-resolve or create public client
-      const clientInput = {
-        client_name: parsedIntent.client_name || data.visitorName || "Visitante",
-        client_phone: parsedIntent.client_phone || undefined,
-        client_email: parsedIntent.client_email || undefined,
-      };
-      const client = await findOrCreatePublicClient(ctx, clientInput);
-
-      if (client.ok) {
-        if (parsedIntent.type === "appointment" && parsedIntent.starts_at) {
-          const startsAt =
-            normalizePublicDateTime(parsedIntent.starts_at) ||
-            new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-          await supabaseAdmin.from("kuanyin_appointments").insert({
-            user_id: ctx.user_id,
-            business_context_id: ctx.id,
-            client_id: client.clientId,
-            service_name: parsedIntent.service_name || "Atendimento",
-            starts_at: startsAt,
-            ends_at: null,
-            status: "proposed",
-            notes: `Registrado automaticamente via texto determinístico no chat público.`,
-            metadata: {
-              source: "public_chat_deterministic",
-              guardian_slug: ctx.publicSlug,
-              requested_at: new Date().toISOString(),
-            },
-          } as never);
-
-          replyMessage = `Prontinho! Registrei sua solicitação de agendamento para o dia/horário: ${parsedIntent.starts_at}. Ela está pendente de aprovação pelo meu Guardião.`;
-        } else if (parsedIntent.type === "order" && parsedIntent.description) {
-          await supabaseAdmin.from("kuanyin_orders").insert({
-            user_id: ctx.user_id,
-            business_context_id: ctx.id,
-            client_id: client.clientId,
-            description: parsedIntent.description,
-            status: "proposed",
-            metadata: {
-              source: "public_chat_deterministic",
-              guardian_slug: ctx.publicSlug,
-              requested_at: new Date().toISOString(),
-            },
-          } as never);
-
-          replyMessage = `Perfeito! Registrei seu pedido de orçamento para: "${parsedIntent.description}". Meu Guardião irá analisar e responder em breve.`;
-        } else if (parsedIntent.type === "payment" && parsedIntent.amount_cents) {
-          const formattedAmount = (parsedIntent.amount_cents / 100).toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          });
-          await supabaseAdmin.from("kuanyin_payments").insert({
-            user_id: ctx.user_id,
-            amount_cents: parsedIntent.amount_cents,
-            status: "received_proof",
-            comprovante_ref: "Texto informativo de comprovante do chat",
-            metadata: {
-              source: "public_chat_deterministic",
-              guardian_slug: ctx.publicSlug,
-              client_id: client.clientId,
-              received_at: new Date().toISOString(),
-            },
-          } as never);
-
-          replyMessage = `Excelente! Recebi o seu aviso de comprovante de pagamento no valor de ${formattedAmount}. Já encaminhei para meu Guardião conferir.`;
-        }
+      let replyMessage = "";
+      if (parsedIntent.type === "appointment") {
+        replyMessage =
+          "Posso registrar isso como solicitação pendente. Use o botão “Agendar Horário” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "order") {
+        replyMessage =
+          "Posso deixar isso como pedido pendente para o Guardião analisar. Use o botão “Pedir Orçamento” para preencher os dados necessários.";
+      } else if (parsedIntent.type === "payment") {
+        replyMessage =
+          "Comprovante informado não é pagamento confirmado. Use o botão “Enviar Comprovante” para registrar os dados para conferência do Guardião.";
       }
 
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMessage);
