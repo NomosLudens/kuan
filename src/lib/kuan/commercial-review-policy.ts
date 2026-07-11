@@ -29,10 +29,10 @@ export function validateAppointmentTransition(
   const normalizedFrom = from.trim().toLowerCase();
   const normalizedTo = to.trim().toLowerCase();
 
-  // Validate allowed transitions
+  // Validate allowed transitions (proposed -> confirmed or proposed -> cancelled)
   if (
     normalizedFrom === "proposed" &&
-    (normalizedTo === "confirmed" || normalizedTo === "rejected")
+    (normalizedTo === "confirmed" || normalizedTo === "cancelled")
   ) {
     return true;
   }
@@ -42,7 +42,7 @@ export function validateAppointmentTransition(
 
 /**
  * Validates transition for orders/quotes.
- * Allowed: proposed -> accepted, proposed -> rejected.
+ * Allowed: proposed -> confirmed, proposed -> cancelled.
  */
 export function validateOrderTransition(
   from: string,
@@ -65,10 +65,10 @@ export function validateOrderTransition(
   const normalizedFrom = from.trim().toLowerCase();
   const normalizedTo = to.trim().toLowerCase();
 
-  // Validate allowed transitions
+  // Validate allowed transitions (proposed -> confirmed or proposed -> cancelled)
   if (
     normalizedFrom === "proposed" &&
-    (normalizedTo === "accepted" || normalizedTo === "rejected")
+    (normalizedTo === "confirmed" || normalizedTo === "cancelled")
   ) {
     return true;
   }

@@ -617,6 +617,7 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     order: 20,
     sidebar: true,
     home: true,
+    adminOnly: true,
     allowedFacets: ["kuanyin", "kaline"],
   },
   {
@@ -643,6 +644,7 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     "/kuan/pedidos",
     "/kuan/agendamentos",
     "/kuan/pagamentos",
+    "/kuan/revisao",
   ].map((path) => ({
     id: path.slice(1).replaceAll("/", "-"),
     label: path.split("/").at(-1) ?? path,
@@ -686,7 +688,11 @@ export function getAppById(id: string) {
   return APP_REGISTRY.find((app) => app.id === id);
 }
 export function getAppByPath(path: string) {
-  return APP_REGISTRY.find((app) => app.path === path || path.startsWith(app.path + "/"));
+  const matches = APP_REGISTRY.filter(
+    (app) => app.path === path || path.startsWith(app.path + "/"),
+  );
+  if (matches.length === 0) return undefined;
+  return matches.sort((a, b) => b.path.length - a.path.length)[0];
 }
 export function resolveLegacyPath(path: string): string | null {
   const app = APP_REGISTRY.find((item) => item.legacyPaths?.includes(path));

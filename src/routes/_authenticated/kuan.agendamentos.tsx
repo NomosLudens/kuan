@@ -14,6 +14,11 @@ import {
   normalizeAvailabilityRules,
   formatAvailabilitySummary,
 } from "@/lib/kuan/availability-rules";
+import {
+  getLocalDateInTimeZone,
+  getStartOfTodayInTimeZone,
+  getGuardianDateKey,
+} from "@/lib/kuan/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +50,8 @@ import {
   FileText,
   AlertTriangle,
   Info,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/kuan/agendamentos")({
@@ -84,6 +91,27 @@ function AgendaPage() {
   const [context, setContext] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+
+  // Calendar month state
+  const [calendarYear, setCalendarYear] = useState(() => {
+    return new Date().getFullYear();
+  });
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    return new Date().getMonth() + 1; // 1-12
+  });
+
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+
+  // Sync calendar on context load
+  useEffect(() => {
+    if (context) {
+      const rules = normalizeAvailabilityRules(context.regras_agenda);
+      const tz = rules.timezone || "America/Sao_Paulo";
+      const parts = getLocalDateInTimeZone(new Date(), tz);
+      setCalendarYear(parts.year);
+      setCalendarMonth(parts.month);
+    }
+  }, [context]);
 
   // Form State
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -210,13 +238,23 @@ function AgendaPage() {
     const dtEnd = formatDate(endsAt);
     const dtStamp = formatDate(new Date());
 
+    const escapeIcsValue = (val: string) => {
+      return val
+        .replace(/\\/g, "\\\\")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "");
+    };
+
     const clientName = appt.kuanyin_clients?.nome ?? "Cliente";
-    const title = `Kuan-Yin · ${appt.service_name} · ${clientName}`;
-    const description = appt.notes ? `Observacoes: ${appt.notes}` : "";
+    const title = escapeIcsValue(`Kuan-Yin · ${appt.service_name} · ${clientName}`);
+    const description = appt.notes ? escapeIcsValue(`Observações: ${appt.notes}`) : "";
 
     const icsLines = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
+      "CALSCALE:GREGORIAN",
       "PRODID:-//Kuan-Yin Calendar//NONSGML v1.0//PT",
       "BEGIN:VEVENT",
       `UID:${appt.id}`,
@@ -248,6 +286,7 @@ function AgendaPage() {
     const dateStr = new Date(appt.starts_at).toLocaleString("pt-BR", {
       dateStyle: "short",
       timeStyle: "short",
+      timeZone,
     });
     const clientName = appt.kuanyin_clients?.nome ?? "Não informado";
     const clientPhone = appt.kuanyin_clients?.telefone ?? "Não informado";
@@ -267,10 +306,49 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   }
 
   // --- Filter and Group Logic ---
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const next7DaysEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 8);
+  const rules = context ? normalizeAvailabilityRules(context.regras_agenda) : null;
+  const timeZone = rules?.timezone || "America/Sao_Paulo";
+
+  const todayStart = getStartOfTodayInTimeZone(timeZone);
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  const next7DaysEnd = new Date(todayStart.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+  // Month names for Calendar
+  const monthNames = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+
+  const daysInMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+  const firstDayOfWeek = new Date(calendarYear, calendarMonth - 1, 1).getDay();
+
+  const prevMonth = () => {
+    if (calendarMonth === 1) {
+      setCalendarMonth(12);
+      setCalendarYear((y) => y - 1);
+    } else {
+      setCalendarMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (calendarMonth === 12) {
+      setCalendarMonth(1);
+      setCalendarYear((y) => y + 1);
+    } else {
+      setCalendarMonth((m) => m + 1);
+    }
+  };
 
   // Counters
   const countPending = rows.filter((r) => r.status === "proposed").length;
@@ -290,6 +368,9 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   // Filtered Items
   const filteredRows = rows.filter((r) => {
     const d = new Date(r.starts_at);
+    if (selectedCalendarDate) {
+      return getGuardianDateKey(d, timeZone) === selectedCalendarDate;
+    }
     if (activeFilter === "hoje") {
       return d >= todayStart && d < todayEnd;
     }
@@ -308,7 +389,10 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   // Grouping by Date String (YYYY-MM-DD)
   const groupedByDate: { [key: string]: Row[] } = {};
   filteredRows.forEach((r) => {
-    const dateStr = r.starts_at.slice(0, 10);
+    const d = new Date(r.starts_at);
+    const parts = getLocalDateInTimeZone(d, timeZone);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const dateStr = `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
     if (!groupedByDate[dateStr]) {
       groupedByDate[dateStr] = [];
     }
@@ -318,11 +402,16 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
   // Sorted date keys
   const sortedDates = Object.keys(groupedByDate).sort();
 
-  const getDayLabel = (dateStr: string) => {
-    const itemDate = new Date(dateStr + "T12:00:00");
-    const todayStr = todayStart.toISOString().slice(0, 10);
-    const tomorrowStr = new Date(todayStart.getTime() + 86400000).toISOString().slice(0, 10);
+  const todayParts = getLocalDateInTimeZone(todayStart, timeZone);
+  const tomorrowParts = getLocalDateInTimeZone(
+    new Date(todayStart.getTime() + 24 * 60 * 60 * 1000),
+    timeZone,
+  );
+  const padStr = (n: number) => String(n).padStart(2, "0");
+  const todayStr = `${todayParts.year}-${padStr(todayParts.month)}-${padStr(todayParts.day)}`;
+  const tomorrowStr = `${tomorrowParts.year}-${padStr(tomorrowParts.month)}-${padStr(tomorrowParts.day)}`;
 
+  const getDayLabel = (dateStr: string) => {
     if (dateStr === todayStr) {
       return "Hoje";
     }
@@ -330,11 +419,124 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
       return "Amanhã";
     }
 
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const itemDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+
     return itemDate.toLocaleDateString("pt-BR", {
       weekday: "long",
       day: "2-digit",
       month: "2-digit",
+      timeZone,
     });
+  };
+
+  const renderCalendar = () => {
+    const blanks = Array(firstDayOfWeek).fill(null);
+    const days = Array(daysInMonth)
+      .fill(0)
+      .map((_, i) => i + 1);
+    const gridItems = [...blanks, ...days];
+
+    return (
+      <div className="rounded-xl border border-[color:var(--border)] bg-card/15 p-4 space-y-4 shadow-md backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-[color:var(--border)]/30 pb-3">
+          <h4 className="text-sm font-semibold text-[color:var(--ivory)] flex items-center gap-1.5">
+            <Calendar className="h-4 w-4 text-[color:var(--gold)]" />
+            <span>
+              {monthNames[calendarMonth - 1]} {calendarYear}
+            </span>
+          </h4>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevMonth}
+              className="h-7 w-7 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextMonth}
+              className="h-7 w-7 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium text-[color:var(--ivory-dim)] uppercase tracking-wider">
+          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+            <div key={d} className="py-1">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1">
+          {gridItems.map((day, idx) => {
+            if (day === null) {
+              return <div key={`blank-${idx}`} className="aspect-square" />;
+            }
+
+            const padNum = (n: number) => String(n).padStart(2, "0");
+            const dateStr = `${calendarYear}-${padNum(calendarMonth)}-${padNum(day)}`;
+            const isSelected = selectedCalendarDate === dateStr;
+
+            // Find appointments on this day
+            const dayAppts = rows.filter((r) => {
+              const d = new Date(r.starts_at);
+              return getGuardianDateKey(d, timeZone) === dateStr;
+            });
+
+            const hasConfirmed = dayAppts.some(
+              (r) => r.status === "confirmed" || r.status === "completed",
+            );
+            const hasPending = dayAppts.some((r) => r.status === "proposed");
+
+            return (
+              <button
+                key={`day-${day}`}
+                type="button"
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedCalendarDate(null);
+                  } else {
+                    setSelectedCalendarDate(dateStr);
+                  }
+                }}
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center relative text-xs transition-all duration-200 ${
+                  isSelected
+                    ? "bg-[color:var(--gold)] text-black font-semibold shadow-md"
+                    : "hover:bg-white/5 text-[color:var(--ivory)]"
+                }`}
+              >
+                <span>{day}</span>
+                {dayAppts.length > 0 && (
+                  <div className="absolute bottom-1 flex gap-0.5 justify-center items-center">
+                    {hasConfirmed && (
+                      <span
+                        className={`h-1 w-1 rounded-full ${
+                          isSelected ? "bg-black" : "bg-[color:var(--gold)]"
+                        }`}
+                      />
+                    )}
+                    {hasPending && (
+                      <span
+                        className={`h-1 w-1 rounded-full ${
+                          isSelected ? "bg-black/60" : "bg-amber-400"
+                        }`}
+                      />
+                    )}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -505,324 +707,348 @@ Origem: ${appt.metadata?.source === "public_guardian_page" ? "Página Pública" 
         </div>
       )}
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* proposed/Pending Card */}
-        <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
-              Pendentes
-            </span>
-            <div className="serif text-3xl font-light text-amber-400">{countPending}</div>
-          </div>
-          <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-            <Clock className="h-5 w-5" />
-          </div>
-        </div>
-
-        {/* Today Confirmed Card */}
-        <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
-              Confirmados Hoje
-            </span>
-            <div className="serif text-3xl font-light text-[color:var(--gold)]">
-              {countTodayConfirmed}
-            </div>
-          </div>
-          <div className="p-2 bg-[color:var(--gold)]/10 rounded-lg text-[color:var(--gold)]">
-            <CheckCircle className="h-5 w-5" />
-          </div>
-        </div>
-
-        {/* Next 7 days Card */}
-        <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
-              Próximos 7 Dias
-            </span>
-            <div className="serif text-3xl font-light text-[color:var(--ivory)]">
-              {countNext7Days}
-            </div>
-          </div>
-          <div className="p-2 bg-white/5 rounded-lg text-[color:var(--ivory-dim)]">
-            <Calendar className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Chips */}
-      <div className="flex flex-wrap items-center gap-2 border-y border-[color:var(--border)]/60 py-3">
-        <span className="text-[10px] uppercase text-[color:var(--ivory-dim)] mr-2 flex items-center gap-1 font-medium">
-          <Filter className="h-3 w-3" /> Filtrar:
-        </span>
-        {[
-          { id: "all", label: "Todos" },
-          { id: "hoje", label: "Hoje" },
-          { id: "7dias", label: "Próximos 7 Dias" },
-          { id: "proposed", label: `Pendentes (${countPending})` },
-          { id: "confirmed", label: "Confirmados" },
-        ].map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setActiveFilter(f.id as ActiveFilter)}
-            className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 ${
-              activeFilter === f.id
-                ? "bg-[color:var(--gold)]/15 border-[color:var(--gold)] text-[color:var(--gold)] font-medium"
-                : "bg-background/20 border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:text-white hover:border-[color:var(--border)]/80"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Agenda Items List */}
-      <div className="space-y-6">
-        {loading && (
-          <div className="text-center py-10 space-y-2">
-            <p className="text-sm text-[color:var(--ivory-dim)] animate-pulse">
-              Carregando agendamentos…
-            </p>
-          </div>
-        )}
-
-        {!loading && sortedDates.length === 0 && (
-          <div className="text-center py-12 border border-dashed border-[color:var(--border)] rounded-2xl bg-card/10">
-            <Calendar className="h-8 w-8 text-[color:var(--ivory-dim)] mx-auto mb-2 opacity-40" />
-            <p className="text-sm text-[color:var(--ivory-dim)] font-light">
-              Nenhum agendamento registrado ainda.
-            </p>
-          </div>
-        )}
-
-        {!loading &&
-          sortedDates.map((dateStr) => (
-            <div key={dateStr} className="space-y-3">
-              {/* Date Header label */}
-              <div className="flex items-center gap-2 border-b border-[color:var(--border)]/35 pb-1">
-                <h3 className="serif text-xs uppercase tracking-widest text-[color:var(--gold)] font-medium">
-                  {getDayLabel(dateStr)}
-                </h3>
-                <span className="text-[10px] text-[color:var(--ivory-dim)] font-mono">
-                  ·{" "}
-                  {new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
-                    dateStyle: "short",
-                  })}
+      {/* Main Layout Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Overview, Filters & List */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* proposed/Pending Card */}
+            <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="space-y-1">
+                <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
+                  Pendentes
                 </span>
+                <div className="serif text-3xl font-light text-amber-400">{countPending}</div>
               </div>
-
-              {/* Day's appointments */}
-              <div className="grid grid-cols-1 gap-3">
-                {groupedByDate[dateStr]
-                  .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
-                  .map((appt) => {
-                    const client = appt.kuanyin_clients;
-                    const isProposed = appt.status === "proposed";
-                    const isConfirmed = appt.status === "confirmed";
-                    const isCompleted = appt.status === "completed";
-                    const isRejected = appt.status === "rejected";
-                    const isCancelled = appt.status === "cancelled";
-
-                    // Recover public thread if present in metadata
-                    const threadId = appt.metadata?.thread_id || appt.metadata?.threadId;
-
-                    return (
-                      <div
-                        key={appt.id}
-                        className={`rounded-xl border p-4 transition-all duration-200 bg-card/25 hover:bg-card/40 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                          isProposed
-                            ? "border-amber-500/30 bg-amber-500/[0.01] hover:bg-amber-500/[0.03]"
-                            : isConfirmed
-                              ? "border-[color:var(--border)]"
-                              : "border-[color:var(--border)]/30 opacity-60"
-                        }`}
-                      >
-                        {/* Appointment Info column */}
-                        <div className="space-y-2 min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {/* Time badge */}
-                            <div className="flex items-center gap-1 text-sm text-[color:var(--ivory)] font-semibold bg-background/65 px-2 py-0.5 rounded-lg border border-[color:var(--border)]">
-                              <Clock className="h-3.5 w-3.5 text-[color:var(--gold)]" />
-                              <span>
-                                {new Date(appt.starts_at).toLocaleTimeString("pt-BR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </span>
-                            </div>
-
-                            {/* Service title */}
-                            <span className="text-sm font-medium text-[color:var(--ivory)] truncate">
-                              {appt.service_name}
-                            </span>
-
-                            {/* State labels */}
-                            <span
-                              className={`text-[9px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded-full border ${
-                                isProposed
-                                  ? "bg-amber-500/10 border-amber-500/35 text-amber-400"
-                                  : isConfirmed
-                                    ? "bg-[color:var(--gold)]/10 border-[color:var(--gold)]/35 text-[color:var(--gold)]"
-                                    : isCompleted
-                                      ? "bg-emerald-500/10 border-emerald-500/35 text-emerald-400"
-                                      : "bg-white/5 border-white/10 text-[color:var(--ivory-dim)]"
-                              }`}
-                            >
-                              {appt.status === "proposed"
-                                ? "pendente"
-                                : appt.status === "confirmed"
-                                  ? "confirmado"
-                                  : appt.status === "completed"
-                                    ? "concluído"
-                                    : appt.status === "rejected"
-                                      ? "rejeitado"
-                                      : "cancelado"}
-                            </span>
-
-                            {/* Origin badge */}
-                            <span className="text-[9px] text-[color:var(--ivory-dim)] bg-white/5 border border-white/10 px-2 py-0.5 rounded-full font-light">
-                              {appt.metadata?.source === "public_guardian_page"
-                                ? "Página Pública"
-                                : appt.metadata?.source === "manual_scheduling"
-                                  ? "Agenda Manual"
-                                  : "Kuan-Yin"}
-                            </span>
-                          </div>
-
-                          {/* Client details */}
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1 text-xs text-[color:var(--ivory-dim)] font-light">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3.5 w-3.5 text-[color:var(--gold)] opacity-70" />
-                              <span className="font-medium text-[color:var(--ivory)]">
-                                {client?.nome ?? "Cliente não informado"}
-                              </span>
-                            </div>
-
-                            {client?.telefone && (
-                              <div className="flex items-center gap-1 hover:text-white transition-colors">
-                                <Phone className="h-3 w-3 opacity-60" />
-                                <a href={`tel:${client.telefone}`}>{client.telefone}</a>
-                              </div>
-                            )}
-
-                            {client?.email && (
-                              <div className="flex items-center gap-1 hover:text-white transition-colors">
-                                <Mail className="h-3 w-3 opacity-60" />
-                                <a href={`mailto:${client.email}`}>{client.email}</a>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Notes */}
-                          {appt.notes && (
-                            <div className="text-xs text-[color:var(--ivory-dim)] bg-background/20 px-2.5 py-1.5 rounded-lg border border-[color:var(--border)]/45 italic max-w-xl">
-                              {appt.notes}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions column */}
-                        <div className="flex flex-wrap items-center gap-2 shrink-0 border-t border-[color:var(--border)]/15 pt-3 md:pt-0 md:border-0 justify-end">
-                          {/* Propose Review Actions */}
-                          {isProposed && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleReview(appt.id, "confirm")}
-                                className="bg-emerald-500/90 hover:bg-emerald-500 text-black font-semibold h-8 rounded-lg text-xs flex items-center gap-1"
-                              >
-                                <Check className="h-3.5 w-3.5" /> Confirmar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleReview(appt.id, "reject")}
-                                className="border-red-500/40 text-red-400 hover:bg-red-500/10 h-8 rounded-lg text-xs flex items-center gap-1"
-                              >
-                                <X className="h-3.5 w-3.5" /> Rejeitar
-                              </Button>
-                            </>
-                          )}
-
-                          {/* Confirmed Actions */}
-                          {isConfirmed && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleComplete(appt.id)}
-                                className="bg-[color:var(--gold)]/80 hover:bg-[color:var(--gold)] text-black font-semibold h-8 rounded-lg text-xs"
-                              >
-                                Concluir
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCancel(appt.id)}
-                                className="border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:text-white h-8 rounded-lg text-xs"
-                              >
-                                Cancelar
-                              </Button>
-                            </>
-                          )}
-
-                          {/* Copy Summary helper */}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => copySummary(appt)}
-                            title="Copiar resumo do compromisso"
-                            className="h-8 w-8 p-0 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
-                          >
-                            <Clipboard className="h-4 w-4" />
-                          </Button>
-
-                          {/* Download .ics (iCal) - confirmed only */}
-                          {isConfirmed && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => downloadIcs(appt)}
-                              title="Exportar como arquivo de agenda (.ics)"
-                              className="h-8 w-8 p-0 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          )}
-
-                          {/* Portal Link (Share) - confirmed only */}
-                          {isConfirmed && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => share(appt.id)}
-                              title="Copiar link do portal do cliente"
-                              className="h-8 w-8 p-0 text-[color:var(--gold)] hover:bg-[color:var(--gold)]/10 rounded-lg"
-                            >
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                          )}
-
-                          {/* Link to Thread if exists */}
-                          {threadId && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              asChild
-                              className="h-8 px-2 text-[color:var(--gold)] hover:bg-[color:var(--gold)]/5 rounded-lg text-xs flex items-center gap-1"
-                            >
-                              <Link to="/chat/$threadId" params={{ threadId }}>
-                                <ExternalLink className="h-3.5 w-3.5" /> Conversa
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
+                <Clock className="h-5 w-5" />
               </div>
             </div>
-          ))}
+
+            {/* Today Confirmed Card */}
+            <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="space-y-1">
+                <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
+                  Confirmados Hoje
+                </span>
+                <div className="serif text-3xl font-light text-[color:var(--gold)]">
+                  {countTodayConfirmed}
+                </div>
+              </div>
+              <div className="p-2 bg-[color:var(--gold)]/10 rounded-lg text-[color:var(--gold)]">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+            </div>
+
+            {/* Next 7 days Card */}
+            <div className="rounded-xl border border-[color:var(--border)] bg-card/25 p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="space-y-1">
+                <span className="text-[10px] tracking-wider uppercase text-[color:var(--ivory-dim)]">
+                  Próximos 7 Dias
+                </span>
+                <div className="serif text-3xl font-light text-[color:var(--ivory)]">
+                  {countNext7Days}
+                </div>
+              </div>
+              <div className="p-2 bg-white/5 rounded-lg text-[color:var(--ivory-dim)]">
+                <Calendar className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex flex-wrap items-center gap-2 border-y border-[color:var(--border)]/60 py-3">
+            <span className="text-[10px] uppercase text-[color:var(--ivory-dim)] mr-2 flex items-center gap-1 font-medium">
+              <Filter className="h-3 w-3" /> Filtrar:
+            </span>
+            {[
+              { id: "all", label: "Todos" },
+              { id: "hoje", label: "Hoje" },
+              { id: "7dias", label: "Próximos 7 Dias" },
+              { id: "proposed", label: `Pendentes (${countPending})` },
+              { id: "confirmed", label: "Confirmados" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => {
+                  setSelectedCalendarDate(null);
+                  setActiveFilter(f.id as ActiveFilter);
+                }}
+                className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 ${
+                  !selectedCalendarDate && activeFilter === f.id
+                    ? "bg-[color:var(--gold)]/15 border-[color:var(--gold)] text-[color:var(--gold)] font-medium"
+                    : "bg-background/20 border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:text-white hover:border-[color:var(--border)]/80"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            {selectedCalendarDate && (
+              <button
+                type="button"
+                onClick={() => setSelectedCalendarDate(null)}
+                className="text-xs px-3.5 py-1.5 rounded-full border bg-[color:var(--gold)]/20 border-[color:var(--gold)] text-[color:var(--gold)] font-medium flex items-center gap-1.5"
+              >
+                <span>Filtrado por: {selectedCalendarDate.split("-").reverse().join("/")}</span>
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Agenda Items List */}
+          <div className="space-y-6">
+            {loading && (
+              <div className="text-center py-10 space-y-2">
+                <p className="text-sm text-[color:var(--ivory-dim)] animate-pulse">
+                  Carregando agendamentos…
+                </p>
+              </div>
+            )}
+
+            {!loading && sortedDates.length === 0 && (
+              <div className="text-center py-12 border border-dashed border-[color:var(--border)] rounded-2xl bg-card/10">
+                <Calendar className="h-8 w-8 text-[color:var(--ivory-dim)] mx-auto mb-2 opacity-40" />
+                <p className="text-sm text-[color:var(--ivory-dim)] font-light">
+                  Nenhum agendamento registrado ainda.
+                </p>
+              </div>
+            )}
+
+            {!loading &&
+              sortedDates.map((dateStr) => (
+                <div key={dateStr} className="space-y-3">
+                  {/* Date Header label */}
+                  <div className="flex items-center gap-2 border-b border-[color:var(--border)]/35 pb-1">
+                    <h3 className="serif text-xs uppercase tracking-widest text-[color:var(--gold)] font-medium">
+                      {getDayLabel(dateStr)}
+                    </h3>
+                    <span className="text-[10px] text-[color:var(--ivory-dim)] font-mono">
+                      ·{" "}
+                      {new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+                        dateStyle: "short",
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Day's appointments */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {groupedByDate[dateStr]
+                      .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+                      .map((appt) => {
+                        const client = appt.kuanyin_clients;
+                        const isProposed = appt.status === "proposed";
+                        const isConfirmed = appt.status === "confirmed";
+                        const isCompleted = appt.status === "completed";
+                        const isRejected = appt.status === "rejected";
+                        const isCancelled = appt.status === "cancelled";
+
+                        // Recover public thread if present in metadata
+                        const threadId = appt.metadata?.thread_id || appt.metadata?.threadId;
+
+                        return (
+                          <div
+                            key={appt.id}
+                            className={`rounded-xl border p-4 transition-all duration-200 bg-card/25 hover:bg-card/40 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                              isProposed
+                                ? "border-amber-500/30 bg-amber-500/[0.01] hover:bg-amber-500/[0.03]"
+                                : isConfirmed
+                                  ? "border-[color:var(--border)]"
+                                  : "border-[color:var(--border)]/30 opacity-60"
+                            }`}
+                          >
+                            {/* Appointment Info column */}
+                            <div className="space-y-2 min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                {/* Time badge */}
+                                <div className="flex items-center gap-1 text-sm text-[color:var(--ivory)] font-semibold bg-background/65 px-2 py-0.5 rounded-lg border border-[color:var(--border)]">
+                                  <Clock className="h-3.5 w-3.5 text-[color:var(--gold)]" />
+                                  <span>
+                                    {new Date(appt.starts_at).toLocaleTimeString("pt-BR", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      timeZone,
+                                    })}
+                                  </span>
+                                </div>
+
+                                {/* Service title */}
+                                <span className="text-sm font-medium text-[color:var(--ivory)] truncate">
+                                  {appt.service_name}
+                                </span>
+
+                                {/* State labels */}
+                                <span
+                                  className={`text-[9px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded-full border ${
+                                    isProposed
+                                      ? "bg-amber-500/10 border-amber-500/35 text-amber-400"
+                                      : isConfirmed
+                                        ? "bg-[color:var(--gold)]/10 border-[color:var(--gold)]/35 text-[color:var(--gold)]"
+                                        : isCompleted
+                                          ? "bg-emerald-500/10 border-emerald-500/35 text-emerald-400"
+                                          : "bg-white/5 border-white/10 text-[color:var(--ivory-dim)]"
+                                  }`}
+                                >
+                                  {appt.status === "proposed"
+                                    ? "pendente"
+                                    : appt.status === "confirmed"
+                                      ? "confirmado"
+                                      : appt.status === "completed"
+                                        ? "concluído"
+                                        : appt.status === "rejected"
+                                          ? "rejeitado"
+                                          : "cancelado"}
+                                </span>
+
+                                {/* Origin badge */}
+                                {appt.metadata?.source && (
+                                  <span className="text-[9px] font-mono text-[color:var(--ivory-dim)] px-2 py-0.5 bg-white/5 rounded-md">
+                                    {appt.metadata.source === "public_guardian_page"
+                                      ? "Página Pública"
+                                      : appt.metadata.source === "manual_scheduling"
+                                        ? "Manual"
+                                        : "Kuan-Yin"}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Client info line */}
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--ivory-dim)] font-medium">
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3 opacity-60" />
+                                  <span>{client?.nome || "Sem Nome"}</span>
+                                </div>
+
+                                {client?.telefone && (
+                                  <div className="flex items-center gap-1 hover:text-white transition-colors">
+                                    <Phone className="h-3 w-3 opacity-60" />
+                                    <a href={`tel:${client.telefone}`}>{client.telefone}</a>
+                                  </div>
+                                )}
+
+                                {client?.email && (
+                                  <div className="flex items-center gap-1 hover:text-white transition-colors">
+                                    <Mail className="h-3 w-3 opacity-60" />
+                                    <a href={`mailto:${client.email}`}>{client.email}</a>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Notes */}
+                              {appt.notes && (
+                                <div className="text-xs text-[color:var(--ivory-dim)] bg-background/20 px-2.5 py-1.5 rounded-lg border border-[color:var(--border)]/45 italic max-w-xl">
+                                  {appt.notes}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions column */}
+                            <div className="flex flex-wrap items-center gap-2 shrink-0 border-t border-[color:var(--border)]/15 pt-3 md:pt-0 md:border-0 justify-end">
+                              {/* Propose Review Actions */}
+                              {isProposed && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleReview(appt.id, "confirm")}
+                                    className="bg-emerald-500/90 hover:bg-emerald-500 text-black font-semibold h-8 rounded-lg text-xs flex items-center gap-1"
+                                  >
+                                    <Check className="h-3.5 w-3.5" /> Confirmar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleReview(appt.id, "reject")}
+                                    className="border-red-500/40 text-red-400 hover:bg-red-500/10 h-8 rounded-lg text-xs flex items-center gap-1"
+                                  >
+                                    <X className="h-3.5 w-3.5" /> Rejeitar
+                                  </Button>
+                                </>
+                              )}
+
+                              {/* Confirmed Actions */}
+                              {isConfirmed && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleComplete(appt.id)}
+                                    className="bg-[color:var(--gold)]/80 hover:bg-[color:var(--gold)] text-black font-semibold h-8 rounded-lg text-xs"
+                                  >
+                                    Concluir
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleCancel(appt.id)}
+                                    className="border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:text-white h-8 rounded-lg text-xs"
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </>
+                              )}
+
+                              {/* Copy Summary helper */}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => copySummary(appt)}
+                                title="Copiar resumo do compromisso"
+                                className="h-8 w-8 p-0 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
+                              >
+                                <Clipboard className="h-4 w-4" />
+                              </Button>
+
+                              {/* Download .ics (iCal) - confirmed only */}
+                              {isConfirmed && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => downloadIcs(appt)}
+                                  title="Exportar como arquivo de agenda (.ics)"
+                                  className="h-8 w-8 p-0 text-[color:var(--ivory-dim)] hover:text-white rounded-lg hover:bg-white/5"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              )}
+
+                              {/* Portal Link (Share) - confirmed only */}
+                              {isConfirmed && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => share(appt.id)}
+                                  title="Copiar link do portal do cliente"
+                                  className="h-8 w-8 p-0 text-[color:var(--gold)] hover:bg-[color:var(--gold)]/10 rounded-lg"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              )}
+
+                              {/* Link to Thread if exists */}
+                              {threadId && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  asChild
+                                  className="h-8 px-2 text-[color:var(--gold)] hover:bg-[color:var(--gold)]/5 rounded-lg text-xs flex items-center gap-1"
+                                >
+                                  <Link to="/chat/$threadId" params={{ threadId }}>
+                                    <ExternalLink className="h-3.5 w-3.5" /> Conversa
+                                  </Link>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Right 1/3 Column: Compact Monthly Calendar */}
+        <div className="space-y-6">{renderCalendar()}</div>
       </div>
     </div>
   );

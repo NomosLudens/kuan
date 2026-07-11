@@ -18,6 +18,7 @@ export interface CanonicalRules {
   unavailableMessage: string;
   notes: string | null;
   overrides?: OverrideRule[];
+  timezone?: string;
 }
 
 const DEFAULT_UNAVAILABLE_MESSAGE =
@@ -38,6 +39,7 @@ export function normalizeAvailabilityRules(value: unknown): CanonicalRules {
     unavailableMessage: DEFAULT_UNAVAILABLE_MESSAGE,
     notes: null,
     overrides: [],
+    timezone: "America/Sao_Paulo",
   };
 
   if (!value) return rules;
@@ -170,6 +172,18 @@ export function normalizeAvailabilityRules(value: unknown): CanonicalRules {
       endTime: typeof ov.endTime === "string" ? parseTimeString(ov.endTime) : null,
       notes: ov.notes ?? undefined,
     }));
+  }
+
+  // Normalizar Timezone
+  const rawTimezone = obj.timezone ?? obj.fuso_horario ?? obj.fuso;
+  if (typeof rawTimezone === "string" && rawTimezone.trim()) {
+    const tz = rawTimezone.trim();
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
+      rules.timezone = tz;
+    } catch {
+      rules.timezone = "America/Sao_Paulo";
+    }
   }
 
   return rules;

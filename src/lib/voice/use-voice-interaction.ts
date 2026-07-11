@@ -10,6 +10,31 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useTTS } from "@/lib/use-tts";
 import { isSTTModel, STT_FALLBACK_MODEL_KEY, STT_MODEL_KEY } from "@/lib/stt-models";
+import { authedFetch } from "@/lib/authed-fetch";
+
+export async function calculateAudioRMS(blob: Blob): Promise<number> {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return 1.0;
+    const ctx = new AudioContextClass();
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    const channelData = audioBuffer.getChannelData(0);
+    let sum = 0;
+    for (let i = 0; i < channelData.length; i++) {
+      sum += channelData[i] * channelData[i];
+    }
+    const rms = Math.sqrt(sum / channelData.length);
+    await ctx.close();
+    return rms;
+  } catch (err) {
+    console.warn(
+      "[calculateAudioRMS] Failed to decode audio data for RMS, defaulting to 1.0:",
+      err,
+    );
+    return 1.0;
+  }
+}
 import {
   buildVoiceChatPayload,
   buildVoiceUserMessage,
@@ -137,18 +162,15 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
       let latestText = "";
       let speaking = false;
       try {
-        const { data } = await supabase.auth.getSession();
-        const token = data.session?.access_token;
         const nextUserMessage = buildVoiceUserMessage(clean);
         const payload = buildVoiceChatPayload(options, [
           ...messages.map(voiceMessageToUiMessage),
           nextUserMessage,
         ]);
-        const res = await fetch("/api/chat", {
+        const res = await authedFetch("/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(payload),
           signal: controller.signal,
@@ -224,23 +246,26 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
     async (blob: Blob, mediaType: string) => {
       setState("transcribing");
       try {
+        const rms = await calculateAudioRMS(blob);
+        if (rms <= 0.005) {
+          setFriendlyError("empty-transcript");
+          return;
+        }
+
         const fd = new FormData();
         const ext =
           ({ "audio/webm": "webm", "audio/mp4": "mp4" } as Record<string, string>)[mediaType] ??
           "webm";
         fd.append("file", blob, `recording.${ext}`);
-        fd.append("revise", "1");
         const sttModel =
           typeof localStorage === "undefined" ? null : localStorage.getItem(STT_MODEL_KEY);
         if (isSTTModel(sttModel)) fd.append("sttModel", sttModel);
         const sttFallbackModel =
           typeof localStorage === "undefined" ? null : localStorage.getItem(STT_FALLBACK_MODEL_KEY);
         if (isSTTModel(sttFallbackModel)) fd.append("sttFallbackModel", sttFallbackModel);
-        const { data } = await supabase.auth.getSession();
-        const token = data.session?.access_token;
-        const res = await fetch("/api/transcribe", {
+
+        const res = await authedFetch("/api/transcribe", {
           method: "POST",
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           body: fd,
         });
         if (!res.ok) throw new Error(await res.text());
@@ -251,12 +276,12 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
           return;
         }
         setTranscript(text);
-        await sendText(text);
+        setState("idle");
       } catch (err) {
         setFriendlyError("transcription-failed", err instanceof Error ? err.message : undefined);
       }
     },
-    [sendText, setFriendlyError],
+    [setFriendlyError],
   );
 
   const start = useCallback(async () => {
@@ -283,6 +308,7 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
         setFriendlyError("unsupported-recorder");
         return;
       }
+      const startTime = Date.now();
       const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
@@ -292,7 +318,8 @@ export function useVoiceInteraction(options: VoiceInteractionOptions): UseVoiceI
         stream.getTracks().forEach((track) => track.stop());
         if (abortRecordingRef.current) return;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
-        if (blob.size < MIN_AUDIO_BYTES) {
+        const duration = Date.now() - startTime;
+        if (duration < 1000 || blob.size < 4000) {
           setFriendlyError("short-recording");
           return;
         }
