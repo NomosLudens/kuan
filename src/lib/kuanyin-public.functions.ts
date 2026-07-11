@@ -510,7 +510,22 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     norm.includes("agenda livre") ||
     norm.includes("tem vaga") ||
     norm.includes("vagas disponiveis") ||
-    norm.includes("quais dias")
+    norm.includes("quais dias") ||
+    norm.includes("horario de funcionamento") ||
+    norm.includes("horário de funcionamento") ||
+    norm.includes("como funciona o agendamento") ||
+    norm.includes("atendem hoje") ||
+    norm.includes("atende hoje")
+  ) {
+    return null;
+  }
+
+  // 3. Consultas não-operacionais de status de pedidos anteriores
+  if (
+    norm.includes("status do meu pedido") ||
+    norm.includes("status de pedido") ||
+    norm.includes("acompanhar meu pedido") ||
+    norm.includes("acompanhar pedido")
   ) {
     return null;
   }
@@ -526,29 +541,35 @@ export function parseDeterministicPublicIntent(message: string): DeterministicPu
     norm.includes("enviei o comprovante") ||
     norm.includes("segue o pix");
 
-  // Check Appointment
+  // Check Appointment - exige intenção explícita
   const isAppt =
     !isPayment &&
-    (norm.includes("horario") ||
-      norm.includes("agendamento") ||
-      norm.includes("agendar") ||
-      norm.includes("marcar"));
+    (norm.includes("quero agendar") ||
+      norm.includes("quero marcar") ||
+      norm.includes("gostaria de reservar") ||
+      norm.includes("marcar para") ||
+      norm.includes("agendamento para") ||
+      norm.includes("gostaria de agendar") ||
+      norm.includes("gostaria de marcar"));
 
   // Check Order/Budget - exige intenção comercial explícita
   const isOrder =
     !isPayment &&
     !isAppt &&
     (norm.includes("orcamento") ||
+      norm.includes("orçamento") ||
       norm.includes("fazer um pedido") ||
       norm.includes("fazer pedido") ||
       norm.includes("comprar") ||
-      (norm.includes("pedido") && !norm.includes("pedir")) ||
       (norm.includes("pedir") &&
         (norm.includes("orcamento") ||
+          norm.includes("orçamento") ||
           norm.includes("preco") ||
+          norm.includes("preço") ||
           norm.includes("valor") ||
           norm.includes("comprar") ||
-          norm.includes("servico"))));
+          norm.includes("servico") ||
+          norm.includes("serviço"))));
 
   if (!isAppt && !isOrder && !isPayment) return null;
 
