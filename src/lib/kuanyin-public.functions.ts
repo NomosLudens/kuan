@@ -726,6 +726,7 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
           client_note: data.notes || null,
           requested_at: new Date().toISOString(),
           requested_timezone: data.timezone || null,
+          thread_id: data.threadId || null,
         },
       } as never)
       .select("id, status")
@@ -814,6 +815,7 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
           estimated_budget: data.estimated_budget || null,
           client_note: data.notes || null,
           requested_at: new Date().toISOString(),
+          thread_id: data.threadId || null,
         },
       } as never)
       .select("id, status")
@@ -897,6 +899,7 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
         client_id: client.clientId,
         payer_note: data.payer_note || null,
         received_at: new Date().toISOString(),
+        thread_id: data.threadId || null,
       },
     } as never);
 
