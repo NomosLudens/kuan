@@ -44,6 +44,8 @@ const AppointmentRequestInput = GuardianInput.extend({
   starts_at: z.string().trim().min(1).max(80),
   timezone: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(1200).optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const OrderRequestInput = GuardianInput.extend({
@@ -51,6 +53,8 @@ const OrderRequestInput = GuardianInput.extend({
   description: z.string().trim().min(3).max(2000),
   estimated_budget: z.string().trim().max(160).optional(),
   notes: z.string().trim().max(1200).optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const ProofInput = GuardianInput.extend({
@@ -61,6 +65,8 @@ const ProofInput = GuardianInput.extend({
   payer_note: z.string().trim().max(1000).optional(),
   appointment_id: z.string().uuid().optional(),
   order_id: z.string().uuid().optional(),
+  threadId: z.string().uuid().optional(),
+  visitorKey: z.string().trim().max(120).optional(),
 });
 
 const PublicChatInput = GuardianInput.extend({
@@ -436,6 +442,159 @@ export const getGuardianPublicPage = createServerFn({ method: "POST" })
     };
   });
 
+export function validatePublicAppointmentStatus(status: string): string {
+  if (status !== "proposed") {
+    throw new Error("Public clients can only create pending requests. Confirmation is guardian-only.");
+  }
+  return "proposed";
+}
+
+export function validatePublicOrderStatus(status: string): string {
+  if (status !== "proposed") {
+    throw new Error("Public clients can only create pending requests. Confirmation is guardian-only.");
+  }
+  return "proposed";
+}
+
+export function validatePublicPaymentStatus(status: string): string {
+  if (status !== "received_proof") {
+    throw new Error("Public clients can only create pending requests. Confirmation is guardian-only.");
+  }
+  return "received_proof";
+}
+
+export interface DeterministicPublicIntent {
+  type: "appointment" | "order" | "payment";
+  client_name?: string;
+  client_phone?: string;
+  client_email?: string;
+  service_name?: string;
+  starts_at?: string;
+  description?: string;
+  amount_cents?: number;
+  comprovante_ref?: string;
+}
+
+export function parseDeterministicPublicIntent(message: string): DeterministicPublicIntent | null {
+  const norm = message
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  // 1. Check Payment/Proof
+  const isPayment =
+    norm.includes("comprovante") ||
+    norm.includes("enviei o pix") ||
+    norm.includes("comprovante do pix") ||
+    norm.includes("paguei") ||
+    norm.includes("pagamento");
+
+  // 2. Check Appointment
+  const isAppt =
+    !isPayment && (
+      norm.includes("horario") ||
+      norm.includes("agendamento") ||
+      norm.includes("agendar")
+    );
+
+  // 3. Check Order/Budget
+  const isOrder =
+    !isPayment && !isAppt && (
+      norm.includes("orcamento") ||
+      norm.includes("pedido") ||
+      norm.includes("pedir")
+    );
+
+  if (!isAppt && !isOrder && !isPayment) return null;
+
+  // Helpers to extract contact fields
+  let client_name: string | undefined;
+  let client_phone: string | undefined;
+  let client_email: string | undefined;
+
+  // Extract Name: "meu nome é Ana", "nome: Ana", "me chamo Ana", "sou o Ana"
+  const nameMatch = message.match(/(?:meu nome [eé]|me chamo|nome:|sou o|sou a)\s+([A-Za-zÀ-ÿ0-9\s]+?)(?:\.|,|\n|e meu|whatsapp|whats|celular|telefone|email|$)/i);
+  if (nameMatch) {
+    client_name = nameMatch[1].trim();
+  }
+
+  // Extract Phone/WhatsApp: "whatsapp é 11999999999", "celular é ...", "telefone: ..."
+  // or a general sequence of 8-11 digits
+  const phoneMatch = message.match(/(?:whatsapp|whats|celular|telefone|contato)(?:\s+e|\s*:)?\s*([0-9\s()-]{8,15})/i) ||
+                     message.match(/\b(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9?\d{4}[-\s]?\d{4}\b/);
+  if (phoneMatch) {
+    client_phone = (phoneMatch[1] || phoneMatch[0]).replace(/[^0-9]/g, "");
+  }
+
+  // Extract Email
+  const emailMatch = message.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+  if (emailMatch) {
+    client_email = emailMatch[0];
+  }
+
+  if (isAppt) {
+    // Extract Starts At: look for "amanhã às 14h", or similar date-time expression
+    let starts_at: string | undefined;
+    const dtMatch = message.match(/(?:para|as|em|dia)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i);
+    if (dtMatch) {
+      starts_at = dtMatch[1].trim();
+    } else {
+      starts_at = "Amanhã às 14h"; // reasonable default
+    }
+
+    return {
+      type: "appointment",
+      client_name,
+      client_phone,
+      client_email,
+      service_name: "Atendimento",
+      starts_at,
+    };
+  }
+
+  if (isOrder) {
+    // Extract description: everything after "orçamento para" or similar, or the whole message
+    let description: string | undefined;
+    const descMatch = message.match(/(?:orcamento para|pedido de|sobre)\s+([A-Za-zÀ-ÿ0-9\s/:-]+?)(?:\.|,|\n|$)/i);
+    if (descMatch) {
+      description = descMatch[1].trim();
+    } else {
+      description = message;
+    }
+
+    return {
+      type: "order",
+      client_name,
+      client_phone,
+      client_email,
+      description,
+    };
+  }
+
+  if (isPayment) {
+    // Extract amount if any
+    let amount_cents = 1000; // default to 10.00 R$ if not specified
+    const amtMatch = message.match(/(?:R\$|R\s*|valor de)\s*([0-9.,]+)/i);
+    if (amtMatch) {
+      const parsedAmt = parseFloat(amtMatch[1].replace(/\./g, "").replace(",", "."));
+      if (!isNaN(parsedAmt)) {
+        amount_cents = Math.round(parsedAmt * 100);
+      }
+    }
+
+    return {
+      type: "payment",
+      client_name,
+      client_phone,
+      client_email,
+      amount_cents,
+      comprovante_ref: "Texto informativo de comprovante",
+    };
+  }
+
+  return null;
+}
+
 export const getGuardianPublicConversation = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PublicConversationInput.parse(input))
   .handler(async ({ data }) => {
@@ -485,6 +644,10 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     if (!startsAt) return { ok: false as const, reason: "invalid_datetime", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicAppointmentStatus("proposed");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: appointment, error: appointmentError } = await supabaseAdmin
@@ -496,7 +659,7 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
         service_name: data.service_name,
         starts_at: startsAt,
         ends_at: null,
-        status: "proposed",
+        status,
         notes: data.notes || null,
         metadata: {
           source: "public_guardian_page",
@@ -526,7 +689,29 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
         error: appointmentError?.message,
       },
     });
+
     if (appointmentError) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `📬 [Solicitação de Agendamento] Agendamento solicitado para o serviço "${data.service_name}" em ${data.starts_at}.`
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          "Sua solicitação de agendamento foi registrada e enviada para o meu Guardião. Ela está pendente de aprovação e você será avisado assim que houver uma resposta!"
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for appointment request:", err);
+      }
+    }
+
     return { ok: true as const, appointment, traceId };
   });
 
@@ -550,6 +735,10 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicOrderStatus("proposed");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: order, error } = await supabaseAdmin
@@ -559,7 +748,7 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
         business_context_id: ctx.id,
         client_id: client.clientId,
         description: data.description,
-        status: "proposed",
+        status,
         metadata: {
           source: "public_guardian_page",
           guardian_slug: ctx.publicSlug,
@@ -583,7 +772,29 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
       route: `/g/${ctx.publicSlug}`,
       metadata: { orderId: (order as { id?: string } | null)?.id, error: error?.message },
     });
+
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `📝 [Solicitação de Orçamento/Pedido] Orçamento solicitado para: "${data.description}"`
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          "Registrei a sua solicitação de orçamento/pedido. Meu Guardião analisará a descrição e os detalhes informados em breve."
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for order request:", err);
+      }
+    }
+
     return { ok: true as const, order, traceId };
   });
 
@@ -607,6 +818,10 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
+
+    // Public clients can only create pending requests. Confirmation is guardian-only.
+    const status = validatePublicPaymentStatus("received_proof");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { error } = await supabaseAdmin.from("kuanyin_payments").insert({
@@ -616,7 +831,7 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
       amount_cents: data.amount_cents,
       method: data.method || null,
       comprovante_ref: data.comprovante_ref || null,
-      status: "received_proof",
+      status,
       metadata: {
         source: "public_guardian_page",
         guardian_slug: ctx.publicSlug,
@@ -638,9 +853,35 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
       userId: ctx.user_id,
       guardianId: ctx.guardianId,
       route: `/g/${ctx.publicSlug}`,
-      metadata: { error: error?.message, status: "received_proof" },
+      metadata: { error: error?.message, status },
     });
+
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
+
+    // Link request to Chat Thread if provided
+    if (data.threadId && data.visitorKey) {
+      try {
+        const formattedAmount = (data.amount_cents / 100).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "visitor",
+          `💵 [Envio de Comprovante] Comprovante de pagamento enviado no valor de ${formattedAmount}.${data.comprovante_ref ? ` Referência: ${data.comprovante_ref}` : ""}`
+        );
+        await appendPublicChatMessage(
+          ctx,
+          data.threadId,
+          "kuanyin",
+          `Recebi o comprovante de ${formattedAmount}. Ele já foi encaminhado para a conferência e conciliação do meu Guardião.`
+        );
+      } catch (err) {
+        console.error("Failed to append public chat message for proof submission:", err);
+      }
+    }
+
     return { ok: true as const, traceId };
   });
 
@@ -666,6 +907,87 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
       const answer = getPublicClientOutOfScopeReply(ctx.nome, blockCheck.sexual);
       await appendPublicChatMessage(ctx, thread.id, "kuanyin", answer);
       return { ok: true as const, threadId: thread.id, answer };
+    }
+
+    // 2. Deterministic Text Intent Parser
+    const parsedIntent = parseDeterministicPublicIntent(data.message);
+    if (parsedIntent) {
+      let replyMessage = "Entendi perfeitamente!";
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+      // Auto-resolve or create public client
+      const clientInput = {
+        client_name: parsedIntent.client_name || data.visitorName || "Visitante",
+        client_phone: parsedIntent.client_phone || undefined,
+        client_email: parsedIntent.client_email || undefined,
+      };
+      const client = await findOrCreatePublicClient(ctx, clientInput);
+
+      if (client.ok) {
+        if (parsedIntent.type === "appointment" && parsedIntent.starts_at) {
+          const startsAt = normalizePublicDateTime(parsedIntent.starts_at) || new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+          await supabaseAdmin
+            .from("kuanyin_appointments")
+            .insert({
+              user_id: ctx.user_id,
+              business_context_id: ctx.id,
+              client_id: client.clientId,
+              service_name: parsedIntent.service_name || "Atendimento",
+              starts_at: startsAt,
+              ends_at: null,
+              status: "proposed",
+              notes: `Registrado automaticamente via texto determinístico no chat público.`,
+              metadata: {
+                source: "public_chat_deterministic",
+                guardian_slug: ctx.publicSlug,
+                requested_at: new Date().toISOString(),
+              },
+            } as never);
+
+          replyMessage = `Prontinho! Registrei sua solicitação de agendamento para o dia/horário: ${parsedIntent.starts_at}. Ela está pendente de aprovação pelo meu Guardião.`;
+        } else if (parsedIntent.type === "order" && parsedIntent.description) {
+          await supabaseAdmin
+            .from("kuanyin_orders")
+            .insert({
+              user_id: ctx.user_id,
+              business_context_id: ctx.id,
+              client_id: client.clientId,
+              description: parsedIntent.description,
+              status: "proposed",
+              metadata: {
+                source: "public_chat_deterministic",
+                guardian_slug: ctx.publicSlug,
+                requested_at: new Date().toISOString(),
+              },
+            } as never);
+
+          replyMessage = `Perfeito! Registrei seu pedido de orçamento para: "${parsedIntent.description}". Meu Guardião irá analisar e responder em breve.`;
+        } else if (parsedIntent.type === "payment" && parsedIntent.amount_cents) {
+          const formattedAmount = (parsedIntent.amount_cents / 100).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+          await supabaseAdmin
+            .from("kuanyin_payments")
+            .insert({
+              user_id: ctx.user_id,
+              amount_cents: parsedIntent.amount_cents,
+              status: "received_proof",
+              comprovante_ref: "Texto informativo de comprovante do chat",
+              metadata: {
+                source: "public_chat_deterministic",
+                guardian_slug: ctx.publicSlug,
+                client_id: client.clientId,
+                received_at: new Date().toISOString(),
+              },
+            } as never);
+
+          replyMessage = `Excelente! Recebi o seu aviso de comprovante de pagamento no valor de ${formattedAmount}. Já encaminhei para meu Guardião conferir.`;
+        }
+      }
+
+      await appendPublicChatMessage(ctx, thread.id, "kuanyin", replyMessage);
+      return { ok: true as const, threadId: thread.id, answer: replyMessage };
     }
 
     if (await isGuardianDailyCapExceeded(ctx.guardianId)) {
