@@ -32,6 +32,8 @@ import { isSTTModel, STT_FALLBACK_MODEL_KEY, STT_MODEL_KEY } from "@/lib/stt-mod
 import { KuanyinActionCard } from "@/components/KuanyinActionCard";
 import { extractActions } from "@/lib/kuanyin-action";
 import { sanitizeAssistantOutput } from "@/lib/sanitize-assistant-output";
+import { authedFetch } from "@/lib/authed-fetch";
+import { calculateAudioRMS } from "@/lib/voice/use-voice-interaction";
 
 // Faceta "kharis" = superfície de cuidado neurodivergente (antigo valor de enum 'klio',
 // renomeado em 20260626010000).
@@ -448,10 +450,7 @@ export function ChatView({ threadId }: ChatViewProps) {
         api: "/api/chat",
         body: { facet, threadId, chatModel: activeChatModel },
         fetch: async (input, init) => {
-          const { data } = await supabase.auth.getSession();
-          const token = data.session?.access_token;
           const headers = new Headers(init?.headers);
-          if (token) headers.set("Authorization", `Bearer ${token}`);
 
           let body = init?.body;
           if (typeof body === "string") {
@@ -476,7 +475,12 @@ export function ChatView({ threadId }: ChatViewProps) {
           const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
           try {
-            const res = await fetch(input, { ...init, headers, body, signal: controller.signal });
+            const res = await authedFetch(input, {
+              ...init,
+              headers,
+              body,
+              signal: controller.signal,
+            });
             if (!res.ok) {
               const detail = await res.text().catch(() => "");
               throw new Error(detail || `Falha ao enviar (HTTP ${res.status})`);
@@ -769,6 +773,14 @@ export function ChatView({ threadId }: ChatViewProps) {
           return;
         }
 
+        const rms = await calculateAudioRMS(blob);
+        if (rms <= 0.005) {
+          setMicState("idle");
+          setKittPulse("voice", null);
+          toast.error("Não ouvi áudio suficiente para transcrever.");
+          return;
+        }
+
         setMicState("busy");
         setKittPulse("voice", "transcribing");
 
@@ -779,7 +791,6 @@ export function ChatView({ threadId }: ChatViewProps) {
               rec.mimeType.split(";")[0]
             ] ?? "webm";
           fd.append("file", blob, `recording.${ext}`);
-          fd.append("revise", "1"); // pede revisão por LLM no servidor (só no chat)
           // Respeita a escolha de STT do Guardião (mesmo padrão do modo fala).
           const sttModel =
             typeof localStorage === "undefined" ? null : localStorage.getItem(STT_MODEL_KEY);
@@ -789,11 +800,9 @@ export function ChatView({ threadId }: ChatViewProps) {
               ? null
               : localStorage.getItem(STT_FALLBACK_MODEL_KEY);
           if (isSTTModel(sttFallbackModel)) fd.append("sttFallbackModel", sttFallbackModel);
-          const { data } = await supabase.auth.getSession();
-          const token = data.session?.access_token;
-          const res = await fetch("/api/transcribe", {
+
+          const res = await authedFetch("/api/transcribe", {
             method: "POST",
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
             body: fd,
           });
           if (!res.ok) throw new Error(await res.text());
