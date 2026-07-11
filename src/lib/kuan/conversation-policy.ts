@@ -131,7 +131,15 @@ const NORMALIZED_SEXUAL_PHRASES = [
   "fetiche",
   "massagem sensual",
   "atendimento especial com duplo sentido",
-  "programa",
+  "fazer programa",
+  "faz programa",
+  "garota de programa",
+  "garoto de programa",
+  "programa sexual",
+  "pagar por programa",
+  "quanto e o programa",
+  "quanto é o programa",
+  "programa com final feliz",
   "pagamento por sexo",
 ];
 
