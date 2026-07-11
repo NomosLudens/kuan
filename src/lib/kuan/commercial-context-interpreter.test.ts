@@ -138,6 +138,14 @@ describe("Commercial Context Interpreter Pure Tests", () => {
 
     expect(result.intent).toBe("public_out_of_scope");
     expect(result.boundary).toBe("block_and_redirect");
+
+    const result2 = interpretCommercialContext({
+      audience: "public_client",
+      message: "Mudar de assunto.",
+    });
+
+    expect(result2.intent).toBe("public_out_of_scope");
+    expect(result2.boundary).toBe("block_and_redirect");
   });
 
   // Task 9 - Check 9: Client sexual content

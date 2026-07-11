@@ -95,7 +95,7 @@ function KuanChatPage() {
               variant="ghost"
               size="icon"
               aria-label="Sair"
-              className="h-11 w-11 rounded-full shrink-0 text-red-400 bg-red-950/10 border border-red-500/10 hover:bg-red-950/25 hover:text-red-300 active:scale-95 transition-all duration-200 flex items-center justify-center"
+              className="h-11 w-11 sm:hidden rounded-full shrink-0 text-red-400 bg-red-950/10 border border-red-500/10 hover:bg-red-950/25 hover:text-red-300 active:scale-95 transition-all duration-200 flex items-center justify-center"
               onClick={async () => {
                 const { supabase } = await import("@/integrations/supabase/client");
                 await supabase.auth.signOut();

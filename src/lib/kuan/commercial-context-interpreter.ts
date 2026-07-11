@@ -126,7 +126,10 @@ export function interpretCommercialContext(
       norm.includes("outro assunto") ||
       norm.includes("outros assuntos") ||
       norm.includes("falar de outra coisa") ||
-      norm.includes("outro tema")
+      norm.includes("outro tema") ||
+      norm.includes("mudar de assunto") ||
+      norm.includes("mudar o assunto") ||
+      norm.includes("vamos mudar de assunto")
     ) {
       result.intent = "public_out_of_scope";
       result.boundary = "block_and_redirect";
