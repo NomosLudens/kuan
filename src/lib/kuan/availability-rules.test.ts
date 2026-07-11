@@ -162,4 +162,97 @@ describe("Availability Rules Engine", () => {
       expect(summary).toContain("24h");
     });
   });
+
+  describe("Date-specific Overrides and exceptions", () => {
+    it("should parse nested default and overrides JSON structure", () => {
+      const nestedJSON = {
+        default: {
+          dias_atendimento: [1, 2, 3, 4, 5],
+          hora_inicio: "09:00",
+          hora_fim: "18:00",
+          duracao_padrao_minutos: 60,
+        },
+        overrides: [
+          {
+            label: "Feriado",
+            startDate: "2026-07-15",
+            endDate: "2026-07-15",
+            days: [],
+            startTime: null,
+            endTime: null,
+            notes: "Recesso nacional",
+          },
+          {
+            label: "Plantão",
+            startDate: "2026-07-18",
+            endDate: "2026-07-19",
+            days: [6], // Sábado
+            startTime: "10:00",
+            endTime: "14:00",
+          },
+        ],
+      };
+
+      const rules = normalizeAvailabilityRules(nestedJSON);
+      expect(rules.days).toEqual([1, 2, 3, 4, 5]);
+      expect(rules.startTime).toBe("09:00");
+      expect(rules.overrides).toHaveLength(2);
+      expect(rules.overrides?.[0].label).toBe("Feriado");
+      expect(rules.overrides?.[0].startDate).toBe("2026-07-15");
+      expect(rules.overrides?.[0].days).toEqual([]);
+      expect(rules.overrides?.[1].label).toBe("Plantão");
+      expect(rules.overrides?.[1].days).toEqual([6]);
+    });
+
+    it("should apply override rules inside override date range", () => {
+      const rules = {
+        days: [1, 2, 3, 4, 5], // Seg-Sex
+        startTime: "09:00",
+        endTime: "18:00",
+        defaultDurationMinutes: 60,
+        minimumNoticeHours: 0,
+        blockConfirmedConflicts: true,
+        unavailableMessage: "",
+        notes: null,
+        overrides: [
+          {
+            label: "Feriado",
+            startDate: "2026-07-15", // Quarta-feira
+            endDate: "2026-07-15",
+            days: [], // Nenhum dia disponível
+            startTime: null,
+            endTime: null,
+          },
+          {
+            label: "Plantão Especial Sábado",
+            startDate: "2026-07-18", // Sábado
+            endDate: "2026-07-18",
+            days: [6], // Sábado permitido
+            startTime: "10:00",
+            endTime: "14:00",
+          },
+        ],
+      };
+
+      // 1. Quarta-feira 15 de Julho deve ser bloqueada devido ao recesso (overrides days: [])
+      const holidaySlot = new Date("2026-07-15T12:00:00");
+      expect(isWithinAvailabilityRules(holidaySlot, rules)).toBe(false);
+
+      // 2. Outra quarta-feira qualquer (22 de Julho) deve ser permitida normalmente
+      const normalWedSlot = new Date("2026-07-22T12:00:00");
+      expect(isWithinAvailabilityRules(normalWedSlot, rules)).toBe(true);
+
+      // 3. Sábado 18 de Julho deve ser permitido no horário do plantão
+      const dutySlotValid = new Date("2026-07-18T11:00:00");
+      expect(isWithinAvailabilityRules(dutySlotValid, rules)).toBe(true);
+
+      // 4. Sábado 18 de Julho fora do horário de plantão deve ser bloqueado
+      const dutySlotInvalid = new Date("2026-07-18T16:00:00");
+      expect(isWithinAvailabilityRules(dutySlotInvalid, rules)).toBe(false);
+
+      // 5. Outro sábado qualquer (25 de Julho) deve ser bloqueado
+      const normalSatSlot = new Date("2026-07-25T11:00:00");
+      expect(isWithinAvailabilityRules(normalSatSlot, rules)).toBe(false);
+    });
+  });
 });

@@ -119,6 +119,23 @@ function ConfigPage() {
   const [guardianMetadata, setGuardianMetadata] = useState<GuardianMetadata>({});
   const [loading, setLoading] = useState(true);
 
+  const activeOverride = rules.overrides?.[0] || {
+    startDate: "",
+    endDate: "",
+    days: [],
+    startTime: "",
+    endTime: "",
+    notes: "",
+  };
+
+  const updateOverride = (fields: Partial<typeof activeOverride>) => {
+    const updated = { ...activeOverride, ...fields };
+    setRules({
+      ...rules,
+      overrides: [updated],
+    });
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -188,14 +205,17 @@ function ConfigPage() {
           precos: textToJson(form.precos_text),
           formas_pagamento: linesToArray(form.formas_pagamento_text),
           regras_agenda: {
-            dias_atendimento: rules.days,
-            hora_inicio: rules.startTime,
-            hora_fim: rules.endTime,
-            duracao_padrao_minutos: rules.defaultDurationMinutes,
-            antecedencia_minima_horas: rules.minimumNoticeHours,
-            bloquear_conflito_confirmado: rules.blockConfirmedConflicts,
-            mensagem_indisponivel: rules.unavailableMessage,
-            observacoes: rules.notes,
+            default: {
+              dias_atendimento: rules.days,
+              hora_inicio: rules.startTime,
+              hora_fim: rules.endTime,
+              duracao_padrao_minutos: rules.defaultDurationMinutes,
+              antecedencia_minima_horas: rules.minimumNoticeHours,
+              bloquear_conflito_confirmado: rules.blockConfirmedConflicts,
+              mensagem_indisponivel: rules.unavailableMessage,
+              observacoes: rules.notes,
+            },
+            overrides: (rules.overrides || []).filter((o) => o.startDate && o.endDate),
           } as any,
           limites_decisao: textToJson(form.limites_decisao_text),
           regras_escalonamento: textToJson(form.regras_escalonamento_text),
@@ -548,6 +568,140 @@ function ConfigPage() {
               value={rules.unavailableMessage}
               onChange={(e) => setRules({ ...rules, unavailableMessage: e.target.value })}
             />
+          </div>
+
+          {/* Exceção por período */}
+          <div className="border-t border-[color:var(--border)] pt-4 mt-4 space-y-4">
+            <div>
+              <h4 className="text-xs font-bold tracking-wider text-[color:var(--gold)] uppercase">
+                Exceção por período
+              </h4>
+              <p className="text-[11px] text-[color:var(--ivory-dim)] mt-1">
+                Defina um período específico com regras diferenciadas (ex: férias, feriados ou
+                plantão). Deixe as datas vazias se não quiser aplicar nenhuma exceção.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_inicio"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Data Inicial
+                </Label>
+                <Input
+                  id="exc_inicio"
+                  type="date"
+                  value={activeOverride.startDate || ""}
+                  onChange={(e) => updateOverride({ startDate: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_fim"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Data Final
+                </Label>
+                <Input
+                  id="exc_fim"
+                  type="date"
+                  value={activeOverride.endDate || ""}
+                  onChange={(e) => updateOverride({ endDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase">
+                Dias de atendimento na exceção
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Dom", value: 0 },
+                  { label: "Seg", value: 1 },
+                  { label: "Ter", value: 2 },
+                  { label: "Qua", value: 3 },
+                  { label: "Qui", value: 4 },
+                  { label: "Sex", value: 5 },
+                  { label: "Sáb", value: 6 },
+                ].map((day) => {
+                  const checked = activeOverride.days.includes(day.value);
+                  return (
+                    <label
+                      key={`exc-${day.value}`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs cursor-pointer select-none transition-colors ${
+                        checked
+                          ? "bg-[color:var(--gold)]/20 border-[color:var(--gold)] text-[color:var(--gold)]"
+                          : "bg-transparent border-[color:var(--border)] text-[color:var(--ivory-dim)] hover:border-[color:var(--ivory-dim)]/50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={checked}
+                        onChange={(e) => {
+                          const newDays = e.target.checked
+                            ? [...activeOverride.days, day.value].sort((a, b) => a - b)
+                            : activeOverride.days.filter((d) => d !== day.value);
+                          updateOverride({ days: newDays });
+                        }}
+                      />
+                      <span>{day.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_hora_inicio"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Horário inicial na exceção
+                </Label>
+                <Input
+                  id="exc_hora_inicio"
+                  type="time"
+                  value={activeOverride.startTime ?? ""}
+                  onChange={(e) => updateOverride({ startTime: e.target.value || null })}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label
+                  htmlFor="exc_hora_fim"
+                  className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+                >
+                  Horário final na exceção
+                </Label>
+                <Input
+                  id="exc_hora_fim"
+                  type="time"
+                  value={activeOverride.endTime ?? ""}
+                  onChange={(e) => updateOverride({ endTime: e.target.value || null })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="exc_observacao"
+                className="text-[11px] font-semibold text-[color:var(--ivory-dim)] uppercase"
+              >
+                Observação / Motivo da exceção
+              </Label>
+              <Input
+                id="exc_observacao"
+                placeholder="Ex: recesso de fim de ano ou horário estendido temporário"
+                value={activeOverride.notes ?? ""}
+                onChange={(e) => updateOverride({ notes: e.target.value })}
+              />
+            </div>
           </div>
         </div>
         <div className="space-y-1 sm:col-span-2">

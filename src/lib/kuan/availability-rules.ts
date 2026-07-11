@@ -1,3 +1,13 @@
+export interface OverrideRule {
+  label?: string;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string; // "YYYY-MM-DD"
+  days: number[];
+  startTime: string | null;
+  endTime: string | null;
+  notes?: string;
+}
+
 export interface CanonicalRules {
   days: number[]; // 0 Sunday, ..., 6 Saturday
   startTime: string | null; // "HH:mm"
@@ -7,6 +17,7 @@ export interface CanonicalRules {
   blockConfirmedConflicts: boolean;
   unavailableMessage: string;
   notes: string | null;
+  overrides?: OverrideRule[];
 }
 
 const DEFAULT_UNAVAILABLE_MESSAGE =
@@ -26,17 +37,25 @@ export function normalizeAvailabilityRules(value: unknown): CanonicalRules {
     blockConfirmedConflicts: true,
     unavailableMessage: DEFAULT_UNAVAILABLE_MESSAGE,
     notes: null,
+    overrides: [],
   };
 
   if (!value) return rules;
 
   let obj: Record<string, unknown> = {};
+  let rawOverrides: any[] | null = null;
 
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-        obj = JSON.parse(trimmed);
+        const parsed = JSON.parse(trimmed);
+        if (parsed && parsed.default) {
+          obj = parsed.default;
+          rawOverrides = parsed.overrides || null;
+        } else {
+          obj = parsed;
+        }
       } catch {
         obj = parseTextLinesToRecord(trimmed);
       }
@@ -46,7 +65,13 @@ export function normalizeAvailabilityRules(value: unknown): CanonicalRules {
   } else if (Array.isArray(value)) {
     obj = { dias_atendimento: value };
   } else if (typeof value === "object" && value !== null) {
-    obj = value as Record<string, unknown>;
+    const parsed = value as Record<string, any>;
+    if (parsed.default) {
+      obj = parsed.default;
+      rawOverrides = parsed.overrides || null;
+    } else {
+      obj = parsed;
+    }
   }
 
   // Normalizar Dias de Atendimento
@@ -133,6 +158,18 @@ export function normalizeAvailabilityRules(value: unknown): CanonicalRules {
   const rawNotes = obj.observacoes ?? obj.notes;
   if (typeof rawNotes === "string" && rawNotes.trim()) {
     rules.notes = rawNotes.trim();
+  }
+
+  if (rawOverrides && Array.isArray(rawOverrides)) {
+    rules.overrides = rawOverrides.map((ov: any) => ({
+      label: ov.label ?? undefined,
+      startDate: String(ov.startDate || ""),
+      endDate: String(ov.endDate || ""),
+      days: Array.isArray(ov.days) ? ov.days.map((d: any) => Number(d)) : [],
+      startTime: typeof ov.startTime === "string" ? parseTimeString(ov.startTime) : null,
+      endTime: typeof ov.endTime === "string" ? parseTimeString(ov.endTime) : null,
+      notes: ov.notes ?? undefined,
+    }));
   }
 
   return rules;
@@ -233,21 +270,71 @@ function parseTextLinesToRecord(text: string): Record<string, unknown> {
 }
 
 /**
+ * Procura um override aplicável para uma determinada data e, se encontrar, retorna-o.
+ * Caso contrário, retorna as regras padrão de dias e horários.
+ */
+export function getApplicableRule(
+  date: Date,
+  rules: CanonicalRules,
+): { days: number[]; startTime: string | null; endTime: string | null } {
+  if (rules.overrides && Array.isArray(rules.overrides)) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const dayStr = String(date.getDate()).padStart(2, "0");
+    const ymd = `${year}-${month}-${dayStr}`;
+
+    for (const ov of rules.overrides) {
+      if (ov.startDate && ov.endDate) {
+        if (ymd >= ov.startDate && ymd <= ov.endDate) {
+          return {
+            days: ov.days ?? [],
+            startTime: ov.startTime ?? null,
+            endTime: ov.endTime ?? null,
+          };
+        }
+      }
+    }
+  }
+
+  return {
+    days: rules.days,
+    startTime: rules.startTime,
+    endTime: rules.endTime,
+  };
+}
+
+/**
  * Valida se a data e o horário estão dentro das regras de dias e janelas de atendimento.
  */
 export function isWithinAvailabilityRules(date: Date, rules: CanonicalRules): boolean {
-  // Se não houver dias configurados, não bloquear
-  if (rules.days && rules.days.length > 0) {
+  const activeRule = getApplicableRule(date, rules);
+
+  // Se houver dias configurados na regra ativa, validar se o dia bate
+  if (activeRule.days && activeRule.days.length > 0) {
     const day = date.getDay(); // 0-6
-    if (!rules.days.includes(day)) {
+    if (!activeRule.days.includes(day)) {
+      return false;
+    }
+  } else {
+    // Se o override foi definido, mas a lista de dias é vazia, significa que não atende nenhum dia!
+    const isOverride =
+      rules.overrides &&
+      rules.overrides.some((ov) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const dayStr = String(date.getDate()).padStart(2, "0");
+        const ymd = `${year}-${month}-${dayStr}`;
+        return ov.startDate && ov.endDate && ymd >= ov.startDate && ymd <= ov.endDate;
+      });
+    if (isOverride) {
       return false;
     }
   }
 
-  // Se não houver horários configurados, não bloquear
-  if (rules.startTime && rules.endTime) {
-    const [startH, startM] = rules.startTime.split(":").map(Number);
-    const [endH, endM] = rules.endTime.split(":").map(Number);
+  // Se houver horários configurados na regra ativa, validar se a hora bate
+  if (activeRule.startTime && activeRule.endTime) {
+    const [startH, startM] = activeRule.startTime.split(":").map(Number);
+    const [endH, endM] = activeRule.endTime.split(":").map(Number);
 
     const hour = date.getHours();
     const minute = date.getMinutes();

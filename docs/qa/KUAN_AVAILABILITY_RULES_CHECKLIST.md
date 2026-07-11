@@ -38,7 +38,7 @@ Este documento descreve os fluxos de teste manuais e automatizados para validar 
 - [ ] Preencher nome, e-mail, telefone e observações.
 - [ ] Clicar em **"Solicitar Horário"**.
 - [ ] Validar que o fluxo de submissão ocorre com sucesso e a mensagem canônica é exibida:
-  > **"Solicitação recebida. O Guardião precisa confirmar antes de o horário estar reservado."**
+  > **"Solicitação de horário recebida. O Guardião precisa confirmar antes de o horário estar reservado."**
 - [ ] Validar que o agendamento foi salvo no banco de dados com o status `proposed`.
 
 ### Cenário 2.3: Tentativa em Horário Passado (Bloqueio)

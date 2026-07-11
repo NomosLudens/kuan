@@ -749,7 +749,7 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
       const { data: existingAppts, error: queryError } = await supabaseAdmin
         .from("kuanyin_appointments")
         .select("starts_at, ends_at")
-        .eq("business_context_id", ctx.id)
+        .or(`business_context_id.eq.${ctx.id},user_id.eq.${ctx.user_id}`)
         .eq("status", "confirmed");
 
       if (queryError) {
