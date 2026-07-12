@@ -13,9 +13,17 @@ import {
   confirmOrder,
   registerProof,
 } from "@/lib/kuanyin.functions";
+import {
+  upsertKuanBusinessPlan,
+  proposeKuanPlanDecision,
+  createKuanPlanMilestone,
+} from "@/lib/kuan-plan.functions";
 import type { KuanyinActionBlock } from "@/lib/kuanyin-action";
 
 const TYPE_LABEL: Record<KuanyinActionBlock["type"], string> = {
+  "kuanyin.plan.direction.propose": "Definir direção do plano",
+  "kuanyin.plan.decision.propose": "Registrar proposta de decisão",
+  "kuanyin.plan.milestone.propose": "Criar marco planejado",
   "kuanyin.client.create": "Cadastrar cliente",
   "kuanyin.appointment.propose": "Propor agendamento",
   "kuanyin.order.propose": "Propor pedido",
@@ -33,6 +41,9 @@ export function KuanyinActionCard({ action }: { action: KuanyinActionBlock }) {
   const proposeOrd = useServerFn(proposeOrder);
   const confirmOrd = useServerFn(confirmOrder);
   const regProof = useServerFn(registerProof);
+  const upsertPlan = useServerFn(upsertKuanBusinessPlan);
+  const proposeDecision = useServerFn(proposeKuanPlanDecision);
+  const createMilestone = useServerFn(createKuanPlanMilestone);
 
   const pretty = useMemo(
     () => prettifyData(action.type, action.data as Record<string, unknown>),
@@ -77,7 +88,46 @@ export function KuanyinActionCard({ action }: { action: KuanyinActionBlock }) {
     setState("running");
     try {
       const d = action.data as Record<string, unknown>;
-      if (action.type === "kuanyin.client.create") {
+      if (action.type === "kuanyin.plan.direction.propose") {
+        const row = (await upsertPlan({
+          data: {
+            current_direction: String(d.current_direction ?? ""),
+            mission: (d.mission as string) ?? null,
+            vision: (d.vision as string) ?? null,
+            objectives: Array.isArray(d.objectives) ? (d.objectives as string[]) : [],
+            strengths: Array.isArray(d.strengths) ? (d.strengths as string[]) : [],
+            challenges: Array.isArray(d.challenges) ? (d.challenges as string[]) : [],
+          },
+        })) as { id: string };
+        setResultId(row.id);
+        toast.success("Direção salva no plano.");
+      } else if (action.type === "kuanyin.plan.decision.propose") {
+        const row = (await proposeDecision({
+          data: {
+            title: String(d.title ?? ""),
+            decision_type: String(d.decision_type ?? "other"),
+            context: (d.context as string) ?? null,
+            decision: String(d.decision ?? ""),
+            rationale: (d.rationale as string) ?? null,
+            consequences: Array.isArray(d.consequences) ? (d.consequences as string[]) : [],
+            priority: String(d.priority ?? "medium"),
+            review_at: (d.review_at as string) ?? null,
+          },
+        })) as { id: string };
+        setResultId(row.id);
+        toast.success("Proposta de decisão registrada para revisão.");
+      } else if (action.type === "kuanyin.plan.milestone.propose") {
+        const row = (await createMilestone({
+          data: {
+            title: String(d.title ?? ""),
+            description: (d.description as string) ?? null,
+            starts_at: (d.starts_at as string) ?? null,
+            due_at: (d.due_at as string) ?? null,
+          },
+        })) as { id: string };
+        setResultId(row.id);
+        toast.success("Marco criado como planejado.");
+      } else if (action.type === "kuanyin.client.create") {
         const row = (await createClient({
           data: {
             nome: String(d.nome ?? d.client_name ?? "").trim() || "Sem nome",
@@ -244,7 +294,24 @@ function prettifyData(
     if (v === undefined || v === null || v === "") return;
     out.push({ k, v: typeof v === "string" ? v : JSON.stringify(v) });
   };
-  if (type === "kuanyin.client.create") {
+  if (type === "kuanyin.plan.direction.propose") {
+    push("direção", data.current_direction);
+    push("missão", data.mission);
+    push("visão", data.vision);
+    push("objetivos", data.objectives);
+  } else if (type === "kuanyin.plan.decision.propose") {
+    push("título", data.title);
+    push("tipo", data.decision_type);
+    push("decisão", data.decision);
+    push("motivo", data.rationale);
+    push("consequências", data.consequences);
+    push("revisão", fmtDate(data.review_at));
+  } else if (type === "kuanyin.plan.milestone.propose") {
+    push("título", data.title);
+    push("descrição", data.description);
+    push("início", fmtDate(data.starts_at));
+    push("prazo", fmtDate(data.due_at));
+  } else if (type === "kuanyin.client.create") {
     push("nome", data.nome ?? data.client_name);
     push("telefone", data.telefone);
     push("e-mail", data.email);
