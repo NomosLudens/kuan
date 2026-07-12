@@ -170,9 +170,7 @@ export const submitPortalProof = createServerFn({ method: "POST" })
       userId: tok.user_id,
       category: "portal_payment_proof",
       note: "Portal client payment proof submitted for review",
-      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents};token_id:${tok.id}`,
-      appointmentId: tok.scope === "appointment" ? (tok.appointment_id ?? undefined) : undefined,
-      orderId: tok.scope === "order" ? (tok.order_id ?? undefined) : undefined,
+      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents};token_id:${tok.id};appointment_id:${tok.scope === "appointment" ? (tok.appointment_id ?? "") : ""};order_id:${tok.scope === "order" ? (tok.order_id ?? "") : ""}`,
     });
 
     return { ok: true as const };
@@ -241,8 +239,7 @@ export const submitPortalDecision = createServerFn({ method: "POST" })
         userId: tok.user_id,
         category: "portal_client_decision",
         note: `Portal client submitted decision: ${decision}`,
-        excerpt: `decision:${decision};token_id:${tok.id}`,
-        appointmentId: tok.appointment_id,
+        excerpt: `decision:${decision};token_id:${tok.id};appointment_id:${tok.appointment_id}`,
       });
 
       return { ok: true as const };
@@ -292,8 +289,7 @@ export const submitPortalDecision = createServerFn({ method: "POST" })
         userId: tok.user_id,
         category: "portal_client_decision",
         note: `Portal client submitted decision: ${decision}`,
-        excerpt: `decision:${decision};token_id:${tok.id}`,
-        orderId: tok.order_id,
+        excerpt: `decision:${decision};token_id:${tok.id};order_id:${tok.order_id}`,
       });
 
       return { ok: true as const };

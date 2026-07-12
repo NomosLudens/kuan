@@ -1329,7 +1329,7 @@ export const createPortalToken = createServerFn({ method: "POST" })
 
     // Retrieve active business context for the user to assert strict context alignment
     const { data: bizCtx, error: ctxError } = await supabase
-      .from("kuanyin_business_contexts")
+      .from("business_contexts")
       .select("id")
       .eq("user_id", userId)
       .limit(1)

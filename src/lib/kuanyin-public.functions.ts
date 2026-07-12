@@ -1130,10 +1130,8 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
       userId: ctx.user_id,
       category: "public_payment_proof",
       note: "Public payment proof submitted for review",
-      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents}`,
+      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents};appointment_id:${data.appointment_id || ""};order_id:${data.order_id || ""}`,
       threadId: validatedThread?.id,
-      appointmentId: data.appointment_id,
-      orderId: data.order_id,
     });
 
     // Link request to Chat Thread if provided
