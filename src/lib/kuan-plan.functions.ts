@@ -332,6 +332,7 @@ export const supersedeKuanPlanDecision = createServerFn({ method: "POST" })
       },
     );
     if (error) throw new Error(error.message);
+    if (!created) throw new Error("A RPC não retornou a nova decisão substituta.");
     await log(
       db(context.supabase),
       owner.userId,

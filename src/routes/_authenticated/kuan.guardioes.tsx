@@ -188,7 +188,7 @@ function GuardioesPage() {
   }
 
   return (
-    <div className="contents">
+    <>
       <div className="mx-auto max-w-5xl space-y-5 px-3 py-6 sm:px-4">
         <section className="rounded-3xl border border-[color:var(--border)] bg-card/60 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -462,6 +462,6 @@ function GuardioesPage() {
         onOpenChange={(open) => !open && setPendingStatus(null)}
         onConfirm={() => pendingStatus && persistStatus(pendingStatus.id, pendingStatus.status)}
       />
-    </div>
+    </>
   );
 }

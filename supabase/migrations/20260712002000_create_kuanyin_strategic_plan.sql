@@ -80,42 +80,28 @@ DO $$ DECLARE r record; BEGIN
   END LOOP;
 END $$;
 
-CREATE OR REPLACE FUNCTION public.kuanyin_can_own_plan(p_guardian_id uuid, p_business_context_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
+CREATE OR REPLACE FUNCTION public.kuanyin_plan_owned(p_plan_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.kuanyin_business_plans p JOIN public.kuanyin_guardians g ON g.id = p.guardian_id WHERE p.id = p_plan_id AND g.user_id = auth.uid())
+$$;
+CREATE POLICY kuanyin_business_plans_owner_all ON public.kuanyin_business_plans FOR ALL TO authenticated
+  USING (EXISTS (
     SELECT 1
     FROM public.kuanyin_guardians g
-    JOIN public.business_contexts bc ON bc.id = p_business_context_id
-    WHERE g.id = p_guardian_id
+    JOIN public.business_contexts bc ON bc.id = business_context_id
+    WHERE g.id = guardian_id
       AND g.user_id = auth.uid()
-      AND g.business_context_id = p_business_context_id
+      AND g.business_context_id = business_context_id
       AND bc.user_id = auth.uid()
-  )
-$$;
-
-CREATE OR REPLACE FUNCTION public.kuanyin_plan_owned(p_plan_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
+  ))
+  WITH CHECK (EXISTS (
     SELECT 1
-    FROM public.kuanyin_business_plans p
-    WHERE p.id = p_plan_id
-      AND public.kuanyin_can_own_plan(p.guardian_id, p.business_context_id)
-  )
-$$;
-
-CREATE POLICY kuanyin_business_plans_owner_all ON public.kuanyin_business_plans FOR ALL TO authenticated
-  USING (public.kuanyin_can_own_plan(guardian_id, business_context_id))
-  WITH CHECK (public.kuanyin_can_own_plan(guardian_id, business_context_id));
+    FROM public.kuanyin_guardians g
+    JOIN public.business_contexts bc ON bc.id = business_context_id
+    WHERE g.id = guardian_id
+      AND g.user_id = auth.uid()
+      AND g.business_context_id = business_context_id
+      AND bc.user_id = auth.uid()
+  ));
 CREATE POLICY kuanyin_plan_decisions_owner_all ON public.kuanyin_plan_decisions FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
 CREATE POLICY kuanyin_plan_milestones_owner_all ON public.kuanyin_plan_milestones FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
 CREATE POLICY kuanyin_plan_review_cycles_owner_all ON public.kuanyin_plan_review_cycles FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
@@ -124,68 +110,6 @@ CREATE POLICY kuanyin_plan_links_owner_all ON public.kuanyin_plan_links FOR ALL 
 
 GRANT SELECT, INSERT, UPDATE ON public.kuanyin_business_plans, public.kuanyin_plan_decisions, public.kuanyin_plan_milestones, public.kuanyin_plan_review_cycles, public.kuanyin_plan_reviews, public.kuanyin_plan_links TO authenticated;
 GRANT DELETE ON public.kuanyin_plan_links TO authenticated;
-
-
-CREATE OR REPLACE FUNCTION public.kuanyin_supersede_plan_decision(
-  p_old_decision_id uuid,
-  p_title text,
-  p_decision_type text,
-  p_context text,
-  p_decision_text text,
-  p_rationale text,
-  p_consequences jsonb,
-  p_priority text,
-  p_review_at timestamptz,
-  p_accept_now boolean DEFAULT false
-)
-RETURNS public.kuanyin_plan_decisions
-LANGUAGE plpgsql
-SECURITY INVOKER
-SET search_path = public
-AS $$
-DECLARE
-  v_old public.kuanyin_plan_decisions%ROWTYPE;
-  v_created public.kuanyin_plan_decisions%ROWTYPE;
-BEGIN
-  SELECT * INTO v_old
-  FROM public.kuanyin_plan_decisions
-  WHERE id = p_old_decision_id
-    AND status IN ('accepted','in_review')
-  FOR UPDATE;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'A decisão original não pode ser substituída neste estado.';
-  END IF;
-
-  IF NOT public.kuanyin_plan_owned(v_old.plan_id) THEN
-    RAISE EXCEPTION 'A decisão original não pertence a este plano.';
-  END IF;
-
-  INSERT INTO public.kuanyin_plan_decisions (
-    plan_id, title, decision_type, context, decision_text, rationale, consequences,
-    priority, review_at, status, accepted_by, accepted_at
-  ) VALUES (
-    v_old.plan_id, p_title, p_decision_type, p_context, p_decision_text, p_rationale,
-    COALESCE(p_consequences, '[]'::jsonb), p_priority, p_review_at,
-    CASE WHEN p_accept_now THEN 'accepted' ELSE 'proposed' END,
-    CASE WHEN p_accept_now THEN auth.uid() ELSE NULL END,
-    CASE WHEN p_accept_now THEN now() ELSE NULL END
-  )
-  RETURNING * INTO v_created;
-
-  UPDATE public.kuanyin_plan_decisions
-  SET status = 'superseded', superseded_by = v_created.id
-  WHERE id = v_old.id;
-
-  RETURN v_created;
-END $$;
-
-GRANT EXECUTE
-ON FUNCTION public.kuanyin_supersede_plan_decision(
-  uuid, text, text, text, text, text, jsonb, text, timestamptz, boolean
-)
-TO authenticated;
-
 
 CREATE OR REPLACE FUNCTION public.kuanyin_validate_plan_relationships() RETURNS trigger
 LANGUAGE plpgsql
