@@ -35,10 +35,6 @@ export function canTransitionDecision(from: PlanDecisionStatus, to: PlanDecision
   return DECISION_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function canSupersedeDecision(status: PlanDecisionStatus): boolean {
-  return status === "accepted" || status === "in_review";
-}
-
 export function canTransitionMilestone(
   from: PlanMilestoneStatus,
   to: PlanMilestoneStatus,
