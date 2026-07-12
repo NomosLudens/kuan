@@ -73,6 +73,14 @@ const ProofInput = GuardianInput.extend({
   order_id: z.string().uuid().optional(),
   threadId: z.string().uuid().optional(),
   visitorKey: z.string().trim().max(120).optional(),
+}).superRefine((data, ctx) => {
+  if (data.appointment_id && data.order_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Não é permitido vincular o pagamento a um agendamento e a um pedido simultaneamente.",
+      path: ["appointment_id"],
+    });
+  }
 });
 
 const PublicChatInput = GuardianInput.extend({
@@ -312,6 +320,7 @@ type PublicThreadRow = {
   guardian_id: string;
   user_id: string;
   visitor_key: string | null;
+  business_context_id: string | null;
 };
 type PublicMessageRow = {
   id: string;
@@ -320,65 +329,91 @@ type PublicMessageRow = {
   created_at: string;
 };
 
-async function resolvePublicChatThread(
+async function resolveOwnedPublicThread(
   ctx: LoadedGuardian,
-  input: { threadId?: string; visitorKey?: string; visitorName?: string },
-): Promise<PublicThreadRow> {
+  input: { threadId?: string; visitorKey?: string; visitorName?: string; createIfMissing?: boolean },
+): Promise<PublicThreadRow | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const safeVisitorKey = input.visitorKey?.trim().slice(0, 120) || null;
-  let existing: PublicThreadRow | null = null;
+  
+  const threadId = input.threadId ? input.threadId.trim() : undefined;
+  const visitorKey = input.visitorKey?.trim() || undefined;
+  const normalizedVisitorKey = visitorKey ? visitorKey.slice(0, 120) : undefined;
 
-  if (input.threadId) {
-    const { data } = await supabaseAdmin
+  if (threadId) {
+    if (!normalizedVisitorKey) {
+      return null;
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from("kuanyin_public_chat_threads")
-      .select("id, guardian_id, user_id, visitor_key")
-      .eq("id", input.threadId)
+      .select("id, guardian_id, user_id, visitor_key, business_context_id")
+      .eq("id", threadId)
       .eq("guardian_id", ctx.guardianId)
       .eq("user_id", ctx.user_id)
+      .eq("visitor_key", normalizedVisitorKey)
+      .eq("business_context_id", ctx.id)
       .maybeSingle();
-    existing = data as unknown as PublicThreadRow | null;
-  }
 
-  if (!existing && safeVisitorKey) {
-    const { data } = await supabaseAdmin
-      .from("kuanyin_public_chat_threads")
-      .select("id, guardian_id, user_id, visitor_key")
-      .eq("guardian_id", ctx.guardianId)
-      .eq("user_id", ctx.user_id)
-      .eq("visitor_key", safeVisitorKey)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    existing = data as unknown as PublicThreadRow | null;
-  }
+    if (error || !data) {
+      return null;
+    }
 
-  if (existing) {
+    const existing = data as unknown as PublicThreadRow;
+    
     if (input.visitorName) {
       await supabaseAdmin
         .from("kuanyin_public_chat_threads")
         .update({ visitor_name: input.visitorName.slice(0, 120) } as never)
-        .eq("id", existing.id)
-        .eq("guardian_id", ctx.guardianId)
-        .eq("user_id", ctx.user_id);
+        .eq("id", existing.id);
     }
     return existing;
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("kuanyin_public_chat_threads")
-    .insert({
-      guardian_id: ctx.guardianId,
-      user_id: ctx.user_id,
-      business_context_id: ctx.id,
-      visitor_name: input.visitorName || null,
-      visitor_key: safeVisitorKey,
-      status: "open",
-    } as never)
-    .select("id, guardian_id, user_id, visitor_key")
-    .single();
+  if (normalizedVisitorKey) {
+    const { data, error } = await supabaseAdmin
+      .from("kuanyin_public_chat_threads")
+      .select("id, guardian_id, user_id, visitor_key, business_context_id")
+      .eq("guardian_id", ctx.guardianId)
+      .eq("user_id", ctx.user_id)
+      .eq("visitor_key", normalizedVisitorKey)
+      .eq("business_context_id", ctx.id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (error || !data) throw new Error(error?.message ?? "Falha ao criar conversa pública");
-  return data as unknown as PublicThreadRow;
+    if (data) {
+      const existing = data as unknown as PublicThreadRow;
+      if (input.visitorName) {
+        await supabaseAdmin
+          .from("kuanyin_public_chat_threads")
+          .update({ visitor_name: input.visitorName.slice(0, 120) } as never)
+          .eq("id", existing.id);
+      }
+      return existing;
+    }
+
+    if (input.createIfMissing) {
+      const { data: created, error: createError } = await supabaseAdmin
+        .from("kuanyin_public_chat_threads")
+        .insert({
+          guardian_id: ctx.guardianId,
+          user_id: ctx.user_id,
+          business_context_id: ctx.id,
+          visitor_name: input.visitorName || null,
+          visitor_key: normalizedVisitorKey,
+          status: "open",
+        } as never)
+        .select("id, guardian_id, user_id, visitor_key, business_context_id")
+        .single();
+
+      if (createError || !created) {
+        throw new Error(createError?.message ?? "Falha ao criar conversa pública");
+      }
+      return created as unknown as PublicThreadRow;
+    }
+  }
+
+  return null;
 }
 
 async function appendPublicChatMessage(
@@ -707,10 +742,11 @@ export const getGuardianPublicConversation = createServerFn({ method: "POST" })
     }
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found" };
-    const thread = await resolvePublicChatThread(ctx, {
+    const thread = await resolveOwnedPublicThread(ctx, {
       threadId: data.threadId,
       visitorKey: data.visitorKey,
     });
+    if (!thread) return { ok: false as const, reason: "not_found" };
     const messages = await loadPublicChatMessages(ctx, thread.id, 50);
     return {
       ok: true as const,
@@ -798,6 +834,17 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
       }
     }
 
+    let validatedThread: PublicThreadRow | null = null;
+    if (data.threadId) {
+      validatedThread = await resolveOwnedPublicThread(ctx, {
+        threadId: data.threadId,
+        visitorKey: data.visitorKey,
+      });
+      if (!validatedThread) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
+    }
+
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
 
@@ -850,17 +897,17 @@ export const requestGuardianAppointment = createServerFn({ method: "POST" })
     if (appointmentError) return { ok: false as const, reason: "supabase_error", traceId };
 
     // Link request to Chat Thread if provided
-    if (data.threadId && data.visitorKey) {
+    if (validatedThread) {
       try {
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "visitor",
           `📬 [Solicitação de Agendamento] Agendamento solicitado para o serviço "${data.service_name}" em ${data.starts_at}.`,
         );
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "kuanyin",
           "Solicitação de horário recebida. O Guardião precisa confirmar antes de o horário estar reservado.",
         );
@@ -890,6 +937,18 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
     }
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
+
+    let validatedThread: PublicThreadRow | null = null;
+    if (data.threadId) {
+      validatedThread = await resolveOwnedPublicThread(ctx, {
+        threadId: data.threadId,
+        visitorKey: data.visitorKey,
+      });
+      if (!validatedThread) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
+    }
+
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
 
@@ -934,17 +993,17 @@ export const requestGuardianOrder = createServerFn({ method: "POST" })
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
 
     // Link request to Chat Thread if provided
-    if (data.threadId && data.visitorKey) {
+    if (validatedThread) {
       try {
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "visitor",
           `📝 [Solicitação de Orçamento/Pedido] Orçamento solicitado para: "${data.description}"`,
         );
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "kuanyin",
           "Pedido registrado. A aceitação depende do Guardião.",
         );
@@ -974,13 +1033,54 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
     }
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found", traceId };
+
+    let validatedThread: PublicThreadRow | null = null;
+    if (data.threadId) {
+      validatedThread = await resolveOwnedPublicThread(ctx, {
+        threadId: data.threadId,
+        visitorKey: data.visitorKey,
+      });
+      if (!validatedThread) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Strictly verify that the targeted appointment or order exists and belongs to this business context
+    if (data.appointment_id) {
+      const { data: appointment, error: appointmentError } = await supabaseAdmin
+        .from("kuanyin_appointments")
+        .select("id")
+        .eq("id", data.appointment_id)
+        .eq("user_id", ctx.user_id)
+        .eq("business_context_id", ctx.id)
+        .maybeSingle();
+
+      if (appointmentError || !appointment) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
+    }
+
+    if (data.order_id) {
+      const { data: order, error: orderError } = await supabaseAdmin
+        .from("kuanyin_orders")
+        .select("id")
+        .eq("id", data.order_id)
+        .eq("user_id", ctx.user_id)
+        .eq("business_context_id", ctx.id)
+        .maybeSingle();
+
+      if (orderError || !order) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
+    }
+
     const client = await findOrCreatePublicClient(ctx, data);
     if (!client.ok) return { ok: false as const, reason: client.reason, traceId };
 
     // Public clients can only create pending requests. Confirmation is guardian-only.
     const status = validatePublicPaymentStatus("received_proof");
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { error } = await supabaseAdmin.from("kuanyin_payments").insert({
       user_id: ctx.user_id,
@@ -997,7 +1097,7 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
         client_id: client.clientId,
         payer_note: data.payer_note || null,
         received_at: new Date().toISOString(),
-        thread_id: data.threadId || null,
+        thread_id: validatedThread?.id || null,
       },
     } as never);
 
@@ -1017,8 +1117,21 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
 
     if (error) return { ok: false as const, reason: "supabase_error", traceId };
 
+    // Write to unified integrity log
+    const { writeKuanIntegrityLog } = await import("@/lib/kuanyin-integrity");
+    await writeKuanIntegrityLog({
+      supabase: supabaseAdmin,
+      userId: ctx.user_id,
+      category: "public_payment_proof",
+      note: "Public payment proof submitted for review",
+      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents}`,
+      threadId: validatedThread?.id,
+      appointmentId: data.appointment_id,
+      orderId: data.order_id,
+    });
+
     // Link request to Chat Thread if provided
-    if (data.threadId && data.visitorKey) {
+    if (validatedThread) {
       try {
         const formattedAmount = (data.amount_cents / 100).toLocaleString("pt-BR", {
           style: "currency",
@@ -1026,13 +1139,13 @@ export const submitGuardianPublicProof = createServerFn({ method: "POST" })
         });
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "visitor",
           `💵 [Envio de Comprovante] Comprovante de pagamento enviado no valor de ${formattedAmount}.${data.comprovante_ref ? ` Referência: ${data.comprovante_ref}` : ""}`,
         );
         await appendPublicChatMessage(
           ctx,
-          data.threadId,
+          validatedThread.id,
           "kuanyin",
           "Comprovante recebido. O pagamento ainda depende de verificação.",
         );
@@ -1064,11 +1177,15 @@ export const submitGuardianPublicContact = createServerFn({ method: "POST" })
     }
 
     try {
-      const thread = await resolvePublicChatThread(ctx, {
+      const thread = await resolveOwnedPublicThread(ctx, {
         threadId: data.threadId,
         visitorKey: data.visitorKey,
         visitorName: data.client_name,
+        createIfMissing: true,
       });
+      if (!thread) {
+        return { ok: false as const, reason: "not_found", traceId };
+      }
 
       // Public clients can only create pending requests. Confirmation is guardian-only.
       const formattedMsg = `📬 [Contato deixado] Nome: ${data.client_name}.${data.client_phone ? ` Telefone: ${data.client_phone}.` : ""}${data.client_email ? ` E-mail: ${data.client_email}.` : ""}`;
@@ -1094,11 +1211,13 @@ export const sendGuardianPublicMessage = createServerFn({ method: "POST" })
     }
     const ctx = await loadBusinessContext(data.guardianId);
     if (!ctx) return { ok: false as const, reason: "not_found" };
-    const thread = await resolvePublicChatThread(ctx, {
+    const thread = await resolveOwnedPublicThread(ctx, {
       threadId: data.threadId,
       visitorKey: data.visitorKey,
       visitorName: data.visitorName,
+      createIfMissing: true,
     });
+    if (!thread) return { ok: false as const, reason: "not_found" };
 
     await appendPublicChatMessage(ctx, thread.id, "visitor", data.message);
 

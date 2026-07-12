@@ -44,6 +44,38 @@ async function loadValidToken(token: string): Promise<PortalTokenRow | null> {
   const row = data as unknown as PortalTokenRow;
   if (row.revoked_at) return null;
   if (new Date(row.expires_at).getTime() < Date.now()) return null;
+
+  // Enforce Scope target-coherence & database existence validation
+  if (row.scope === "appointment") {
+    if (!row.appointment_id || row.order_id) {
+      return null;
+    }
+    const { data: appointment, error: apptError } = await supabaseAdmin
+      .from("kuanyin_appointments")
+      .select("id")
+      .eq("id", row.appointment_id)
+      .eq("user_id", row.user_id)
+      .maybeSingle();
+    if (apptError || !appointment) {
+      return null;
+    }
+  } else if (row.scope === "order") {
+    if (!row.order_id || row.appointment_id) {
+      return null;
+    }
+    const { data: order, error: ordError } = await supabaseAdmin
+      .from("kuanyin_orders")
+      .select("id")
+      .eq("id", row.order_id)
+      .eq("user_id", row.user_id)
+      .maybeSingle();
+    if (ordError || !order) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
   return row;
 }
 
@@ -130,6 +162,19 @@ export const submitPortalProof = createServerFn({ method: "POST" })
     };
     const { error } = await supabaseAdmin.from("kuanyin_payments").insert(payload as never);
     if (error) return { ok: false as const, reason: error.message };
+
+    // Write to unified integrity log
+    const { writeKuanIntegrityLog } = await import("@/lib/kuanyin-integrity");
+    await writeKuanIntegrityLog({
+      supabase: supabaseAdmin,
+      userId: tok.user_id,
+      category: "portal_payment_proof",
+      note: "Portal client payment proof submitted for review",
+      excerpt: `comprovante_ref:${data.comprovante_ref || ""};amount_cents:${data.amount_cents};token_id:${tok.id}`,
+      appointmentId: tok.scope === "appointment" ? (tok.appointment_id ?? undefined) : undefined,
+      orderId: tok.scope === "order" ? (tok.order_id ?? undefined) : undefined,
+    });
+
     return { ok: true as const };
   });
 
@@ -148,7 +193,25 @@ export const submitPortalDecision = createServerFn({ method: "POST" })
     const tok = await loadValidToken(data.token);
     if (!tok) return { ok: false as const, reason: "invalid_or_expired" };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const decision = data.accept ? "accepted" : "declined";
+
     if (tok.scope === "appointment" && tok.appointment_id) {
+      // Prevent transition overwrites on finalized states
+      const { data: appt, error: apptError } = await supabaseAdmin
+        .from("kuanyin_appointments")
+        .select("status")
+        .eq("id", tok.appointment_id)
+        .maybeSingle();
+
+      if (apptError || !appt) {
+        return { ok: false as const, reason: "not_found" };
+      }
+
+      if (["confirmed", "cancelled", "rejected"].includes(appt.status)) {
+        return { ok: false as const, reason: "invalid_state" };
+      }
+
       const patch = data.accept
         ? {
             metadata: {
@@ -170,9 +233,36 @@ export const submitPortalDecision = createServerFn({ method: "POST" })
         .update(patch as never)
         .eq("id", tok.appointment_id);
       if (error) return { ok: false as const, reason: error.message };
+
+      // Write to unified integrity log
+      const { writeKuanIntegrityLog } = await import("@/lib/kuanyin-integrity");
+      await writeKuanIntegrityLog({
+        supabase: supabaseAdmin,
+        userId: tok.user_id,
+        category: "portal_client_decision",
+        note: `Portal client submitted decision: ${decision}`,
+        excerpt: `decision:${decision};token_id:${tok.id}`,
+        appointmentId: tok.appointment_id,
+      });
+
       return { ok: true as const };
     }
     if (tok.scope === "order" && tok.order_id) {
+      // Prevent transition overwrites on finalized states
+      const { data: ord, error: ordError } = await supabaseAdmin
+        .from("kuanyin_orders")
+        .select("status")
+        .eq("id", tok.order_id)
+        .maybeSingle();
+
+      if (ordError || !ord) {
+        return { ok: false as const, reason: "not_found" };
+      }
+
+      if (["confirmed", "cancelled", "rejected"].includes(ord.status)) {
+        return { ok: false as const, reason: "invalid_state" };
+      }
+
       const patch = data.accept
         ? {
             metadata: {
@@ -194,6 +284,18 @@ export const submitPortalDecision = createServerFn({ method: "POST" })
         .update(patch as never)
         .eq("id", tok.order_id);
       if (error) return { ok: false as const, reason: error.message };
+
+      // Write to unified integrity log
+      const { writeKuanIntegrityLog } = await import("@/lib/kuanyin-integrity");
+      await writeKuanIntegrityLog({
+        supabase: supabaseAdmin,
+        userId: tok.user_id,
+        category: "portal_client_decision",
+        note: `Portal client submitted decision: ${decision}`,
+        excerpt: `decision:${decision};token_id:${tok.id}`,
+        orderId: tok.order_id,
+      });
+
       return { ok: true as const };
     }
     return { ok: false as const, reason: "invalid_scope" };
