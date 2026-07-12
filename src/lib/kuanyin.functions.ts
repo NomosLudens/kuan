@@ -1279,45 +1279,47 @@ export const listPayments = createServerFn({ method: "GET" })
 
 // ─── kuanyin_portal_tokens (links públicos) ──────────────────────────────────
 
-const TokenCreate = z.object({
-  scope: z.enum(["appointment", "order"]),
-  appointment_id: z.string().uuid().optional(),
-  order_id: z.string().uuid().optional(),
-  label: z.string().trim().max(200).optional(),
-  days_valid: z.number().int().min(1).max(60).optional(),
-}).superRefine((data, ctx) => {
-  if (data.scope === "appointment") {
-    if (!data.appointment_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "appointment_id é obrigatório para o escopo de appointment",
-        path: ["appointment_id"],
-      });
+const TokenCreate = z
+  .object({
+    scope: z.enum(["appointment", "order"]),
+    appointment_id: z.string().uuid().optional(),
+    order_id: z.string().uuid().optional(),
+    label: z.string().trim().max(200).optional(),
+    days_valid: z.number().int().min(1).max(60).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.scope === "appointment") {
+      if (!data.appointment_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "appointment_id é obrigatório para o escopo de appointment",
+          path: ["appointment_id"],
+        });
+      }
+      if (data.order_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "order_id não deve ser fornecido para o escopo de appointment",
+          path: ["order_id"],
+        });
+      }
+    } else if (data.scope === "order") {
+      if (!data.order_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "order_id é obrigatório para o escopo de order",
+          path: ["order_id"],
+        });
+      }
+      if (data.appointment_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "appointment_id não deve ser fornecido para o escopo de order",
+          path: ["appointment_id"],
+        });
+      }
     }
-    if (data.order_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "order_id não deve ser fornecido para o escopo de appointment",
-        path: ["order_id"],
-      });
-    }
-  } else if (data.scope === "order") {
-    if (!data.order_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "order_id é obrigatório para o escopo de order",
-        path: ["order_id"],
-      });
-    }
-    if (data.appointment_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "appointment_id não deve ser fornecido para o escopo de order",
-        path: ["appointment_id"],
-      });
-    }
-  }
-});
+  });
 
 export const createPortalToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
