@@ -7,6 +7,7 @@ import {
   Store,
   Calendar,
   ShieldAlert,
+  Map,
 } from "lucide-react";
 import { kuanyinApple } from "@/lib/brand-assets";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,16 @@ function KuanChatPage() {
               >
                 <Link to="/kuan/revisao">
                   <ShieldAlert className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Revisão
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 sm:h-8 rounded-full sm:rounded-xl px-2.5 sm:px-3 text-[10px] sm:text-xs shrink-0 bg-card/40 backdrop-blur-md border border-[color:var(--border)] hover:bg-card/85 text-[color:var(--ivory-dim)] hover:text-[color:var(--ivory)] hover:border-[color:var(--border-hover)] hover:shadow-[0_0_12px_rgba(236,72,153,0.12)] active:scale-95 transition-all duration-200"
+              >
+                <Link to="/kuan/plano">
+                  <Map className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" /> Plano
                 </Link>
               </Button>
               <Button

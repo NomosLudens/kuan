@@ -54,6 +54,7 @@ import { Route as ApiBridgeDecifrarSnapshotLocalRouteImport } from './routes/api
 import { Route as AuthenticatedTrilhaThreadIdRouteImport } from './routes/_authenticated/trilha.$threadId'
 import { Route as AuthenticatedKuanShowroomRouteImport } from './routes/_authenticated/kuan.showroom'
 import { Route as AuthenticatedKuanRevisaoRouteImport } from './routes/_authenticated/kuan.revisao'
+import { Route as AuthenticatedKuanPlanoRouteImport } from './routes/_authenticated/kuan.plano'
 import { Route as AuthenticatedKuanPedidosRouteImport } from './routes/_authenticated/kuan.pedidos'
 import { Route as AuthenticatedKuanPagamentosRouteImport } from './routes/_authenticated/kuan.pagamentos'
 import { Route as AuthenticatedKuanOnboardingRouteImport } from './routes/_authenticated/kuan.onboarding'
@@ -304,6 +305,11 @@ const AuthenticatedKuanRevisaoRoute =
     path: '/revisao',
     getParentRoute: () => AuthenticatedKuanRoute,
   } as any)
+const AuthenticatedKuanPlanoRoute = AuthenticatedKuanPlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
+  getParentRoute: () => AuthenticatedKuanRoute,
+} as any)
 const AuthenticatedKuanPedidosRoute =
   AuthenticatedKuanPedidosRouteImport.update({
     id: '/pedidos',
@@ -438,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
   '/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
   '/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/kuan/plano': typeof AuthenticatedKuanPlanoRoute
   '/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
   '/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
@@ -498,6 +505,7 @@ export interface FileRoutesByTo {
   '/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
   '/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
   '/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/kuan/plano': typeof AuthenticatedKuanPlanoRoute
   '/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
   '/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
@@ -561,6 +569,7 @@ export interface FileRoutesById {
   '/_authenticated/kuan/onboarding': typeof AuthenticatedKuanOnboardingRoute
   '/_authenticated/kuan/pagamentos': typeof AuthenticatedKuanPagamentosRoute
   '/_authenticated/kuan/pedidos': typeof AuthenticatedKuanPedidosRoute
+  '/_authenticated/kuan/plano': typeof AuthenticatedKuanPlanoRoute
   '/_authenticated/kuan/revisao': typeof AuthenticatedKuanRevisaoRoute
   '/_authenticated/kuan/showroom': typeof AuthenticatedKuanShowroomRoute
   '/_authenticated/trilha/$threadId': typeof AuthenticatedTrilhaThreadIdRoute
@@ -624,6 +633,7 @@ export interface FileRouteTypes {
     | '/kuan/onboarding'
     | '/kuan/pagamentos'
     | '/kuan/pedidos'
+    | '/kuan/plano'
     | '/kuan/revisao'
     | '/kuan/showroom'
     | '/trilha/$threadId'
@@ -684,6 +694,7 @@ export interface FileRouteTypes {
     | '/kuan/onboarding'
     | '/kuan/pagamentos'
     | '/kuan/pedidos'
+    | '/kuan/plano'
     | '/kuan/revisao'
     | '/kuan/showroom'
     | '/trilha/$threadId'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kuan/onboarding'
     | '/_authenticated/kuan/pagamentos'
     | '/_authenticated/kuan/pedidos'
+    | '/_authenticated/kuan/plano'
     | '/_authenticated/kuan/revisao'
     | '/_authenticated/kuan/showroom'
     | '/_authenticated/trilha/$threadId'
@@ -1097,6 +1109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKuanRevisaoRouteImport
       parentRoute: typeof AuthenticatedKuanRoute
     }
+    '/_authenticated/kuan/plano': {
+      id: '/_authenticated/kuan/plano'
+      path: '/plano'
+      fullPath: '/kuan/plano'
+      preLoaderRoute: typeof AuthenticatedKuanPlanoRouteImport
+      parentRoute: typeof AuthenticatedKuanRoute
+    }
     '/_authenticated/kuan/pedidos': {
       id: '/_authenticated/kuan/pedidos'
       path: '/pedidos'
@@ -1249,6 +1268,7 @@ interface AuthenticatedKuanRouteChildren {
   AuthenticatedKuanOnboardingRoute: typeof AuthenticatedKuanOnboardingRoute
   AuthenticatedKuanPagamentosRoute: typeof AuthenticatedKuanPagamentosRoute
   AuthenticatedKuanPedidosRoute: typeof AuthenticatedKuanPedidosRoute
+  AuthenticatedKuanPlanoRoute: typeof AuthenticatedKuanPlanoRoute
   AuthenticatedKuanRevisaoRoute: typeof AuthenticatedKuanRevisaoRoute
   AuthenticatedKuanShowroomRoute: typeof AuthenticatedKuanShowroomRoute
   AuthenticatedKuanIndexRoute: typeof AuthenticatedKuanIndexRoute
@@ -1263,6 +1283,7 @@ const AuthenticatedKuanRouteChildren: AuthenticatedKuanRouteChildren = {
   AuthenticatedKuanOnboardingRoute: AuthenticatedKuanOnboardingRoute,
   AuthenticatedKuanPagamentosRoute: AuthenticatedKuanPagamentosRoute,
   AuthenticatedKuanPedidosRoute: AuthenticatedKuanPedidosRoute,
+  AuthenticatedKuanPlanoRoute: AuthenticatedKuanPlanoRoute,
   AuthenticatedKuanRevisaoRoute: AuthenticatedKuanRevisaoRoute,
   AuthenticatedKuanShowroomRoute: AuthenticatedKuanShowroomRoute,
   AuthenticatedKuanIndexRoute: AuthenticatedKuanIndexRoute,
