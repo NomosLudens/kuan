@@ -83,6 +83,7 @@ DECLARE
   v_old public.kuanyin_plan_decisions%ROWTYPE;
   v_created public.kuanyin_plan_decisions%ROWTYPE;
   v_new_status text;
+  v_consequences jsonb;
 BEGIN
   IF p_title IS NULL OR btrim(p_title) = '' THEN
     RAISE EXCEPTION 'title is required';
@@ -124,6 +125,10 @@ BEGIN
     RAISE EXCEPTION 'each consequence must be a non-empty string up to 500 characters';
   END IF;
 
+  SELECT COALESCE(jsonb_agg(to_jsonb(btrim(item.value #>> '{}')) ORDER BY item.ordinality), '[]'::jsonb)
+  INTO v_consequences
+  FROM jsonb_array_elements(COALESCE(p_consequences, '[]'::jsonb)) WITH ORDINALITY AS item(value, ordinality);
+
   SELECT * INTO v_old
   FROM public.kuanyin_plan_decisions
   WHERE id = p_old_decision_id
@@ -155,12 +160,12 @@ BEGIN
     accepted_at
   ) VALUES (
     v_old.plan_id,
-    p_title,
+    btrim(p_title),
     p_decision_type,
-    p_context,
-    p_decision_text,
-    p_rationale,
-    COALESCE(p_consequences, '[]'::jsonb),
+    CASE WHEN p_context IS NULL THEN NULL ELSE btrim(p_context) END,
+    btrim(p_decision_text),
+    CASE WHEN p_rationale IS NULL THEN NULL ELSE btrim(p_rationale) END,
+    v_consequences,
     p_priority,
     p_review_at,
     v_new_status,

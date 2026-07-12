@@ -84,6 +84,21 @@ describe("Kuan plan SQL and server supersede contract", () => {
     expect(normalizedMigration).toContain("char_length(btrim(item.value #>> '{}')) > 500");
   });
 
+  it("persists normalized supersede strings and consequences", () => {
+    expect(normalizedMigration).toContain("btrim(p_title)");
+    expect(normalizedMigration).toContain("btrim(p_decision_text)");
+    expect(normalizedMigration).toContain(
+      "CASE WHEN p_context IS NULL THEN NULL ELSE btrim(p_context) END",
+    );
+    expect(normalizedMigration).toContain(
+      "CASE WHEN p_rationale IS NULL THEN NULL ELSE btrim(p_rationale) END",
+    );
+    expect(normalizedMigration).toContain(
+      "jsonb_agg(to_jsonb(btrim(item.value #>> '{}')) ORDER BY item.ordinality)",
+    );
+    expect(normalizedMigration).toContain("v_consequences");
+  });
+
   it("calls the RPC without side-effect plan creation or manual insert, update or delete", () => {
     const supersedeBody = functionsFile.slice(
       functionsFile.indexOf("export const supersedeKuanPlanDecision"),

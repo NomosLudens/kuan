@@ -118,3 +118,19 @@ Observação: os itens de banco real permanecem desmarcados porque a CLI Supabas
 - [x] `bun run test`
 - [x] `bun run build`
 - [x] `git diff --check`
+
+## GitHub Actions permanente
+
+O workflow `.github/workflows/ci.yml` agora possui job `database` com Supabase local descartável para validar, em CI remoto:
+
+- migrations do zero com `supabase db reset`;
+- fixtures locais de dois Guardiões;
+- RLS entre Guardião A e Guardião B via `scripts/qa/pr33-real-isolation.ts`;
+- grants da RPC contra `anon` e `authenticated`;
+- RPC `kuanyin_supersede_plan_decision` para decisão própria;
+- bloqueio de tentativa cross-tenant de B contra decisão A;
+- concorrência com duas chamadas simultâneas;
+- ausência de decisão órfã/duplicada;
+- normalização de `title`, `decision_text`, `context`, `rationale` e `consequences`.
+
+Status local: o job foi adicionado, mas a execução remota do GitHub Actions ainda precisa ficar verde antes de marcar a validação permanente como aprovada.
