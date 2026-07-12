@@ -23,7 +23,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "3000", 10);
-const ASSETS_DIR = path.join(__dirname, "client");
+const DIST_DIR = path.join(__dirname, "dist");
+const ASSETS_DIR = path.join(DIST_DIR, "client");
+const SERVER_ENTRY = path.join(DIST_DIR, "server", "server.js");
 const CLIENT_INDEX = path.join(ASSETS_DIR, "index.html");
 
 // Mapeamento de extensões para Content-Type
@@ -103,10 +105,10 @@ async function main() {
   let serverHandler;
 
   try {
-    const serverModule = await import(path.join(__dirname, "server.js"));
+    const serverModule = await import(SERVER_ENTRY);
     serverHandler = serverModule.default || serverModule;
   } catch (err) {
-    console.error("Falha ao carregar server.js:", err);
+    console.error("Falha ao carregar dist/server/server.js:", err);
     process.exit(1);
   }
 

@@ -5,10 +5,12 @@ export function PlanDecisionCard({
   decision,
   onTransition,
   onMilestone,
+  onSupersede,
 }: {
   decision: any;
   onTransition: (decision: any, next: PlanDecisionStatus) => void;
   onMilestone: (decision: any) => void;
+  onSupersede: (decision: any) => void;
 }) {
   const status = decision.status as PlanDecisionStatus;
   return (

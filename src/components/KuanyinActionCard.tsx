@@ -89,28 +89,38 @@ export function KuanyinActionCard({ action }: { action: KuanyinActionBlock }) {
     try {
       const d = action.data as Record<string, unknown>;
       if (action.type === "kuanyin.plan.direction.propose") {
-        const row = (await upsertPlan({
-          data: {
-            current_direction: String(d.current_direction ?? ""),
-            mission: (d.mission as string) ?? null,
-            vision: (d.vision as string) ?? null,
-            objectives: Array.isArray(d.objectives) ? (d.objectives as string[]) : [],
-            strengths: Array.isArray(d.strengths) ? (d.strengths as string[]) : [],
-            challenges: Array.isArray(d.challenges) ? (d.challenges as string[]) : [],
-          },
-        })) as { id: string };
+        const planPatch = {
+          current_direction: String(d.current_direction ?? ""),
+          ...(d.mission !== undefined ? { mission: (d.mission as string | null) ?? null } : {}),
+          ...(d.vision !== undefined ? { vision: (d.vision as string | null) ?? null } : {}),
+          ...(Array.isArray(d.objectives) ? { objectives: d.objectives as string[] } : {}),
+          ...(Array.isArray(d.strengths) ? { strengths: d.strengths as string[] } : {}),
+          ...(Array.isArray(d.challenges) ? { challenges: d.challenges as string[] } : {}),
+        };
+        const row = (await upsertPlan({ data: planPatch })) as { id: string };
         setResultId(row.id);
         toast.success("Direção salva no plano.");
       } else if (action.type === "kuanyin.plan.decision.propose") {
         const row = (await proposeDecision({
           data: {
             title: String(d.title ?? ""),
-            decision_type: String(d.decision_type ?? "other"),
+            decision_type: (d.decision_type ?? "other") as
+              | "strategy"
+              | "pricing"
+              | "service"
+              | "client_policy"
+              | "schedule"
+              | "communication"
+              | "operations"
+              | "marketing"
+              | "finance"
+              | "risk"
+              | "other",
             context: (d.context as string) ?? null,
             decision: String(d.decision ?? ""),
             rationale: (d.rationale as string) ?? null,
             consequences: Array.isArray(d.consequences) ? (d.consequences as string[]) : [],
-            priority: String(d.priority ?? "medium"),
+            priority: (d.priority ?? "medium") as "low" | "medium" | "high" | "critical",
             review_at: (d.review_at as string) ?? null,
           },
         })) as { id: string };
