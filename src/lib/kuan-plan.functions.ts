@@ -12,7 +12,21 @@ function db(supabase: unknown): any {
   return supabase as any;
 }
 
-const stringArray = z.array(z.string().trim().min(1)).default([]);
+const stringArray = z.array(z.string().trim().min(1).max(500)).max(30).default([]);
+const decisionType = z.enum([
+  "strategy",
+  "pricing",
+  "service",
+  "client_policy",
+  "schedule",
+  "communication",
+  "operations",
+  "marketing",
+  "finance",
+  "risk",
+  "other",
+]);
+const decisionPriority = z.enum(["low", "medium", "high", "critical"]);
 const decisionStatus = z.enum([
   "proposed",
   "accepted",
@@ -39,17 +53,7 @@ async function resolvePlanOwner(supabase: any, userId: string) {
     .maybeSingle();
   if (gError) throw new Error(gError.message);
   if (!guardian) throw new Error("Nenhum Guardião operacional está vinculado a esta conta.");
-  let businessContextId = guardian.business_context_id;
-  if (!businessContextId) {
-    const { data: context, error: cError } = await supabase
-      .from("business_contexts")
-      .select("id")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (cError) throw new Error(cError.message);
-    businessContextId = context?.id;
-  }
+  const businessContextId = guardian.business_context_id;
   if (!businessContextId) throw new Error("Configure o negócio antes de criar o plano.");
   return {
     guardianId: guardian.id as string,
@@ -59,21 +63,17 @@ async function resolvePlanOwner(supabase: any, userId: string) {
 }
 
 async function getOrCreatePlan(supabase: any, owner: Awaited<ReturnType<typeof resolvePlanOwner>>) {
-  const { data: existing } = await supabase
-    .from("kuanyin_business_plans")
-    .select("id")
-    .eq("guardian_id", owner.guardianId)
-    .eq("business_context_id", owner.businessContextId)
-    .maybeSingle();
-  if (existing) return existing.id as string;
   const { data, error } = await supabase
     .from("kuanyin_business_plans")
-    .insert({
-      guardian_id: owner.guardianId,
-      business_context_id: owner.businessContextId,
-      created_by: owner.userId,
-      updated_by: owner.userId,
-    })
+    .upsert(
+      {
+        guardian_id: owner.guardianId,
+        business_context_id: owner.businessContextId,
+        created_by: owner.userId,
+        updated_by: owner.userId,
+      },
+      { onConflict: "guardian_id,business_context_id", ignoreDuplicates: false },
+    )
     .select("id")
     .single();
   if (error) throw new Error(error.message);
@@ -99,15 +99,15 @@ async function log(
 export const getKuanPlanWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const { data: businessContext, error: bcError } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const { data: businessContext, error: bcError } = await db(context.supabase)
       .from("business_contexts")
-      .select("id,nome,tipo,servicos,precos,formas_pagamento,regras_agenda,limites_operacionais")
+      .select("id,nome,tipo,servicos,precos,formas_pagamento,regras_agenda,limites_decisao")
       .eq("id", owner.businessContextId)
       .maybeSingle();
     if (bcError) throw new Error(bcError.message);
     if (!businessContext) throw new Error("Configure o negócio antes de criar o plano.");
-    const { data: plan, error: pError } = await db(db(context.supabase))
+    const { data: plan, error: pError } = await db(context.supabase)
       .from("kuanyin_business_plans")
       .select("*")
       .eq("guardian_id", owner.guardianId)
@@ -124,36 +124,45 @@ export const getKuanPlanWorkspace = createServerFn({ method: "GET" })
         reviews: [],
         linkedClients: [],
       };
-    const [
-      { data: decisions },
-      { data: milestones },
-      { data: reviewCycles },
-      { data: reviews },
-      { data: links },
-    ] = await Promise.all([
-      db(db(context.supabase))
-        .from("kuanyin_plan_decisions")
-        .select("*")
-        .eq("plan_id", plan.id)
-        .order("created_at", { ascending: false }),
-      db(db(context.supabase))
-        .from("kuanyin_plan_milestones")
-        .select("*")
-        .eq("plan_id", plan.id)
-        .order("due_at", { ascending: true }),
-      db(db(context.supabase))
-        .from("kuanyin_plan_review_cycles")
-        .select("*")
-        .eq("plan_id", plan.id)
-        .order("cadence"),
-      db(db(context.supabase))
-        .from("kuanyin_plan_reviews")
-        .select("*")
-        .eq("plan_id", plan.id)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      db(db(context.supabase)).from("kuanyin_plan_links").select("*").eq("plan_id", plan.id),
-    ]);
+    const [decisionsResult, milestonesResult, reviewCyclesResult, reviewsResult, linksResult] =
+      await Promise.all([
+        db(context.supabase)
+          .from("kuanyin_plan_decisions")
+          .select("*")
+          .eq("plan_id", plan.id)
+          .order("created_at", { ascending: false }),
+        db(context.supabase)
+          .from("kuanyin_plan_milestones")
+          .select("*")
+          .eq("plan_id", plan.id)
+          .order("due_at", { ascending: true }),
+        db(context.supabase)
+          .from("kuanyin_plan_review_cycles")
+          .select("*")
+          .eq("plan_id", plan.id)
+          .order("cadence"),
+        db(context.supabase)
+          .from("kuanyin_plan_reviews")
+          .select("*")
+          .eq("plan_id", plan.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+        db(context.supabase).from("kuanyin_plan_links").select("*").eq("plan_id", plan.id),
+      ]);
+    for (const result of [
+      decisionsResult,
+      milestonesResult,
+      reviewCyclesResult,
+      reviewsResult,
+      linksResult,
+    ]) {
+      if (result.error) throw new Error(result.error.message);
+    }
+    const decisions = decisionsResult.data ?? [];
+    const milestones = milestonesResult.data ?? [];
+    const reviewCycles = reviewCyclesResult.data ?? [];
+    const reviews = reviewsResult.data ?? [];
+    const links = linksResult.data ?? [];
     const clientIds = Array.from(
       new Set(
         (links ?? []).filter((l: any) => l.entity_type === "client").map((l: any) => l.entity_id),
@@ -161,10 +170,11 @@ export const getKuanPlanWorkspace = createServerFn({ method: "GET" })
     );
     let linkedClients: any[] = [];
     if (clientIds.length) {
-      const { data } = await db(db(context.supabase))
+      const { data, error } = await db(context.supabase)
         .from("kuanyin_clients")
         .select("id,nome,status,telefone,email,notas")
         .in("id", clientIds);
+      if (error) throw new Error(error.message);
       linkedClients = (data ?? []).map((client: any) => ({
         ...client,
         link: (links ?? []).find((l: any) => l.entity_id === client.id),
@@ -173,10 +183,10 @@ export const getKuanPlanWorkspace = createServerFn({ method: "GET" })
     return {
       businessContext,
       plan,
-      decisions: decisions ?? [],
-      milestones: milestones ?? [],
-      reviewCycles: reviewCycles ?? [],
-      reviews: reviews ?? [],
+      decisions,
+      milestones,
+      reviewCycles,
+      reviews,
       linkedClients,
     };
   });
@@ -185,31 +195,31 @@ export const upsertKuanBusinessPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
     z.object({
-      current_direction: z.string().optional().nullable(),
-      mission: z.string().optional().nullable(),
-      vision: z.string().optional().nullable(),
+      current_direction: z.string().trim().max(4000).optional().nullable(),
+      mission: z.string().trim().max(4000).optional().nullable(),
+      vision: z.string().trim().max(4000).optional().nullable(),
       objectives: stringArray.optional(),
       strengths: stringArray.optional(),
       challenges: stringArray.optional(),
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
     const patch = {
       ...data,
       guardian_id: owner.guardianId,
       business_context_id: owner.businessContextId,
       updated_by: owner.userId,
     };
-    const { data: row, error } = await db(db(context.supabase))
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_business_plans")
       .upsert(patch, { onConflict: "guardian_id,business_context_id" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       planId === row.id ? "plan_updated" : "plan_created",
       "Plano estratégico salvo.",
@@ -218,22 +228,22 @@ export const upsertKuanBusinessPlan = createServerFn({ method: "POST" })
   });
 
 const decisionInput = z.object({
-  title: z.string().min(1),
-  decision_type: z.string().default("other"),
-  context: z.string().optional().nullable(),
-  decision: z.string().min(1),
-  rationale: z.string().optional().nullable(),
+  title: z.string().trim().min(1).max(200),
+  decision_type: decisionType.default("other"),
+  context: z.string().trim().max(4000).optional().nullable(),
+  decision: z.string().trim().min(1).max(4000),
+  rationale: z.string().trim().max(4000).optional().nullable(),
   consequences: stringArray.optional(),
-  priority: z.string().default("medium"),
-  review_at: z.string().optional().nullable(),
+  priority: decisionPriority.default("medium"),
+  review_at: z.string().datetime({ offset: true }).optional().nullable(),
 });
 export const proposeKuanPlanDecision = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(decisionInput)
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { data: row, error } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_decisions")
       .insert({
         plan_id: planId,
@@ -251,7 +261,7 @@ export const proposeKuanPlanDecision = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       "plan_decision_proposed",
       "Proposta de decisão registrada.",
@@ -268,14 +278,14 @@ export const transitionKuanPlanDecision = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!canTransitionDecision(data.expectedStatus, data.nextStatus))
       throw new Error("Transição de decisão inválida.");
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
     const patch: any = { status: data.nextStatus };
     if (data.nextStatus === "accepted") {
       patch.accepted_by = owner.userId;
       patch.accepted_at = new Date().toISOString();
     }
-    const { data: row, error } = await db(db(context.supabase))
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_decisions")
       .update(patch)
       .eq("id", data.id)
@@ -286,7 +296,7 @@ export const transitionKuanPlanDecision = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("A decisão mudou de estado. Recarregue e tente novamente.");
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       `plan_decision_${data.nextStatus === "in_review" ? "review_started" : data.nextStatus}`,
       "Estado da decisão alterado.",
@@ -304,10 +314,10 @@ export const supersedeKuanPlanDecision = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
     const status = data.acceptNow ? "accepted" : "proposed";
-    const { data: created, error: cError } = await db(db(context.supabase))
+    const { data: created, error: cError } = await db(context.supabase)
       .from("kuanyin_plan_decisions")
       .insert({
         plan_id: planId,
@@ -326,15 +336,26 @@ export const supersedeKuanPlanDecision = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (cError) throw new Error(cError.message);
-    const { error: uError } = await db(db(context.supabase))
+    const { data: oldRow, error: uError } = await db(context.supabase)
       .from("kuanyin_plan_decisions")
       .update({ status: "superseded", superseded_by: created.id })
       .eq("id", data.oldDecisionId)
       .eq("plan_id", planId)
-      .in("status", ["accepted", "in_review"]);
-    if (uError) throw new Error(uError.message);
+      .in("status", ["accepted", "in_review"])
+      .select("id")
+      .maybeSingle();
+    if (uError || !oldRow) {
+      await db(context.supabase)
+        .from("kuanyin_plan_decisions")
+        .delete()
+        .eq("id", created.id)
+        .eq("plan_id", planId);
+      throw new Error(
+        uError?.message ?? "A decisão original não pode ser substituída neste estado.",
+      );
+    }
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       "plan_decision_superseded",
       "Decisão substituída.",
@@ -347,17 +368,28 @@ export const createKuanPlanMilestone = createServerFn({ method: "POST" })
   .validator(
     z.object({
       decision_id: z.string().uuid().optional().nullable(),
-      title: z.string().min(1),
-      description: z.string().optional().nullable(),
-      starts_at: z.string().optional().nullable(),
-      due_at: z.string().optional().nullable(),
+      title: z.string().trim().min(1).max(200),
+      description: z.string().trim().max(4000).optional().nullable(),
+      starts_at: z.string().datetime({ offset: true }).optional().nullable(),
+      due_at: z.string().datetime({ offset: true }).optional().nullable(),
     }),
   )
   .handler(async ({ data, context }) => {
     assertMilestoneDates(data.starts_at, data.due_at);
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { data: row, error } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    if (data.decision_id) {
+      const { data: decision, error: decisionError } = await db(context.supabase)
+        .from("kuanyin_plan_decisions")
+        .select("id")
+        .eq("id", data.decision_id)
+        .eq("plan_id", planId)
+        .maybeSingle();
+      if (decisionError || !decision) {
+        throw new Error("A decisão informada não pertence a este plano.");
+      }
+    }
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_milestones")
       .insert({
         plan_id: planId,
@@ -372,7 +404,7 @@ export const createKuanPlanMilestone = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       "plan_milestone_created",
       "Marco criado.",
@@ -393,11 +425,11 @@ export const transitionKuanPlanMilestone = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!canTransitionMilestone(data.expectedStatus, data.nextStatus))
       throw new Error("Transição de marco inválida.");
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
     const patch: any = { status: data.nextStatus };
     if (data.nextStatus === "completed") patch.completed_at = new Date().toISOString();
-    const { data: row, error } = await db(db(context.supabase))
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_milestones")
       .update(patch)
       .eq("id", data.id)
@@ -407,12 +439,7 @@ export const transitionKuanPlanMilestone = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("O marco mudou de estado. Recarregue e tente novamente.");
-    await log(
-      db(db(context.supabase)),
-      owner.userId,
-      "plan_milestone_updated",
-      "Marco atualizado.",
-    );
+    await log(db(context.supabase), owner.userId, "plan_milestone_updated", "Marco atualizado.");
     return row;
   });
 
@@ -423,14 +450,14 @@ export const upsertKuanPlanReviewCycle = createServerFn({ method: "POST" })
       cadence: z.enum(["weekly", "monthly", "quarterly"]),
       label: z.string().min(1),
       is_active: z.boolean().default(true),
-      next_review_at: z.string().optional().nullable(),
+      next_review_at: z.string().datetime({ offset: true }).optional().nullable(),
       checklist: stringArray.optional(),
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { data: row, error } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_review_cycles")
       .upsert(
         { plan_id: planId, ...data, checklist: data.checklist ?? [] },
@@ -451,9 +478,9 @@ export const startKuanPlanReview = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const workspace = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const workspace = await db(context.supabase)
       .from("kuanyin_plan_decisions")
       .select("id,title,status,review_at")
       .eq("plan_id", planId)
@@ -465,7 +492,16 @@ export const startKuanPlanReview = createServerFn({ method: "POST" })
       status: d.status,
       review_at: d.review_at,
     }));
-    const { data: row, error } = await db(db(context.supabase))
+    if (data.cycle_id) {
+      const { data: cycle, error: cycleError } = await db(context.supabase)
+        .from("kuanyin_plan_review_cycles")
+        .select("id")
+        .eq("id", data.cycle_id)
+        .eq("plan_id", planId)
+        .maybeSingle();
+      if (cycleError || !cycle) throw new Error("O ciclo informado não pertence a este plano.");
+    }
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_reviews")
       .insert({
         plan_id: planId,
@@ -479,7 +515,7 @@ export const startKuanPlanReview = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
-    await log(db(db(context.supabase)), owner.userId, "plan_review_started", "Revisão iniciada.");
+    await log(db(context.supabase), owner.userId, "plan_review_started", "Revisão iniciada.");
     return row;
   });
 export const completeKuanPlanReview = createServerFn({ method: "POST" })
@@ -487,18 +523,18 @@ export const completeKuanPlanReview = createServerFn({ method: "POST" })
   .validator(
     z.object({
       id: z.string().uuid(),
-      summary: z.string().min(1),
+      summary: z.string().trim().min(1).max(4000),
       inferences: stringArray.optional(),
       proposals: stringArray.optional(),
       next_actions: stringArray.optional(),
       decisions_reviewed: z.array(z.string().uuid()).default([]),
-      next_review_at: z.string().optional().nullable(),
+      next_review_at: z.string().datetime({ offset: true }).optional().nullable(),
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { data: row, error } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_reviews")
       .update({
         status: "completed",
@@ -515,8 +551,8 @@ export const completeKuanPlanReview = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
-    if (row.cycle_id)
-      await db(db(context.supabase))
+    if (row.cycle_id) {
+      const { error: cycleError } = await db(context.supabase)
         .from("kuanyin_plan_review_cycles")
         .update({
           last_review_at: new Date().toISOString(),
@@ -524,12 +560,9 @@ export const completeKuanPlanReview = createServerFn({ method: "POST" })
         })
         .eq("id", row.cycle_id)
         .eq("plan_id", planId);
-    await log(
-      db(db(context.supabase)),
-      owner.userId,
-      "plan_review_completed",
-      "Revisão concluída.",
-    );
+      if (cycleError) throw new Error(cycleError.message);
+    }
+    await log(db(context.supabase), owner.userId, "plan_review_completed", "Revisão concluída.");
     return row;
   });
 export const linkKuanPlanEntity = createServerFn({ method: "POST" })
@@ -543,9 +576,9 @@ export const linkKuanPlanEntity = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { data: client } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const { data: client } = await db(context.supabase)
       .from("kuanyin_clients")
       .select("id,business_context_id,user_id")
       .eq("id", data.entity_id)
@@ -556,7 +589,7 @@ export const linkKuanPlanEntity = createServerFn({ method: "POST" })
       (client.business_context_id && client.business_context_id !== owner.businessContextId)
     )
       throw new Error("Cliente não pertence a este contexto de negócio.");
-    const { data: row, error } = await db(db(context.supabase))
+    const { data: row, error } = await db(context.supabase)
       .from("kuanyin_plan_links")
       .upsert(
         {
@@ -572,7 +605,7 @@ export const linkKuanPlanEntity = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       "plan_entity_linked",
       "Entidade vinculada ao plano.",
@@ -583,16 +616,19 @@ export const unlinkKuanPlanEntity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(z.object({ link_id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
-    const owner = await resolvePlanOwner(db(db(context.supabase)), context.userId);
-    const planId = await getOrCreatePlan(db(db(context.supabase)), owner);
-    const { error } = await db(db(context.supabase))
+    const owner = await resolvePlanOwner(db(context.supabase), context.userId);
+    const planId = await getOrCreatePlan(db(context.supabase), owner);
+    const { data: removed, error } = await db(context.supabase)
       .from("kuanyin_plan_links")
       .delete()
       .eq("id", data.link_id)
-      .eq("plan_id", planId);
+      .eq("plan_id", planId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!removed) throw new Error("Vínculo não encontrado neste plano.");
     await log(
-      db(db(context.supabase)),
+      db(context.supabase),
       owner.userId,
       "plan_entity_unlinked",
       "Vínculo removido do plano.",

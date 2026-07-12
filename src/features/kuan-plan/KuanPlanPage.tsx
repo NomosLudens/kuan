@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, CalendarDays, MessageCircle, Plus, RefreshCw, Users } from "lucide-react";
@@ -10,10 +10,15 @@ import {
   getKuanPlanWorkspace,
   upsertKuanBusinessPlan,
   transitionKuanPlanDecision,
+  supersedeKuanPlanDecision,
   createKuanPlanMilestone,
   upsertKuanPlanReviewCycle,
   startKuanPlanReview,
+  completeKuanPlanReview,
+  linkKuanPlanEntity,
+  unlinkKuanPlanEntity,
 } from "@/lib/kuan-plan.functions";
+import { recognizeClient } from "@/lib/kuanyin.functions";
 import type { PlanDecisionStatus } from "@/lib/kuan-plan.transitions";
 import { PlanDecisionCard } from "./PlanDecisionCard";
 import { ConfirmTransitionDialog } from "./PlanDialogs";
@@ -23,9 +28,14 @@ export function KuanPlanPage() {
   const load = useServerFn(getKuanPlanWorkspace);
   const upsertPlan = useServerFn(upsertKuanBusinessPlan);
   const transitionDecision = useServerFn(transitionKuanPlanDecision);
+  const supersedeDecision = useServerFn(supersedeKuanPlanDecision);
   const createMilestone = useServerFn(createKuanPlanMilestone);
   const upsertCycle = useServerFn(upsertKuanPlanReviewCycle);
   const startReview = useServerFn(startKuanPlanReview);
+  const completeReview = useServerFn(completeKuanPlanReview);
+  const linkEntity = useServerFn(linkKuanPlanEntity);
+  const unlinkEntity = useServerFn(unlinkKuanPlanEntity);
+  const recognize = useServerFn(recognizeClient);
   const [workspace, setWorkspace] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +43,7 @@ export function KuanPlanPage() {
   const [coachText, setCoachText] = useState("");
   const [pending, setPending] = useState<{ decision: any; next: PlanDecisionStatus } | null>(null);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -43,10 +53,11 @@ export function KuanPlanPage() {
     } finally {
       setLoading(false);
     }
-  }
-  useMemo(() => {
+  }, [load]);
+
+  useEffect(() => {
     void refresh();
-  }, []);
+  }, [refresh]);
 
   async function createBasicPlan() {
     try {
@@ -87,6 +98,86 @@ export function KuanPlanPage() {
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao criar marco.");
+    }
+  }
+
+  async function replaceDecision(decision: any) {
+    const title = window.prompt("Título da nova decisão", decision.title);
+    if (!title) return;
+    const text = window.prompt("Texto da nova decisão");
+    if (!text) return;
+    try {
+      await supersedeDecision({
+        data: {
+          oldDecisionId: decision.id,
+          acceptNow: true,
+          newDecision: {
+            title,
+            decision: text,
+            decision_type: decision.decision_type ?? "other",
+            context: decision.context ?? null,
+            rationale: decision.rationale ?? null,
+            consequences: Array.isArray(decision.consequences) ? decision.consequences : [],
+            priority: decision.priority ?? "medium",
+            review_at: decision.review_at ?? null,
+          },
+        },
+      });
+      toast.success("Decisão substituída com histórico preservado.");
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao substituir decisão.");
+    }
+  }
+
+  async function linkClientByQuery() {
+    const query = window.prompt("Nome, telefone ou e-mail do cliente existente");
+    if (!query) return;
+    try {
+      const rows = (await recognize({ data: { query } })) as Array<{ id: string; nome: string }>;
+      const client = rows[0];
+      if (!client) {
+        toast.error("Nenhum cliente existente encontrado.");
+        return;
+      }
+      if (!window.confirm(`Relacionar ${client.nome} ao plano?`)) return;
+      await linkEntity({ data: { entity_type: "client", entity_id: client.id } });
+      toast.success("Cliente relacionado ao plano.");
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao relacionar cliente.");
+    }
+  }
+
+  async function unlinkClient(linkId: string) {
+    if (!window.confirm("Remover apenas o vínculo? O cadastro do cliente será preservado.")) return;
+    try {
+      await unlinkEntity({ data: { link_id: linkId } });
+      toast.success("Vínculo removido.");
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao remover vínculo.");
+    }
+  }
+
+  async function finishReview(review: any) {
+    const summary = window.prompt("Resumo confirmado da revisão");
+    if (!summary) return;
+    try {
+      await completeReview({
+        data: {
+          id: review.id,
+          summary,
+          inferences: [],
+          proposals: [],
+          next_actions: [],
+          decisions_reviewed: [],
+        },
+      });
+      toast.success("Revisão concluída.");
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao concluir revisão.");
     }
   }
   function openCoach(seed: string) {
@@ -226,6 +317,7 @@ export function KuanPlanPage() {
                     decision={d}
                     onTransition={(decision, next) => setPending({ decision, next })}
                     onMilestone={makeMilestone}
+                    onSupersede={replaceDecision}
                   />
                 ))
               ) : (
@@ -260,15 +352,27 @@ export function KuanPlanPage() {
             </div>
           </section>
           <section>
-            <h2 className="serif text-2xl font-bold italic">Clientes relacionados</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="serif text-2xl font-bold italic">Clientes relacionados</h2>
+              <Button size="sm" onClick={linkClientByQuery}>
+                Relacionar cliente
+              </Button>
+            </div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {linkedClients.length ? (
                 linkedClients.map((c: any) => (
                   <Card key={c.id} title={c.nome} source="kuanyin_plan_links">
                     <p>Status: {c.status || "não informado"}</p>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to="/kuan/clientes">Ver cliente</Link>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/kuan/clientes">Ver cliente</Link>
+                      </Button>
+                      {c.link?.id ? (
+                        <Button size="sm" variant="outline" onClick={() => unlinkClient(c.link.id)}>
+                          Remover vínculo
+                        </Button>
+                      ) : null}
+                    </div>
                   </Card>
                 ))
               ) : (
@@ -294,15 +398,19 @@ export function KuanPlanPage() {
                       size="sm"
                       variant="outline"
                       onClick={async () => {
-                        await upsertCycle({
-                          data: {
-                            cadence: cadence as any,
-                            label: cadence,
-                            is_active: true,
-                            checklist: [],
-                          },
-                        });
-                        await refresh();
+                        try {
+                          await upsertCycle({
+                            data: {
+                              cadence: cadence as any,
+                              label: cadence,
+                              is_active: true,
+                              checklist: [],
+                            },
+                          });
+                          await refresh();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Falha ao atualizar ciclo.");
+                        }
                       }}
                     >
                       Ativar/atualizar
@@ -310,10 +418,14 @@ export function KuanPlanPage() {
                     <Button
                       size="sm"
                       onClick={async () => {
-                        await startReview({
-                          data: { title: `Revisão ${cadence}`, cycle_id: cycle?.id ?? null },
-                        });
-                        await refresh();
+                        try {
+                          await startReview({
+                            data: { title: `Revisão ${cadence}`, cycle_id: cycle?.id ?? null },
+                          });
+                          await refresh();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Falha ao iniciar revisão.");
+                        }
                       }}
                     >
                       Iniciar revisão
@@ -323,8 +435,22 @@ export function KuanPlanPage() {
               })}
             </div>
             {reviews.length ? (
-              <div className="mt-3 text-sm text-[color:var(--ivory-dim)]">
-                Revisões recentes: {reviews.map((r: any) => r.title).join(" · ")}
+              <div className="mt-3 space-y-2 text-sm text-[color:var(--ivory-dim)]">
+                {reviews.map((r: any) => (
+                  <div
+                    key={r.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-pink-500/20 p-3"
+                  >
+                    <span>
+                      {r.title} · {r.status}
+                    </span>
+                    {r.status === "in_progress" ? (
+                      <Button size="sm" onClick={() => finishReview(r)}>
+                        Concluir revisão
+                      </Button>
+                    ) : null}
+                  </div>
+                ))}
               </div>
             ) : null}
           </section>

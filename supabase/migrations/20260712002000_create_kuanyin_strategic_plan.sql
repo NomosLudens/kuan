@@ -69,12 +69,39 @@ CREATE INDEX IF NOT EXISTS kuanyin_plan_links_plan_entity_idx ON public.kuanyin_
 CREATE INDEX IF NOT EXISTS kuanyin_plan_links_decision_idx ON public.kuanyin_plan_links(decision_id);
 CREATE INDEX IF NOT EXISTS kuanyin_plan_links_milestone_idx ON public.kuanyin_plan_links(milestone_id);
 
-DO $$ DECLARE r record; BEGIN FOR r IN SELECT unnest(ARRAY['kuanyin_business_plans','kuanyin_plan_decisions','kuanyin_plan_milestones','kuanyin_plan_review_cycles','kuanyin_plan_reviews','kuanyin_plan_links']) AS t LOOP EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', r.t); EXECUTE format('DROP TRIGGER IF EXISTS %I_touch_updated_at ON public.%I', r.t, r.t); EXECUTE format('CREATE TRIGGER %I_touch_updated_at BEFORE UPDATE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at()', r.t, r.t); END LOOP; END $$;
+DO $$ DECLARE r record; BEGIN
+  IF to_regprocedure('public.touch_updated_at()') IS NULL THEN
+    RAISE EXCEPTION 'public.touch_updated_at() is required before creating Kuan plan triggers';
+  END IF;
+  FOR r IN SELECT unnest(ARRAY['kuanyin_business_plans','kuanyin_plan_decisions','kuanyin_plan_milestones','kuanyin_plan_review_cycles','kuanyin_plan_reviews','kuanyin_plan_links']) AS t LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', r.t);
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_touch_updated_at ON public.%I', r.t, r.t);
+    EXECUTE format('CREATE TRIGGER %I_touch_updated_at BEFORE UPDATE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at()', r.t, r.t);
+  END LOOP;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.kuanyin_plan_owned(p_plan_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM public.kuanyin_business_plans p JOIN public.kuanyin_guardians g ON g.id = p.guardian_id WHERE p.id = p_plan_id AND g.user_id = auth.uid())
 $$;
-CREATE POLICY kuanyin_business_plans_owner_all ON public.kuanyin_business_plans FOR ALL TO authenticated USING (EXISTS (SELECT 1 FROM public.kuanyin_guardians g WHERE g.id = guardian_id AND g.user_id = auth.uid())) WITH CHECK (EXISTS (SELECT 1 FROM public.kuanyin_guardians g WHERE g.id = guardian_id AND g.user_id = auth.uid()));
+CREATE POLICY kuanyin_business_plans_owner_all ON public.kuanyin_business_plans FOR ALL TO authenticated
+  USING (EXISTS (
+    SELECT 1
+    FROM public.kuanyin_guardians g
+    JOIN public.business_contexts bc ON bc.id = business_context_id
+    WHERE g.id = guardian_id
+      AND g.user_id = auth.uid()
+      AND g.business_context_id = business_context_id
+      AND bc.user_id = auth.uid()
+  ))
+  WITH CHECK (EXISTS (
+    SELECT 1
+    FROM public.kuanyin_guardians g
+    JOIN public.business_contexts bc ON bc.id = business_context_id
+    WHERE g.id = guardian_id
+      AND g.user_id = auth.uid()
+      AND g.business_context_id = business_context_id
+      AND bc.user_id = auth.uid()
+  ));
 CREATE POLICY kuanyin_plan_decisions_owner_all ON public.kuanyin_plan_decisions FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
 CREATE POLICY kuanyin_plan_milestones_owner_all ON public.kuanyin_plan_milestones FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
 CREATE POLICY kuanyin_plan_review_cycles_owner_all ON public.kuanyin_plan_review_cycles FOR ALL TO authenticated USING (public.kuanyin_plan_owned(plan_id)) WITH CHECK (public.kuanyin_plan_owned(plan_id));
@@ -83,3 +110,50 @@ CREATE POLICY kuanyin_plan_links_owner_all ON public.kuanyin_plan_links FOR ALL 
 
 GRANT SELECT, INSERT, UPDATE ON public.kuanyin_business_plans, public.kuanyin_plan_decisions, public.kuanyin_plan_milestones, public.kuanyin_plan_review_cycles, public.kuanyin_plan_reviews, public.kuanyin_plan_links TO authenticated;
 GRANT DELETE ON public.kuanyin_plan_links TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.kuanyin_validate_plan_relationships() RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_TABLE_NAME = 'kuanyin_plan_milestones' AND NEW.decision_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.kuanyin_plan_decisions d WHERE d.id = NEW.decision_id AND d.plan_id = NEW.plan_id) THEN
+      RAISE EXCEPTION 'decision_id must belong to the same plan';
+    END IF;
+  END IF;
+
+  IF TG_TABLE_NAME = 'kuanyin_plan_reviews' AND NEW.cycle_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.kuanyin_plan_review_cycles c WHERE c.id = NEW.cycle_id AND c.plan_id = NEW.plan_id) THEN
+      RAISE EXCEPTION 'cycle_id must belong to the same plan';
+    END IF;
+  END IF;
+
+  IF TG_TABLE_NAME = 'kuanyin_plan_links' THEN
+    IF NEW.decision_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.kuanyin_plan_decisions d WHERE d.id = NEW.decision_id AND d.plan_id = NEW.plan_id) THEN
+      RAISE EXCEPTION 'decision_id must belong to the same plan';
+    END IF;
+    IF NEW.milestone_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.kuanyin_plan_milestones m WHERE m.id = NEW.milestone_id AND m.plan_id = NEW.plan_id) THEN
+      RAISE EXCEPTION 'milestone_id must belong to the same plan';
+    END IF;
+    IF NEW.review_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.kuanyin_plan_reviews r WHERE r.id = NEW.review_id AND r.plan_id = NEW.plan_id) THEN
+      RAISE EXCEPTION 'review_id must belong to the same plan';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS kuanyin_plan_milestones_validate_relationships ON public.kuanyin_plan_milestones;
+CREATE TRIGGER kuanyin_plan_milestones_validate_relationships
+  BEFORE INSERT OR UPDATE ON public.kuanyin_plan_milestones
+  FOR EACH ROW EXECUTE FUNCTION public.kuanyin_validate_plan_relationships();
+
+DROP TRIGGER IF EXISTS kuanyin_plan_reviews_validate_relationships ON public.kuanyin_plan_reviews;
+CREATE TRIGGER kuanyin_plan_reviews_validate_relationships
+  BEFORE INSERT OR UPDATE ON public.kuanyin_plan_reviews
+  FOR EACH ROW EXECUTE FUNCTION public.kuanyin_validate_plan_relationships();
+
+DROP TRIGGER IF EXISTS kuanyin_plan_links_validate_relationships ON public.kuanyin_plan_links;
+CREATE TRIGGER kuanyin_plan_links_validate_relationships
+  BEFORE INSERT OR UPDATE ON public.kuanyin_plan_links
+  FOR EACH ROW EXECUTE FUNCTION public.kuanyin_validate_plan_relationships();
