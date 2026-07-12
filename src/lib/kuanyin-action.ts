@@ -2,6 +2,42 @@ import { z } from "zod";
 
 export const KuanyinActionSchema = z.union([
   z.object({
+    type: z.literal("kuanyin.plan.direction.propose"),
+    summary: z.string().trim().min(1),
+    data: z.object({
+      current_direction: z.string().trim().min(1),
+      mission: z.string().optional().nullable(),
+      vision: z.string().optional().nullable(),
+      objectives: z.array(z.string().trim().min(1)).optional(),
+      strengths: z.array(z.string().trim().min(1)).optional(),
+      challenges: z.array(z.string().trim().min(1)).optional(),
+    }),
+  }),
+  z.object({
+    type: z.literal("kuanyin.plan.decision.propose"),
+    summary: z.string().trim().min(1),
+    data: z.object({
+      title: z.string().trim().min(1),
+      decision_type: z.string().trim().min(1).default("other"),
+      context: z.string().optional().nullable(),
+      decision: z.string().trim().min(1),
+      rationale: z.string().optional().nullable(),
+      consequences: z.array(z.string().trim().min(1)).optional(),
+      priority: z.string().trim().min(1).default("medium"),
+      review_at: z.string().datetime({ offset: true }).optional().nullable(),
+    }),
+  }),
+  z.object({
+    type: z.literal("kuanyin.plan.milestone.propose"),
+    summary: z.string().trim().min(1),
+    data: z.object({
+      title: z.string().trim().min(1),
+      description: z.string().optional().nullable(),
+      starts_at: z.string().datetime({ offset: true }).optional().nullable(),
+      due_at: z.string().datetime({ offset: true }).optional().nullable(),
+    }),
+  }),
+  z.object({
     type: z.literal("kuanyin.client.create"),
     summary: z.string().trim().min(1),
     data: z
