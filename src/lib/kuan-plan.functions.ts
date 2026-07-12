@@ -315,45 +315,23 @@ export const supersedeKuanPlanDecision = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const owner = await resolvePlanOwner(db(context.supabase), context.userId);
-    const planId = await getOrCreatePlan(db(context.supabase), owner);
-    const status = data.acceptNow ? "accepted" : "proposed";
-    const { data: created, error: cError } = await db(context.supabase)
-      .from("kuanyin_plan_decisions")
-      .insert({
-        plan_id: planId,
-        title: data.newDecision.title,
-        decision_type: data.newDecision.decision_type,
-        decision_text: data.newDecision.decision,
-        context: data.newDecision.context,
-        rationale: data.newDecision.rationale,
-        consequences: data.newDecision.consequences ?? [],
-        priority: data.newDecision.priority,
-        review_at: data.newDecision.review_at ?? null,
-        status,
-        accepted_by: data.acceptNow ? owner.userId : null,
-        accepted_at: data.acceptNow ? new Date().toISOString() : null,
-      })
-      .select("*")
-      .single();
-    if (cError) throw new Error(cError.message);
-    const { data: oldRow, error: uError } = await db(context.supabase)
-      .from("kuanyin_plan_decisions")
-      .update({ status: "superseded", superseded_by: created.id })
-      .eq("id", data.oldDecisionId)
-      .eq("plan_id", planId)
-      .in("status", ["accepted", "in_review"])
-      .select("id")
-      .maybeSingle();
-    if (uError || !oldRow) {
-      await db(context.supabase)
-        .from("kuanyin_plan_decisions")
-        .delete()
-        .eq("id", created.id)
-        .eq("plan_id", planId);
-      throw new Error(
-        uError?.message ?? "A decisão original não pode ser substituída neste estado.",
-      );
-    }
+    const { data: created, error } = await db(context.supabase).rpc(
+      "kuanyin_supersede_plan_decision",
+      {
+        p_old_decision_id: data.oldDecisionId,
+        p_title: data.newDecision.title,
+        p_decision_type: data.newDecision.decision_type,
+        p_context: data.newDecision.context,
+        p_decision_text: data.newDecision.decision,
+        p_rationale: data.newDecision.rationale,
+        p_consequences: data.newDecision.consequences ?? [],
+        p_priority: data.newDecision.priority,
+        p_review_at: data.newDecision.review_at ?? null,
+        p_accept_now: data.acceptNow,
+      },
+    );
+    if (error) throw new Error(error.message);
+    if (!created) throw new Error("A RPC não retornou a nova decisão substituta.");
     await log(
       db(context.supabase),
       owner.userId,

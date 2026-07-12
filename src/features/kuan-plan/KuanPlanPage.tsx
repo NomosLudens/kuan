@@ -21,7 +21,12 @@ import {
 import { recognizeClient } from "@/lib/kuanyin.functions";
 import type { PlanDecisionStatus } from "@/lib/kuan-plan.transitions";
 import { PlanDecisionCard } from "./PlanDecisionCard";
-import { ConfirmTransitionDialog } from "./PlanDialogs";
+import {
+  ConfirmActionDialog,
+  ConfirmTransitionDialog,
+  SupersedeDecisionDialog,
+  TextInputDialog,
+} from "./PlanDialogs";
 
 export function KuanPlanPage() {
   const navigate = useNavigate();
@@ -42,6 +47,11 @@ export function KuanPlanPage() {
   const [filter, setFilter] = useState("all");
   const [coachText, setCoachText] = useState("");
   const [pending, setPending] = useState<{ decision: any; next: PlanDecisionStatus } | null>(null);
+  const [supersedeTarget, setSupersedeTarget] = useState<any | null>(null);
+  const [clientQueryOpen, setClientQueryOpen] = useState(false);
+  const [clientToLink, setClientToLink] = useState<{ id: string; nome: string } | null>(null);
+  const [linkToRemove, setLinkToRemove] = useState<string | null>(null);
+  const [reviewToComplete, setReviewToComplete] = useState<any | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -101,19 +111,15 @@ export function KuanPlanPage() {
     }
   }
 
-  async function replaceDecision(decision: any) {
-    const title = window.prompt("Título da nova decisão", decision.title);
-    if (!title) return;
-    const text = window.prompt("Texto da nova decisão");
-    if (!text) return;
+  async function replaceDecision(decision: any, replacement: { title: string; decision: string }) {
     try {
       await supersedeDecision({
         data: {
           oldDecisionId: decision.id,
           acceptNow: true,
           newDecision: {
-            title,
-            decision: text,
+            title: replacement.title,
+            decision: replacement.decision,
             decision_type: decision.decision_type ?? "other",
             context: decision.context ?? null,
             rationale: decision.rationale ?? null,
@@ -124,15 +130,14 @@ export function KuanPlanPage() {
         },
       });
       toast.success("Decisão substituída com histórico preservado.");
+      setSupersedeTarget(null);
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao substituir decisão.");
     }
   }
 
-  async function linkClientByQuery() {
-    const query = window.prompt("Nome, telefone ou e-mail do cliente existente");
-    if (!query) return;
+  async function findClientByQuery(query: string) {
     try {
       const rows = (await recognize({ data: { query } })) as Array<{ id: string; nome: string }>;
       const client = rows[0];
@@ -140,9 +145,17 @@ export function KuanPlanPage() {
         toast.error("Nenhum cliente existente encontrado.");
         return;
       }
-      if (!window.confirm(`Relacionar ${client.nome} ao plano?`)) return;
+      setClientToLink(client);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao localizar cliente.");
+    }
+  }
+
+  async function linkClient(client: { id: string; nome: string }) {
+    try {
       await linkEntity({ data: { entity_type: "client", entity_id: client.id } });
       toast.success("Cliente relacionado ao plano.");
+      setClientToLink(null);
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao relacionar cliente.");
@@ -150,19 +163,17 @@ export function KuanPlanPage() {
   }
 
   async function unlinkClient(linkId: string) {
-    if (!window.confirm("Remover apenas o vínculo? O cadastro do cliente será preservado.")) return;
     try {
       await unlinkEntity({ data: { link_id: linkId } });
       toast.success("Vínculo removido.");
+      setLinkToRemove(null);
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao remover vínculo.");
     }
   }
 
-  async function finishReview(review: any) {
-    const summary = window.prompt("Resumo confirmado da revisão");
-    if (!summary) return;
+  async function finishReview(review: any, summary: string) {
     try {
       await completeReview({
         data: {
@@ -175,6 +186,7 @@ export function KuanPlanPage() {
         },
       });
       toast.success("Revisão concluída.");
+      setReviewToComplete(null);
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao concluir revisão.");
@@ -317,7 +329,7 @@ export function KuanPlanPage() {
                     decision={d}
                     onTransition={(decision, next) => setPending({ decision, next })}
                     onMilestone={makeMilestone}
-                    onSupersede={replaceDecision}
+                    onSupersede={setSupersedeTarget}
                   />
                 ))
               ) : (
@@ -354,7 +366,7 @@ export function KuanPlanPage() {
           <section>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="serif text-2xl font-bold italic">Clientes relacionados</h2>
-              <Button size="sm" onClick={linkClientByQuery}>
+              <Button size="sm" onClick={() => setClientQueryOpen(true)}>
                 Relacionar cliente
               </Button>
             </div>
@@ -368,7 +380,11 @@ export function KuanPlanPage() {
                         <Link to="/kuan/clientes">Ver cliente</Link>
                       </Button>
                       {c.link?.id ? (
-                        <Button size="sm" variant="outline" onClick={() => unlinkClient(c.link.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setLinkToRemove(c.link.id)}
+                        >
                           Remover vínculo
                         </Button>
                       ) : null}
@@ -445,7 +461,7 @@ export function KuanPlanPage() {
                       {r.title} · {r.status}
                     </span>
                     {r.status === "in_progress" ? (
-                      <Button size="sm" onClick={() => finishReview(r)}>
+                      <Button size="sm" onClick={() => setReviewToComplete(r)}>
                         Concluir revisão
                       </Button>
                     ) : null}
@@ -500,6 +516,50 @@ export function KuanPlanPage() {
             : null
         }
         onConfirm={confirmTransition}
+      />
+
+      <SupersedeDecisionDialog
+        decision={supersedeTarget}
+        onOpenChange={(open) => !open && setSupersedeTarget(null)}
+        onConfirm={(data) => supersedeTarget && replaceDecision(supersedeTarget, data)}
+      />
+      <TextInputDialog
+        open={clientQueryOpen}
+        title="Relacionar cliente existente"
+        description="Informe nome, telefone ou e-mail. O cadastro existente será vinculado sem duplicar cliente."
+        placeholder="Nome, telefone ou e-mail"
+        confirmLabel="Buscar"
+        onOpenChange={setClientQueryOpen}
+        onConfirm={(query) => {
+          setClientQueryOpen(false);
+          void findClientByQuery(query);
+        }}
+      />
+      <ConfirmActionDialog
+        open={Boolean(clientToLink)}
+        title="Confirmar vínculo"
+        description={clientToLink ? `Relacionar ${clientToLink.nome} ao plano?` : ""}
+        confirmLabel="Relacionar"
+        onOpenChange={(open) => !open && setClientToLink(null)}
+        onConfirm={() => clientToLink && linkClient(clientToLink)}
+      />
+      <ConfirmActionDialog
+        open={Boolean(linkToRemove)}
+        title="Remover vínculo"
+        description="Remover apenas o vínculo? O cadastro do cliente será preservado."
+        confirmLabel="Remover vínculo"
+        onOpenChange={(open) => !open && setLinkToRemove(null)}
+        onConfirm={() => linkToRemove && unlinkClient(linkToRemove)}
+      />
+      <TextInputDialog
+        open={Boolean(reviewToComplete)}
+        title="Concluir revisão"
+        description="Registre o resumo confirmado da revisão antes de concluir."
+        placeholder="Resumo confirmado da revisão"
+        multiline
+        confirmLabel="Concluir revisão"
+        onOpenChange={(open) => !open && setReviewToComplete(null)}
+        onConfirm={(summary) => reviewToComplete && finishReview(reviewToComplete, summary)}
       />
     </main>
   );
