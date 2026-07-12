@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/finalize-kuan-v1]
   pull_request:
+
+permissions:
+  contents: read
 
 # Cancela execuções antigas do mesmo ref quando um novo push chega.
 concurrency:
@@ -13,6 +16,9 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -34,8 +40,12 @@ jobs:
 
       - name: Build
         run: bun run build
+
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +57,8 @@ jobs:
         run: bun install --frozen-lockfile
 
       - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
 
       - name: Start Supabase local stack
         run: supabase start
@@ -54,23 +66,27 @@ jobs:
       - name: Export Supabase local env
         shell: bash
         run: |
-          supabase status -o env > supabase.env
-          cat supabase.env >> "$GITHUB_ENV"
-          source supabase.env
-          echo "SUPABASE_URL=${SUPABASE_URL:-${API_URL}}" >> "$GITHUB_ENV"
-          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-${ANON_KEY}}" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-${SERVICE_ROLE_KEY}}" >> "$GITHUB_ENV"
+          supabase status -o env \
+            --override-name api.url=SUPABASE_URL \
+            --override-name auth.anon_key=SUPABASE_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            --override-name db.url=SUPABASE_DB_URL \
+            > supabase.env
+          grep '^SUPABASE_' supabase.env >> "$GITHUB_ENV"
 
       - name: Reset database and apply migrations
         run: supabase db reset
 
-      - name: Create PR36 fixtures
+      - name: Audit Kuan v1 functions and grants
+        run: scripts/qa/kuan-v1-database-audit.sh
+
+      - name: Create Kuan v1 fixtures
         run: bun scripts/qa/setup-pr36-fixtures.ts
 
-      - name: Validate PR33/PR36 guardian isolation
+      - name: Validate guardian A/B isolation
         run: bun scripts/qa/pr33-real-isolation.ts
 
-      - name: Validate atomic supersede RPC concurrency and normalization
+      - name: Validate database grants, RPC, concurrency and normalization
         run: bun scripts/qa/pr36-supersede-concurrency.ts
 
       - name: Stop Supabase local stack
