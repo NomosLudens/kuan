@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listPayments, verifyPayment, rejectPayment } from "@/lib/kuanyin.functions";
 import { Button } from "@/components/ui/button";
+import { TextInputDialog } from "@/features/kuan-plan/PlanDialogs";
 import { toast } from "sonner";
 import { RouteErrorBoundary, RouteNotFoundBoundary } from "@/components/loading-states";
 
@@ -28,6 +29,7 @@ function PagamentosPage() {
   const reject = useServerFn(rejectPayment);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -111,20 +113,7 @@ function PagamentosPage() {
                     >
                       Verificar
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        const note = prompt("Motivo da rejeição (opcional):") ?? undefined;
-                        try {
-                          await reject({ data: { id: r.id, note } });
-                          toast.success("Rejeitado.");
-                          reload();
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Falha.");
-                        }
-                      }}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => setRejectTarget(r.id)}>
                       Rejeitar
                     </Button>
                   </div>
@@ -134,6 +123,25 @@ function PagamentosPage() {
           </div>
         ))}
       </div>
+      <TextInputDialog
+        open={Boolean(rejectTarget)}
+        title="Rejeitar pagamento"
+        description="Informe o motivo da rejeição para manter o histórico claro."
+        placeholder="Motivo da rejeição"
+        confirmLabel="Rejeitar"
+        onOpenChange={(open) => !open && setRejectTarget(null)}
+        onConfirm={async (note) => {
+          if (!rejectTarget) return;
+          try {
+            await reject({ data: { id: rejectTarget, note } });
+            toast.success("Rejeitado.");
+            setRejectTarget(null);
+            reload();
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falha.");
+          }
+        }}
+      />
     </div>
   );
 }
