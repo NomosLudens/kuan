@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/finalize-kuan-v1]
   pull_request:
+
+permissions:
+  contents: read
 
 # Cancela execuções antigas do mesmo ref quando um novo push chega.
 concurrency:
@@ -13,6 +16,9 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -34,8 +40,12 @@ jobs:
 
       - name: Build
         run: bun run build
+
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +57,8 @@ jobs:
         run: bun install --frozen-lockfile
 
       - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
 
       - name: Start Supabase local stack
         run: supabase start
@@ -54,23 +66,45 @@ jobs:
       - name: Export Supabase local env
         shell: bash
         run: |
+          set -euo pipefail
+
           supabase status -o env > supabase.env
-          cat supabase.env >> "$GITHUB_ENV"
           source supabase.env
-          echo "SUPABASE_URL=${SUPABASE_URL:-${API_URL}}" >> "$GITHUB_ENV"
-          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-${ANON_KEY}}" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-${SERVICE_ROLE_KEY}}" >> "$GITHUB_ENV"
+
+          : "${API_URL:?Missing API_URL from supabase status}"
+          : "${ANON_KEY:?Missing ANON_KEY from supabase status}"
+          : "${SERVICE_ROLE_KEY:?Missing SERVICE_ROLE_KEY from supabase status}"
+          : "${DB_URL:?Missing DB_URL from supabase status}"
+
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_DB_URL=$DB_URL"
+          } >> "$GITHUB_ENV"
 
       - name: Reset database and apply migrations
         run: supabase db reset
 
-      - name: Create PR36 fixtures
+      - name: Verify Supabase database connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_DB_URL:?Missing SUPABASE_DB_URL}"
+          psql "$SUPABASE_DB_URL" \
+            -v ON_ERROR_STOP=1 \
+            -Atc "select current_database(), current_user;"
+
+      - name: Audit Kuan v1 functions and grants
+        run: scripts/qa/kuan-v1-database-audit.sh
+
+      - name: Create Kuan v1 fixtures
         run: bun scripts/qa/setup-pr36-fixtures.ts
 
-      - name: Validate PR33/PR36 guardian isolation
+      - name: Validate guardian A/B isolation
         run: bun scripts/qa/pr33-real-isolation.ts
 
-      - name: Validate atomic supersede RPC concurrency and normalization
+      - name: Validate database grants, RPC, concurrency and normalization
         run: bun scripts/qa/pr36-supersede-concurrency.ts
 
       - name: Stop Supabase local stack

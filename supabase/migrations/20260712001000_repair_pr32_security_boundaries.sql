@@ -37,7 +37,7 @@ CREATE POLICY kuanyin_public_chat_messages_guardian_owner_update
 
 GRANT SELECT, INSERT, UPDATE ON public.chat_threads, public.chat_messages TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.business_contexts, public.kuanyin_guardians, public.kuanyin_clients,
-  public.kuanyin_appointments, public.kuanyin_orders, public.kuanyin_payments, public.kuanyin_payment_proofs,
+  public.kuanyin_appointments, public.kuanyin_orders, public.kuanyin_payments,
   public.kuanyin_integrity_logs, public.kuanyin_public_chat_threads, public.kuanyin_public_chat_messages,
   public.kuanyin_portal_tokens TO authenticated;
 GRANT UPDATE (display_name, avatar_url, gender, initial_surface) ON public.profiles TO authenticated;

@@ -23,6 +23,11 @@ type Fixture = {
   guardianId: string;
   planId: string;
   decisionId: string;
+  isolationDecisionId: string;
+  supersedeDecisionId: string;
+  concurrencyDecisionId: string;
+  normalizationDecisionId: string;
+  invalidStateDecisionId: string;
   clientId: string;
 };
 
@@ -105,21 +110,29 @@ for (const user of users) {
     "id",
   );
 
-  const decision = await insertSingle<{ id: string }>(
-    "kuanyin_plan_decisions",
-    {
-      plan_id: plan.id,
-      title: `Decisão ${user.key}`,
-      decision_type: "strategy",
-      decision_text: `Decisão aceita do Guardião ${user.key}`,
-      consequences: ["Manter foco"],
-      priority: "medium",
-      status: "accepted",
-      accepted_by: created.user.id,
-      accepted_at: new Date().toISOString(),
-    },
-    "id",
-  );
+  async function createDecision(label: string, status = "accepted") {
+    return insertSingle<{ id: string }>(
+      "kuanyin_plan_decisions",
+      {
+        plan_id: plan.id,
+        title: `${label} ${user.key}`,
+        decision_type: "strategy",
+        decision_text: `${label} do Guardião ${user.key}`,
+        consequences: ["Manter foco"],
+        priority: "medium",
+        status,
+        accepted_by: status === "accepted" ? created.user.id : null,
+        accepted_at: status === "accepted" ? new Date().toISOString() : null,
+      },
+      "id",
+    );
+  }
+
+  const isolationDecision = await createDecision("Decisão isolamento");
+  const supersedeDecision = await createDecision("Decisão supersede");
+  const concurrencyDecision = await createDecision("Decisão concorrência");
+  const normalizationDecision = await createDecision("Decisão normalização");
+  const invalidStateDecision = await createDecision("Decisão estado inválido", "proposed");
 
   fixtures[user.key] = {
     email: user.email,
@@ -128,7 +141,12 @@ for (const user of users) {
     businessContextId: business.id,
     guardianId: guardian.id,
     planId: plan.id,
-    decisionId: decision.id,
+    decisionId: isolationDecision.id,
+    isolationDecisionId: isolationDecision.id,
+    supersedeDecisionId: supersedeDecision.id,
+    concurrencyDecisionId: concurrencyDecision.id,
+    normalizationDecisionId: normalizationDecision.id,
+    invalidStateDecisionId: invalidStateDecision.id,
     clientId: client.id,
   };
 }
@@ -140,11 +158,16 @@ const envs = {
   PR33_USER_B_PASSWORD: fixtures.B.password,
   PR33_PLAN_A_ID: fixtures.A.planId,
   PR33_PLAN_B_ID: fixtures.B.planId,
-  PR33_DECISION_A_ID: fixtures.A.decisionId,
+  PR33_DECISION_A_ID: fixtures.A.isolationDecisionId,
   PR36_USER_A_EMAIL: fixtures.A.email,
   PR36_USER_A_PASSWORD: fixtures.A.password,
-  PR36_DECISION_A_ID: fixtures.A.decisionId,
+  PR36_USER_B_EMAIL: fixtures.B.email,
+  PR36_USER_B_PASSWORD: fixtures.B.password,
   PR36_PLAN_A_ID: fixtures.A.planId,
+  PR36_DECISION_A_ID: fixtures.A.supersedeDecisionId,
+  PR36_CONCURRENCY_DECISION_A_ID: fixtures.A.concurrencyDecisionId,
+  PR36_NORMALIZATION_DECISION_A_ID: fixtures.A.normalizationDecisionId,
+  PR36_INVALID_STATE_DECISION_A_ID: fixtures.A.invalidStateDecisionId,
 };
 
 if (process.env.GITHUB_ENV) {

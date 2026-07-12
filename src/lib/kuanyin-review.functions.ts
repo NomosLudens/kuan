@@ -27,12 +27,21 @@ export interface ReviewItem {
 /**
  * Resolves the authenticated actor based on their authenticated identity and roles.
  */
-async function resolveReviewActor(
+export async function resolveReviewActor(
   supabase: any,
   userId: string,
   reviewGuardianId?: string | null,
 ): Promise<CommercialReviewActor> {
-  // Check if admin
+  const { data: ownGuardian, error: ownGuardianError } = await supabase
+    .from("kuanyin_guardians")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (ownGuardianError) {
+    throw new Error("Unable to resolve the authenticated guardian scope.");
+  }
+
   const { data: roleRow, error: roleError } = await supabase
     .from("user_roles")
     .select("role")
@@ -40,45 +49,55 @@ async function resolveReviewActor(
     .eq("role", "admin")
     .maybeSingle();
 
+  if (roleError) {
+    throw new Error("Unable to resolve the authenticated review role.");
+  }
+
   const isAdmin = !!roleRow;
 
-  if (isAdmin) {
-    if (!reviewGuardianId) {
-      throw new Error("Admin acting without explicit guardian scope is not allowed.");
-    }
-    const { data: guardianRow, error: guardianError } = await supabase
+  if (reviewGuardianId) {
+    const { data: targetGuardian, error: targetGuardianError } = await supabase
       .from("kuanyin_guardians")
       .select("id")
       .eq("id", reviewGuardianId)
       .maybeSingle();
 
-    if (!guardianRow || guardianError) {
+    if (targetGuardianError || !targetGuardian) {
       throw new Error(`Guardian with ID ${reviewGuardianId} not found.`);
     }
 
+    if (isAdmin) {
+      return {
+        actorUserId: userId,
+        role: "platform_admin",
+        guardianId: reviewGuardianId,
+      };
+    }
+
+    if (ownGuardian?.id === reviewGuardianId) {
+      return {
+        actorUserId: userId,
+        role: "guardian",
+        guardianId: ownGuardian.id,
+      };
+    }
+
+    throw new Error("Guardian can only decide items linked to their own guardianId.");
+  }
+
+  if (ownGuardian) {
     return {
       actorUserId: userId,
-      role: "platform_admin",
-      guardianId: reviewGuardianId,
+      role: "guardian",
+      guardianId: ownGuardian.id,
     };
   }
 
-  // Normal guardian
-  const { data: guardianRow, error: guardianError } = await supabase
-    .from("kuanyin_guardians")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!guardianRow || guardianError) {
-    throw new Error("Unauthorized: User is neither an admin nor a registered guardian.");
+  if (isAdmin) {
+    throw new Error("Admin acting without explicit guardian scope is not allowed.");
   }
 
-  return {
-    actorUserId: userId,
-    role: "guardian",
-    guardianId: guardianRow.id,
-  };
+  throw new Error("Unauthorized: User is neither an admin nor a registered guardian.");
 }
 
 /**
@@ -660,9 +679,15 @@ export const reviewKuanPayment = createServerFn({ method: "POST" })
  */
 export const getPendingReviews = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .validator((input: unknown) =>
+    z
+      .object({ guardianId: z.string().uuid().optional() })
+      .optional()
+      .parse(input || {}),
+  )
+  .handler(async ({ data, context }) => {
     const { userId, supabase } = context;
-    return listKuanCommercialReviewItemsImpl(supabase, userId);
+    return listKuanCommercialReviewItemsImpl(supabase, userId, data?.guardianId);
   });
 
 /**
@@ -681,6 +706,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
           "kuanyin.payment.review",
         ]),
         action: z.enum(["confirm", "reject"]),
+        guardianId: z.string().uuid().optional(),
       })
       .parse(input),
   )
@@ -692,12 +718,27 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
 
     switch (data.type) {
       case "kuanyin.client.review": {
+        const actor = await resolveReviewActor(supabase, userId, data.guardianId);
+
+        if (!actor.guardianId) {
+          throw new Error("Guardian ID could not be resolved for this actor.");
+        }
+
+        const { data: targetGuardian, error: targetGuardianError } = await supabase
+          .from("kuanyin_guardians")
+          .select("user_id")
+          .eq("id", actor.guardianId)
+          .single();
+
+        if (targetGuardianError || !targetGuardian) {
+          throw new Error("Target guardian details could not be resolved.");
+        }
+
         const targetClientStatus = data.action === "confirm" ? "confirmed" : "archived";
-        // Try updating in client table first
         const clientRes = await supabase
           .from("kuanyin_clients")
           .update({ status: targetClientStatus, updated_at: new Date().toISOString() })
-          .eq("user_id", userId)
+          .eq("user_id", targetGuardian.user_id)
           .eq("id", data.id)
           .eq("status", "prospect")
           .select("id, status");
@@ -706,11 +747,10 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
           updated = clientRes.data[0];
           error = clientRes.error;
         } else {
-          // Check if it's a message-based contact
           const { data: msgRow } = await supabase
             .from("kuanyin_public_chat_messages")
             .select("id")
-            .eq("user_id", userId)
+            .eq("user_id", targetGuardian.user_id)
             .eq("id", data.id)
             .maybeSingle();
 
@@ -727,6 +767,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         const res = await reviewKuanAppointmentImpl(supabase, userId, {
           id: data.id,
           action: actionMapped as "confirm" | "reject",
+          guardianId: data.guardianId,
         });
         updated = { id: data.id, status: res.status };
         break;
@@ -736,6 +777,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         const res = await reviewKuanOrderImpl(supabase, userId, {
           id: data.id,
           action: actionMapped as "accept" | "reject",
+          guardianId: data.guardianId,
         });
         updated = { id: data.id, status: res.status };
         break;
@@ -745,6 +787,7 @@ export const resolveReviewAction = createServerFn({ method: "POST" })
         const res = await reviewKuanPaymentImpl(supabase, userId, {
           id: data.id,
           action: actionMapped as "verify" | "reject",
+          guardianId: data.guardianId,
         });
         updated = { id: data.id, status: res.status };
         break;

@@ -7,12 +7,14 @@ Este documento detalha o plano de testes, procedimentos de QA e garantias de con
 ## 1. Calendar, Timezones & Availability
 
 ### Configurações de Timezone do Guardião
+
 - [ ] Acessar `/authenticated/kuan/config` (painel de configuração do Guardião).
 - [ ] Validar a presença do seletor de fuso horário (Timezone Select Box).
 - [ ] Salvar o fuso horário (ex: `America/Sao_Paulo`, `Europe/London`) e garantir que a preferência seja registrada na coluna `regras_agenda` do banco de dados Supabase.
 - [ ] Verificar que, ao omitir o fuso horário, o sistema herda nativamente `America/Sao_Paulo` como fallback.
 
 ### Conformidade GREGORIAN & Geração de .ics
+
 - [ ] Acessar `/authenticated/kuan/agendamentos` e exportar o calendário no formato `.ics`.
 - [ ] Validar que o cabeçalho contém `CALSCALE:GREGORIAN`.
 - [ ] Validar que datas e horas estão em formato estrito UTC/ZULU ou contêm a indicação adequada de timezone.
@@ -25,6 +27,7 @@ Este documento detalha o plano de testes, procedimentos de QA e garantias de con
 Garante que um guardião B não consiga ler, propor, registrar comprovantes ou interagir com clientes, agendamentos, ordens ou pagamentos pertencentes ao guardião A.
 
 ### Testes de Isolamento de Escopo (Backend)
+
 - [ ] Executar tentativas de propor agendamento (`proposeAppointment`) utilizando um `clientId` que pertença a outra conta/guardião. Validar se o backend dispara a exceção correspondente (`assertOwnedClient` falha).
 - [ ] Executar tentativas de propor pedido (`proposeOrder`) utilizando um `clientId` de outro guardião. Validar retorno de erro/exceção.
 - [ ] Chamar `registerProof` informando um `orderId` associado a outro guardião. Garantir barreira total.
@@ -37,6 +40,7 @@ Garante que um guardião B não consiga ler, propor, registrar comprovantes ou i
 Garante integridade nas transições comerciais por meio do controle estrito de status prévios e assertividade de atualizações em linha única.
 
 ### Transições de Pedidos (`status` de `orders`)
+
 - [ ] **Confirmar Pedido (`confirmOrder`)**:
   - Tentar confirmar a partir do estado `draft` ou `proposed`. Deve suceder.
   - Tentar confirmar a partir de outro estado (ex: `canceled`, `confirmed`). O sistema deve trapar a incompatibilidade e lançar exceção de conflito de concorrência.
@@ -45,6 +49,7 @@ Garante integridade nas transições comerciais por meio do controle estrito de 
   - Tentar cancelar a partir de `received_proof` ou estados finalizados. Deve falhar com exceção de conflito de concorrência.
 
 ### Transições de Pagamentos (`status` de `payments`)
+
 - [ ] **Verificar Comprovante (`verifyPayment`)**:
   - Tentar aprovar pagamento que não esteja no estado `received_proof`. Deve lançar exceção de conflito de concorrência.
 - [ ] **Rejeitar Comprovante (`rejectPayment`)**:
@@ -57,6 +62,7 @@ Garante integridade nas transições comerciais por meio do controle estrito de 
 Proteção da privacidade de dados públicos do cliente localizados no navegador.
 
 ### Consentimento de Dados (Opt-In Only)
+
 - [ ] Acessar a página de chat público de um guardião (`/g/:guardianId`).
 - [ ] Garantir que a caixinha "Lembrar minhas informações de contato e conversa neste navegador" inicia **desmarcada por padrão** (Opt-In estrito).
 - [ ] **Sem marcar a caixinha**:
@@ -77,6 +83,7 @@ Proteção da privacidade de dados públicos do cliente localizados no navegador
 Garantia de consistência do ecossistema e manipulação correta de payloads binários e multi-byte.
 
 ### Segurança Binária & Streaming em `serve.mjs`
+
 - [ ] Validar que o corpo da requisição é recebido e transmitido para o Workers Handler utilizando Buffers binários puros ao invés de codificação em string.
 - [ ] Validar que assets estáticos, SSR, páginas SPA e downloads dinâmicos (como `.ics`) são lidos de forma binária (`staticRes.arrayBuffer()`) e transferidos sem codificações espúrias para o fluxo de resposta do Node.js/Bun.
 - [ ] Executar o comando de inicialização `bun run start` (ou `npm run start`) e verificar o carregamento saudável do servidor e das páginas sem degradação de caracteres especiais ou falhas de cabeçalho.
