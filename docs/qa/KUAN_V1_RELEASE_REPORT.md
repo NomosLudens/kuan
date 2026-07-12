@@ -10,13 +10,14 @@
 ## GitHub Actions
 
 - verify: ⚠️ not executed remotely yet in this environment; workflow repaired with minimal permissions, pinned actions and timeout.
-- database: ⚠️ not executed remotely yet in this environment; workflow now starts disposable Supabase, resets DB, audits functions/grants, creates fixtures and runs RLS/RPC/concurrency QA.
-- run: ⚠️ pending remote GitHub Actions run after push/PR.
+- database: ⚠️ previous remote run fixed the invalid migration grant, then failed because `SUPABASE_DB_URL` was exported incorrectly and `psql` fell back to the runner local socket. Workflow now maps `DB_URL` from `supabase status -o env` to `SUPABASE_DB_URL` and verifies the connection before audit.
+- run: ⚠️ new remote run pending after this patch.
 
 ## Database
 
 - db reset: ⚠️ not executed locally because the container does not provide Docker/Supabase CLI.
-- migrations: ⚠️ covered by CI database job; local execution pending remote runner.
+- migrations: ⚠️ previous invalid grant to nonexistent `public.kuanyin_payment_proofs` was corrected; new remote run must confirm the chain.
+- Supabase DB URL: ⚠️ current fix removes `--override-name db.url=SUPABASE_DB_URL`, sources `DB_URL` from `supabase status -o env`, validates required variables, and adds a pre-audit `psql` connection check.
 - functions: ⚠️ audited by `scripts/qa/kuan-v1-database-audit.sh` in CI using PostgreSQL `information_schema` after `supabase db reset`.
 - grants: ⚠️ audited by `scripts/qa/kuan-v1-database-audit.sh`; PUBLIC/anon must not execute RPC, authenticated must execute.
 - RLS: ⚠️ covered by authenticated A/B QA script in CI.
@@ -51,13 +52,13 @@
 
 ## Known limitations
 
-- Remote GitHub Actions status must be verified after pushing the branch and opening the PR.
-- Supabase local DB reset and database QA require a runner with Supabase CLI and Docker.
+- Remote GitHub Actions status must be verified after pushing this patch to PR #37.
+- Supabase local DB reset and database QA require the GitHub runner with Supabase CLI and Docker; local execution remains unavailable here.
 - Cloudflare dry-run requires `wrangler` to be resolvable from the package registry.
 - Human product homologation remains pending because real private/public/portal/payment/appointment/order/mobile flows were not manually executed here.
 
 ## Verdict
 
-✅ Kuan v1.0 technically prepared for CI validation.  
-⚠️ Final technical approval depends on green remote `verify` and `database` jobs.  
+✅ Kuan v1.0 technically prepared for CI validation.
+⚠️ Final technical approval depends on the next remote `database` job passing after the `SUPABASE_DB_URL` export fix.
 ⚠️ Final human product homologation pending.
