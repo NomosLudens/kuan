@@ -2,8 +2,58 @@ import { z } from "zod";
 
 export const KuanyinActionSchema = z.union([
   z.object({
+    type: z.literal("kuanyin.plan.direction.propose"),
+    summary: z.string().trim().min(1).max(4000),
+    data: z.object({
+      current_direction: z.string().trim().min(1).max(4000),
+      mission: z.string().trim().max(4000).optional().nullable(),
+      vision: z.string().trim().max(4000).optional().nullable(),
+      objectives: z.array(z.string().trim().min(1).max(500)).max(30).optional(),
+      strengths: z.array(z.string().trim().min(1).max(500)).max(30).optional(),
+      challenges: z.array(z.string().trim().min(1).max(500)).max(30).optional(),
+    }),
+  }),
+  z.object({
+    type: z.literal("kuanyin.plan.decision.propose"),
+    summary: z.string().trim().min(1).max(4000),
+    data: z.object({
+      title: z.string().trim().min(1).max(200),
+      decision_type: z
+        .enum([
+          "strategy",
+          "pricing",
+          "service",
+          "client_policy",
+          "schedule",
+          "communication",
+          "operations",
+          "marketing",
+          "finance",
+          "risk",
+          "other",
+        ])
+        .default("other"),
+      context: z.string().trim().max(4000).optional().nullable(),
+      decision: z.string().trim().min(1).max(4000),
+      rationale: z.string().trim().max(4000).optional().nullable(),
+      consequences: z.array(z.string().trim().min(1).max(500)).max(30).optional(),
+      priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+      review_at: z.string().datetime({ offset: true }).optional().nullable(),
+    }),
+  }),
+  z.object({
+    type: z.literal("kuanyin.plan.milestone.propose"),
+    summary: z.string().trim().min(1).max(4000),
+    data: z.object({
+      title: z.string().trim().min(1).max(200),
+      description: z.string().trim().max(4000).optional().nullable(),
+      starts_at: z.string().datetime({ offset: true }).optional().nullable(),
+      due_at: z.string().datetime({ offset: true }).optional().nullable(),
+    }),
+  }),
+  z.object({
     type: z.literal("kuanyin.client.create"),
-    summary: z.string().trim().min(1),
+    summary: z.string().trim().min(1).max(4000),
     data: z
       .object({
         nome: z.string().trim().min(1).optional(),
@@ -16,7 +66,7 @@ export const KuanyinActionSchema = z.union([
   }),
   z.object({
     type: z.literal("kuanyin.appointment.propose"),
-    summary: z.string().trim().min(1),
+    summary: z.string().trim().min(1).max(4000),
     data: z.object({
       service_name: z.string().trim().min(1),
       starts_at: z.string().trim().min(1),
@@ -31,7 +81,7 @@ export const KuanyinActionSchema = z.union([
   }),
   z.object({
     type: z.literal("kuanyin.order.propose"),
-    summary: z.string().trim().min(1),
+    summary: z.string().trim().min(1).max(4000),
     data: z.object({
       description: z.string().trim().min(1),
       client_id: z.string().optional(),
@@ -44,7 +94,7 @@ export const KuanyinActionSchema = z.union([
   }),
   z.object({
     type: z.literal("kuanyin.payment.proof"),
-    summary: z.string().trim().min(1),
+    summary: z.string().trim().min(1).max(4000),
     data: z
       .object({
         order_id: z.string().optional().nullable(),
