@@ -80,3 +80,41 @@ Bloqueadores mínimos para homologar:
 3. Executar fluxos privados e públicos em navegador real.
 4. Executar `wrangler dev` com variáveis reais de Cloudflare/Supabase/OpenRouter.
 5. Validar mobile em 360, 390 e 430 px.
+
+## Adendo final do PR #36
+
+### Correções
+
+- [x] `getOrCreatePlan` removido do supersede
+- [x] limites SQL adicionados
+- [x] teste de contrato atualizado
+- [x] descrição do PR corrigida via atualização do PR
+
+### Validação
+
+- [ ] `supabase db reset` executado (bloqueado: CLI ausente)
+- [ ] RPC encontrada após migrations (bloqueado: CLI/banco ausente)
+- [ ] `PUBLIC` sem `EXECUTE` validado em banco (bloqueado: CLI/banco ausente)
+- [ ] `anon` sem `EXECUTE` validado em banco (bloqueado: CLI/banco ausente)
+- [ ] `authenticated` com `EXECUTE` validado em banco (bloqueado: CLI/banco ausente)
+- [ ] Guardião A substitui decisão própria em banco real
+- [ ] Guardião B não altera decisão A em banco real
+- [ ] concorrência não cria órfã em banco real
+
+Observação: os itens de banco real permanecem desmarcados porque a CLI Supabase e o ambiente real não estão disponíveis neste container.
+
+### Smoke local
+
+- [x] `bun run start` iniciou servidor local em `http://0.0.0.0:3000`
+- [x] `curl -I http://127.0.0.1:3000/` retornou `200 OK`
+- [x] `curl -I http://127.0.0.1:3000/kuan` retornou `200 OK`
+- [x] `curl -I http://127.0.0.1:3000/kuan/plano` retornou `200 OK`
+
+### Checks automatizados no novo head
+
+- [ ] `bun run format:check` — falhou em dois arquivos legados fora do diff do PR
+- [x] `bun run lint`
+- [x] `bun run typecheck`
+- [x] `bun run test`
+- [x] `bun run build`
+- [x] `git diff --check`
