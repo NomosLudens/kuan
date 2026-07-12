@@ -77,7 +77,8 @@ const ProofInput = GuardianInput.extend({
   if (data.appointment_id && data.order_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Não é permitido vincular o pagamento a um agendamento e a um pedido simultaneamente.",
+      message:
+        "Não é permitido vincular o pagamento a um agendamento e a um pedido simultaneamente.",
       path: ["appointment_id"],
     });
   }
@@ -331,10 +332,15 @@ type PublicMessageRow = {
 
 async function resolveOwnedPublicThread(
   ctx: LoadedGuardian,
-  input: { threadId?: string; visitorKey?: string; visitorName?: string; createIfMissing?: boolean },
+  input: {
+    threadId?: string;
+    visitorKey?: string;
+    visitorName?: string;
+    createIfMissing?: boolean;
+  },
 ): Promise<PublicThreadRow | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  
+
   const threadId = input.threadId ? input.threadId.trim() : undefined;
   const visitorKey = input.visitorKey?.trim() || undefined;
   const normalizedVisitorKey = visitorKey ? visitorKey.slice(0, 120) : undefined;
@@ -343,7 +349,7 @@ async function resolveOwnedPublicThread(
     if (!normalizedVisitorKey) {
       return null;
     }
-    
+
     const { data, error } = await supabaseAdmin
       .from("kuanyin_public_chat_threads")
       .select("id, guardian_id, user_id, visitor_key, business_context_id")
@@ -359,7 +365,7 @@ async function resolveOwnedPublicThread(
     }
 
     const existing = data as unknown as PublicThreadRow;
-    
+
     if (input.visitorName) {
       await supabaseAdmin
         .from("kuanyin_public_chat_threads")
