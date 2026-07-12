@@ -1279,25 +1279,91 @@ export const listPayments = createServerFn({ method: "GET" })
 
 // ─── kuanyin_portal_tokens (links públicos) ──────────────────────────────────
 
-const TokenCreate = z.object({
-  scope: z.enum(["appointment", "order"]),
-  appointment_id: z.string().uuid().optional(),
-  order_id: z.string().uuid().optional(),
-  label: z.string().trim().max(200).optional(),
-  days_valid: z.number().int().min(1).max(60).optional(),
-});
+const TokenCreate = z
+  .object({
+    scope: z.enum(["appointment", "order"]),
+    appointment_id: z.string().uuid().optional(),
+    order_id: z.string().uuid().optional(),
+    label: z.string().trim().max(200).optional(),
+    days_valid: z.number().int().min(1).max(60).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.scope === "appointment") {
+      if (!data.appointment_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "appointment_id é obrigatório para o escopo de appointment",
+          path: ["appointment_id"],
+        });
+      }
+      if (data.order_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "order_id não deve ser fornecido para o escopo de appointment",
+          path: ["order_id"],
+        });
+      }
+    } else if (data.scope === "order") {
+      if (!data.order_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "order_id é obrigatório para o escopo de order",
+          path: ["order_id"],
+        });
+      }
+      if (data.appointment_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "appointment_id não deve ser fornecido para o escopo de order",
+          path: ["appointment_id"],
+        });
+      }
+    }
+  });
 
 export const createPortalToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => TokenCreate.parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // Retrieve active business context for the user to assert strict context alignment
+    const { data: bizCtx, error: ctxError } = await supabase
+      .from("business_contexts")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+
+    if (ctxError || !bizCtx) {
+      throw new Error("Não foi possível carregar o contexto de negócio ativo.");
+    }
+
     if (data.scope === "appointment" && data.appointment_id) {
-      await assertOwnedAppointment(supabase, userId, data.appointment_id);
+      const { data: appt, error: apptError } = await supabase
+        .from("kuanyin_appointments")
+        .select("id")
+        .eq("id", data.appointment_id)
+        .eq("user_id", userId)
+        .eq("business_context_id", bizCtx.id)
+        .maybeSingle();
+      if (apptError || !appt) {
+        throw new Error("Acesso não autorizado ao agendamento ou contexto mismatch.");
+      }
     }
     if (data.scope === "order" && data.order_id) {
-      await assertOwnedOrder(supabase, userId, data.order_id);
+      const { data: ord, error: ordError } = await supabase
+        .from("kuanyin_orders")
+        .select("id")
+        .eq("id", data.order_id)
+        .eq("user_id", userId)
+        .eq("business_context_id", bizCtx.id)
+        .maybeSingle();
+      if (ordError || !ord) {
+        throw new Error("Acesso não autorizado ao pedido ou contexto mismatch.");
+      }
     }
+
     const expires = new Date(Date.now() + (data.days_valid ?? 14) * 86400_000).toISOString();
     const payload = {
       user_id: userId,
