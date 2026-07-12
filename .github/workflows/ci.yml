@@ -66,16 +66,34 @@ jobs:
       - name: Export Supabase local env
         shell: bash
         run: |
-          supabase status -o env \
-            --override-name api.url=SUPABASE_URL \
-            --override-name auth.anon_key=SUPABASE_ANON_KEY \
-            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            --override-name db.url=SUPABASE_DB_URL \
-            > supabase.env
-          grep '^SUPABASE_' supabase.env >> "$GITHUB_ENV"
+          set -euo pipefail
+
+          supabase status -o env > supabase.env
+          source supabase.env
+
+          : "${API_URL:?Missing API_URL from supabase status}"
+          : "${ANON_KEY:?Missing ANON_KEY from supabase status}"
+          : "${SERVICE_ROLE_KEY:?Missing SERVICE_ROLE_KEY from supabase status}"
+          : "${DB_URL:?Missing DB_URL from supabase status}"
+
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_DB_URL=$DB_URL"
+          } >> "$GITHUB_ENV"
 
       - name: Reset database and apply migrations
         run: supabase db reset
+
+      - name: Verify Supabase database connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_DB_URL:?Missing SUPABASE_DB_URL}"
+          psql "$SUPABASE_DB_URL" \
+            -v ON_ERROR_STOP=1 \
+            -Atc "select current_database(), current_user;"
 
       - name: Audit Kuan v1 functions and grants
         run: scripts/qa/kuan-v1-database-audit.sh

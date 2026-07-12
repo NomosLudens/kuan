@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
-  echo "Missing SUPABASE_DB_URL" >&2
+if [[ -z "${SUPABASE_DB_URL:-}" || "$SUPABASE_DB_URL" != postgresql://* ]]; then
+  echo "Missing or invalid SUPABASE_DB_URL" >&2
   exit 1
 fi
 
