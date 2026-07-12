@@ -1,8 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(
+const historicalMigration = readFileSync(
   "supabase/migrations/20260712002000_create_kuanyin_strategic_plan.sql",
+  "utf8",
+);
+const migration = readFileSync(
+  "supabase/migrations/20260712004000_repair_kuan_plan_atomicity.sql",
   "utf8",
 );
 const hardeningMigration = readFileSync(
@@ -12,15 +16,28 @@ const hardeningMigration = readFileSync(
 const functionsFile = readFileSync("src/lib/kuan-plan.functions.ts", "utf8");
 
 describe("Kuan plan SQL and server supersede contract", () => {
-  it("uses an explicit plan ownership helper in the business plan policy", () => {
+  it("keeps the historical plan migration free of the compensating RPC repair", () => {
+    expect(historicalMigration).not.toContain(
+      "CREATE OR REPLACE FUNCTION public.kuanyin_supersede_plan_decision",
+    );
+    expect(historicalMigration).not.toContain(
+      "CREATE OR REPLACE FUNCTION public.kuanyin_can_own_plan",
+    );
+  });
+
+  it("uses an explicit plan ownership helper in the compensating business plan policy", () => {
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.kuanyin_can_own_plan");
     expect(migration).toContain("SECURITY DEFINER");
-    expect(migration).toContain(
-      "USING (public.kuanyin_can_own_plan(guardian_id, business_context_id))",
-    );
-    expect(migration).toContain(
-      "WITH CHECK (public.kuanyin_can_own_plan(guardian_id, business_context_id))",
-    );
+    expect(migration).toContain(`public.kuanyin_can_own_plan(
+    guardian_id,
+    business_context_id
+  )`);
+    expect(migration).toContain(`WITH CHECK (
+  public.kuanyin_can_own_plan(
+    guardian_id,
+    business_context_id
+  )
+)`);
     expect(migration).toContain("WHERE g.id = p_guardian_id");
     expect(migration).toContain("AND g.business_context_id = p_business_context_id");
     expect(migration).toContain("AND bc.user_id = auth.uid()");
@@ -35,15 +52,12 @@ describe("Kuan plan SQL and server supersede contract", () => {
     );
     expect(migration).toContain("SECURITY INVOKER");
     expect(migration).toContain("FOR UPDATE");
-    expect(migration).toContain(
-      "GRANT EXECUTE\nON FUNCTION public.kuanyin_supersede_plan_decision",
-    );
-    expect(hardeningMigration).toContain(
-      "REVOKE ALL\nON FUNCTION public.kuanyin_supersede_plan_decision",
-    );
+    expect(hardeningMigration).toContain("to_regprocedure");
+    expect(hardeningMigration).toContain("REVOKE ALL");
+    expect(migration).toContain("REVOKE ALL\nON FUNCTION public.kuanyin_supersede_plan_decision");
     expect(hardeningMigration).toContain("FROM PUBLIC");
     expect(hardeningMigration).toContain("FROM anon");
-    expect(hardeningMigration).toContain(
+    expect(migration).toContain(
       "GRANT EXECUTE\nON FUNCTION public.kuanyin_supersede_plan_decision",
     );
     expect(hardeningMigration).toContain("TO authenticated");
