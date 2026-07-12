@@ -315,7 +315,6 @@ export const supersedeKuanPlanDecision = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const owner = await resolvePlanOwner(db(context.supabase), context.userId);
-    await getOrCreatePlan(db(context.supabase), owner);
     const { data: created, error } = await db(context.supabase).rpc(
       "kuanyin_supersede_plan_decision",
       {

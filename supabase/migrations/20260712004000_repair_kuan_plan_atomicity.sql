@@ -87,8 +87,20 @@ BEGIN
   IF p_title IS NULL OR btrim(p_title) = '' THEN
     RAISE EXCEPTION 'title is required';
   END IF;
+  IF char_length(btrim(p_title)) > 200 THEN
+    RAISE EXCEPTION 'title must be at most 200 characters';
+  END IF;
   IF p_decision_text IS NULL OR btrim(p_decision_text) = '' THEN
     RAISE EXCEPTION 'decision_text is required';
+  END IF;
+  IF char_length(btrim(p_decision_text)) > 4000 THEN
+    RAISE EXCEPTION 'decision_text must be at most 4000 characters';
+  END IF;
+  IF p_context IS NOT NULL AND char_length(btrim(p_context)) > 4000 THEN
+    RAISE EXCEPTION 'context must be at most 4000 characters';
+  END IF;
+  IF p_rationale IS NOT NULL AND char_length(btrim(p_rationale)) > 4000 THEN
+    RAISE EXCEPTION 'rationale must be at most 4000 characters';
   END IF;
   IF p_decision_type NOT IN ('strategy','pricing','service','client_policy','schedule','communication','operations','marketing','finance','risk','other') THEN
     RAISE EXCEPTION 'invalid decision_type';
@@ -96,8 +108,20 @@ BEGIN
   IF p_priority NOT IN ('low','medium','high','critical') THEN
     RAISE EXCEPTION 'invalid priority';
   END IF;
-  IF COALESCE(jsonb_typeof(p_consequences), 'array') <> 'array' THEN
+  IF p_consequences IS NOT NULL AND jsonb_typeof(p_consequences) <> 'array' THEN
     RAISE EXCEPTION 'consequences must be an array';
+  END IF;
+  IF jsonb_array_length(COALESCE(p_consequences, '[]'::jsonb)) > 30 THEN
+    RAISE EXCEPTION 'consequences must contain at most 30 items';
+  END IF;
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(COALESCE(p_consequences, '[]'::jsonb)) AS item(value)
+    WHERE jsonb_typeof(item.value) <> 'string'
+      OR btrim(item.value #>> '{}') = ''
+      OR char_length(btrim(item.value #>> '{}')) > 500
+  ) THEN
+    RAISE EXCEPTION 'each consequence must be a non-empty string up to 500 characters';
   END IF;
 
   SELECT * INTO v_old

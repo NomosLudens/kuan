@@ -14,6 +14,7 @@ const hardeningMigration = readFileSync(
   "utf8",
 );
 const functionsFile = readFileSync("src/lib/kuan-plan.functions.ts", "utf8");
+const normalizedMigration = migration.replace(/\s+/g, " ");
 
 describe("Kuan plan SQL and server supersede contract", () => {
   it("keeps the historical plan migration free of the compensating RPC repair", () => {
@@ -67,13 +68,30 @@ describe("Kuan plan SQL and server supersede contract", () => {
     );
   });
 
-  it("calls the RPC without manual insert, update or delete in supersedeKuanPlanDecision", () => {
+  it("enforces application input limits inside the compensating RPC", () => {
+    expect(normalizedMigration).toContain("char_length(btrim(p_title)) > 200");
+    expect(normalizedMigration).toContain("char_length(btrim(p_decision_text)) > 4000");
+    expect(normalizedMigration).toContain(
+      "p_context IS NOT NULL AND char_length(btrim(p_context)) > 4000",
+    );
+    expect(normalizedMigration).toContain(
+      "p_rationale IS NOT NULL AND char_length(btrim(p_rationale)) > 4000",
+    );
+    expect(normalizedMigration).toContain(
+      "jsonb_array_length(COALESCE(p_consequences, '[]'::jsonb)) > 30",
+    );
+    expect(normalizedMigration).toContain("jsonb_typeof(item.value) <> 'string'");
+    expect(normalizedMigration).toContain("char_length(btrim(item.value #>> '{}')) > 500");
+  });
+
+  it("calls the RPC without side-effect plan creation or manual insert, update or delete", () => {
     const supersedeBody = functionsFile.slice(
       functionsFile.indexOf("export const supersedeKuanPlanDecision"),
       functionsFile.indexOf("export const createKuanPlanMilestone"),
     );
 
     expect(supersedeBody).toContain('.rpc(\n      "kuanyin_supersede_plan_decision"');
+    expect(supersedeBody).not.toContain("getOrCreatePlan");
     expect(supersedeBody).not.toContain(".insert(");
     expect(supersedeBody).not.toContain(".update(");
     expect(supersedeBody).not.toContain(".delete(");
