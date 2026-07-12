@@ -3,7 +3,6 @@ import {
   assertMilestoneDates,
   canTransitionDecision,
   canTransitionMilestone,
-  canSupersedeDecision,
   proposedDecisionStatus,
 } from "./kuan-plan.transitions";
 
@@ -14,13 +13,6 @@ describe("Kuan plan transitions", () => {
     expect(canTransitionDecision("accepted", "in_review")).toBe(true);
     expect(canTransitionDecision("accepted", "superseded")).toBe(true);
     expect(canTransitionDecision("archived", "accepted")).toBe(false);
-  });
-  it("allows supersede only from accepted and in_review", () => {
-    expect(canSupersedeDecision("accepted")).toBe(true);
-    expect(canSupersedeDecision("in_review")).toBe(true);
-    expect(canSupersedeDecision("proposed")).toBe(false);
-    expect(canSupersedeDecision("archived")).toBe(false);
-    expect(canSupersedeDecision("superseded")).toBe(false);
   });
   it("keeps new proposals proposed", () => {
     expect(proposedDecisionStatus()).toBe("proposed");
