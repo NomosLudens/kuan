@@ -2,6 +2,10 @@
 
 Kuan-Yin é a solução comercial canônica integrada à plataforma para gerenciamento de atendimento, agendamento de horários, pedidos de orçamentos, confirmações de pagamentos e operação automatizada com inteligência artificial.
 
+## Objetivo deste repositório
+
+Este repositório existe como vitrine pública do Kuan: apresenta seu propósito, sua experiência, suas superfícies e os princípios que orientam o produto. O código, as telas e a documentação aqui presentes são uma amostra do trabalho e não constituem uma instalação pública ou uma autorização para operar os serviços do Kuan.
+
 ## Arquitetura de Papéis (Regra Canônica)
 
 - **Administrador**: Gerencia Guardiões, analisa convites e monitora a governança global do sistema.
@@ -32,3 +36,11 @@ Este repositório consolidou a infraestrutura de integridade, isolamento e fuso 
 5. **Privacidade Pública & Transparência**:
    - Mecanismos de consentimento explícito para cookies/localStorage, opção de limpeza de dados e identificação anônima única via `crypto.randomUUID()`.
    - Copy de comunicação claro: solicitações não são confirmações até a intervenção e decisão humana do Guardião.
+
+## Aviso autoral e licença
+
+© 2026 Nomos Ludens. Todos os direitos reservados, salvo indicação expressa em arquivo específico.
+
+Este repositório é disponibilizado para fins de apresentação e avaliação. A publicação do código não concede licença para copiar, modificar, redistribuir, comercializar, sublicenciar ou utilizar as marcas, textos, imagens, prompts, conceitos e demais materiais autorais do Kuan sem autorização prévia e expressa do titular.
+
+Dependências de terceiros permanecem sujeitas às respectivas licenças. A ausência de um arquivo `LICENSE` permissivo não deve ser interpretada como autorização de uso além dos direitos mínimos previstos na legislação aplicável.
