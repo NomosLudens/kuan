@@ -1,6 +1,6 @@
 # Kuan-Yin — Canonical Identity, Security & Operations
 
-> **Atribuição obrigatória:** este repositório pode ser usado, estudado, adaptado e redistribuído, inclusive em projetos comerciais, desde que a fonte seja citada de forma visível: **Kuan, por Nomos Ludens — [github.com/NomosLudens/kuan](https://github.com/NomosLudens/kuan)**. Consulte a [licença MIT](./LICENSE).
+> **Atribuição obrigatória:** este repositório pode ser usado, estudado, adaptado e redistribuído, inclusive em projetos comerciais, desde que a fonte seja citada de forma visível: **Kuan, por Nomos Ludens — [github.com/NomosLudens/kuan](https://github.com/NomosLudens/kuan)**. Consulte a [licença CPAL-1.0](./LICENSE).
 
 Kuan-Yin é a solução comercial canônica integrada à plataforma para gerenciamento de atendimento, agendamento de horários, pedidos de orçamentos, confirmações de pagamentos e operação automatizada com inteligência artificial.
 
@@ -41,6 +41,6 @@ Este repositório consolidou a infraestrutura de integridade, isolamento e fuso 
 
 ## Aviso autoral e licença
 
-© 2026 Nomos Ludens. O código deste repositório é disponibilizado sob a [licença MIT](./LICENSE). Em cópias, forks, demonstrações e derivados, mantenha o aviso de copyright e a atribuição visível indicada no início deste README, incluindo o link para o repositório original.
+© 2026 Nomos Ludens. O código deste repositório é disponibilizado sob a [Common Public Attribution License 1.0 (CPAL-1.0)](./LICENSE). Em cópias, forks, demonstrações e derivados, mantenha o aviso de copyright e a atribuição visível indicada no início deste README, incluindo o link para o repositório original.
 
 Marcas, logotipos, nomes, textos, imagens e materiais de terceiros podem estar sujeitos a direitos e condições próprios; a licença do código não transfere esses direitos. Dependências de terceiros permanecem sujeitas às respectivas licenças.
