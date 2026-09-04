@@ -1,5 +1,7 @@
 # Kuan-Yin — Canonical Identity, Security & Operations
 
+> **Atribuição obrigatória:** este repositório pode ser usado, estudado, adaptado e redistribuído, inclusive em projetos comerciais, desde que a fonte seja citada de forma visível: **Kuan, por Nomos Ludens — [github.com/NomosLudens/kuan](https://github.com/NomosLudens/kuan)**. Consulte a [licença MIT](./LICENSE).
+
 Kuan-Yin é a solução comercial canônica integrada à plataforma para gerenciamento de atendimento, agendamento de horários, pedidos de orçamentos, confirmações de pagamentos e operação automatizada com inteligência artificial.
 
 ## Objetivo deste repositório
@@ -39,12 +41,6 @@ Este repositório consolidou a infraestrutura de integridade, isolamento e fuso 
 
 ## Aviso autoral e licença
 
-© 2026 Nomos Ludens.
+© 2026 Nomos Ludens. O código deste repositório é disponibilizado sob a [licença MIT](./LICENSE). Em cópias, forks, demonstrações e derivados, mantenha o aviso de copyright e a atribuição visível indicada no início deste README, incluindo o link para o repositório original.
 
-É permitido usar, estudar, adaptar e redistribuir o conteúdo deste repositório, inclusive em projetos próprios ou comerciais, desde que a fonte seja citada de forma visível e o repositório original seja vinculado:
-
-> Kuan, por Nomos Ludens — https://github.com/NomosLudens/kuan
-
-Essa atribuição deve permanecer em cópias, forks, demonstrações e derivados substancialmente baseados neste material. A permissão não transfere a titularidade das marcas Kuan/Kuan-Yin, logotipos, nomes, textos, imagens ou outros materiais identificados como pertencentes a terceiros; esses elementos permanecem sujeitos às suas próprias condições de uso.
-
-Dependências de terceiros permanecem sujeitas às respectivas licenças. O material é fornecido sem garantia de funcionamento, adequação ou suporte.
+Marcas, logotipos, nomes, textos, imagens e materiais de terceiros podem estar sujeitos a direitos e condições próprios; a licença do código não transfere esses direitos. Dependências de terceiros permanecem sujeitas às respectivas licenças.
