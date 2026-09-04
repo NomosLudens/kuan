@@ -17,22 +17,22 @@ not_found_handling = "single-page-application"
 # Public build-time variables are injected by Vite from the build environment.
 # Runtime secrets must be configured with `wrangler secret put`.
 APP_ENV = "production"
-APP_PUBLIC_URL = "https://kuan.nomosludens.ia.br"
+APP_PUBLIC_URL = "https://your-public-domain.example"
 
 # Runtime Supabase config. Use `SUPABASE_PUBLISHABLE_KEY` for the anon key used
 # by server-side auth checks; `SUPABASE_SERVICE_ROLE_KEY` must stay a secret.
-SUPABASE_URL = "https://nfkvopxbrwjfoemosnoi.supabase.co"
-SUPABASE_PUBLISHABLE_KEY = "sb_publishable_-posxxhpxrn4yGMH6Im_2w_6bN3L_20"
-SUPABASE_ANON_KEY = "sb_publishable_-posxxhpxrn4yGMH6Im_2w_6bN3L_20"
-VITE_SUPABASE_URL = "https://nfkvopxbrwjfoemosnoi.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_-posxxhpxrn4yGMH6Im_2w_6bN3L_20"
-VITE_SUPABASE_ANON_KEY = "sb_publishable_-posxxhpxrn4yGMH6Im_2w_6bN3L_20"
+SUPABASE_URL = "https://your-project.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_your-project-key"
+SUPABASE_ANON_KEY = "sb_publishable_your-project-key"
+VITE_SUPABASE_URL = "https://your-project.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_your-project-key"
+VITE_SUPABASE_ANON_KEY = "sb_publishable_your-project-key"
 
 # OpenRouter model defaults for Kuan.
 AI_PROVIDER = "openrouter"
 AI_FALLBACK_PROVIDER = "openrouter"
 OPENROUTER_APP_NAME = "Kuan"
-OPENROUTER_SITE_URL = "https://kuan.nomosludens.ia.br"
+OPENROUTER_SITE_URL = "https://your-public-domain.example"
 OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"
 OPENROUTER_MODEL_PRIMARY = "deepseek/deepseek-v4-flash"
 OPENROUTER_MODEL_FALLBACK_1 = "openai/gpt-5-nano"
