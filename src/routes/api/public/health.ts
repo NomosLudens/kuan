@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/public/health")({
       GET: async () => {
         const body = {
           status: "ok",
-          service: "kaline",
+          service: "kuan",
           time: new Date().toISOString(),
           uptime_ms: Date.now() - BOOT_TIME,
         };
