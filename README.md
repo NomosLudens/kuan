@@ -39,8 +39,12 @@ Este repositório consolidou a infraestrutura de integridade, isolamento e fuso 
 
 ## Aviso autoral e licença
 
-© 2026 Nomos Ludens. Todos os direitos reservados, salvo indicação expressa em arquivo específico.
+© 2026 Nomos Ludens.
 
-Este repositório é disponibilizado para fins de apresentação e avaliação. A publicação do código não concede licença para copiar, modificar, redistribuir, comercializar, sublicenciar ou utilizar as marcas, textos, imagens, prompts, conceitos e demais materiais autorais do Kuan sem autorização prévia e expressa do titular.
+É permitido usar, estudar, adaptar e redistribuir o conteúdo deste repositório, inclusive em projetos próprios ou comerciais, desde que a fonte seja citada de forma visível e o repositório original seja vinculado:
 
-Dependências de terceiros permanecem sujeitas às respectivas licenças. A ausência de um arquivo `LICENSE` permissivo não deve ser interpretada como autorização de uso além dos direitos mínimos previstos na legislação aplicável.
+> Kuan, por Nomos Ludens — https://github.com/NomosLudens/kuan
+
+Essa atribuição deve permanecer em cópias, forks, demonstrações e derivados substancialmente baseados neste material. A permissão não transfere a titularidade das marcas Kuan/Kuan-Yin, logotipos, nomes, textos, imagens ou outros materiais identificados como pertencentes a terceiros; esses elementos permanecem sujeitos às suas próprias condições de uso.
+
+Dependências de terceiros permanecem sujeitas às respectivas licenças. O material é fornecido sem garantia de funcionamento, adequação ou suporte.
